@@ -10,31 +10,23 @@ import lombok.NoArgsConstructor;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "users")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class Reminder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @NotEmpty
-    private String firstname;
-
-    @NotEmpty
-    private String lastname;
-
-    @NotEmpty
-    private String email;
-
-    @NotEmpty
-    private String username;
-
-    @NotEmpty
-    private String password;
-
     @NotNull
-    private OffsetDateTime joinedAt;
+    private OffsetDateTime time;
+
+    @NotEmpty
+    private String message;
+
+    @ManyToOne
+    @JoinColumn(name = "task_id")
+    private Task task;
+
 }

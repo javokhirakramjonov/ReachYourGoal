@@ -1,44 +1,35 @@
 package com.javahere.reachyourgoal.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.OffsetDateTime;
-import java.util.Set;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Task {
+public class Goal {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @NotBlank
+    @NotEmpty
     private String name;
 
-    @Size(max = 400)
-    private String description;
+    @NotNull
+    private OffsetDateTime createdAt;
 
     @NotNull
-    @CreatedDate
-    private OffsetDateTime createdAt;
+    private OffsetDateTime deadline;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "task_status_id")
-    private TaskStatus taskStatus;
-
-    @ManyToMany
-    private Set<Attachment> attachments;
 }

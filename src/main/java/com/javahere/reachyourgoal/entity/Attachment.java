@@ -2,39 +2,29 @@ package com.javahere.reachyourgoal.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.util.Set;
 
 @Entity
-@Table(name = "users")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class Attachment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @NotEmpty
-    private String firstname;
+    private String fileName;
 
     @NotEmpty
-    private String lastname;
+    private String address;
 
-    @NotEmpty
-    private String email;
+    @ManyToMany
+    private Set<Task> tasks;
 
-    @NotEmpty
-    private String username;
-
-    @NotEmpty
-    private String password;
-
-    @NotNull
-    private OffsetDateTime joinedAt;
 }
