@@ -22,15 +22,10 @@ public class TaskController {
     private final UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<APIResponse> createTask(
-            @RequestHeader(name = "username") String username,
-            @RequestHeader(name = "password") String password,
-            @RequestBody TaskDTO taskDTO) {
-        User user = userService.getUser(username, password);
-
+    public ResponseEntity<APIResponse> createTask(@RequestBody TaskDTO taskDTO) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(taskService.createTask(taskDTO, user));
+                .body(taskService.createTask(taskDTO));
     }
 
     @PostMapping("/create/period")

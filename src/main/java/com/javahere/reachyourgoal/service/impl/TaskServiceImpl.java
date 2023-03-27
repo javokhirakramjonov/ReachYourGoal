@@ -1,4 +1,4 @@
-package com.javahere.reachyourgoal.service;
+package com.javahere.reachyourgoal.service.impl;
 
 import com.javahere.reachyourgoal.dto.DayStatusDTO;
 import com.javahere.reachyourgoal.dto.TaskDTO;
@@ -7,7 +7,9 @@ import com.javahere.reachyourgoal.entity.Task;
 import com.javahere.reachyourgoal.entity.User;
 import com.javahere.reachyourgoal.mapper.TaskMapper;
 import com.javahere.reachyourgoal.repository.TaskRepository;
+import com.javahere.reachyourgoal.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,7 +26,9 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
 
     @Override
-    public APIResponse createTask(TaskDTO taskDTO, User user) {
+    public APIResponse createTask(TaskDTO taskDTO) {
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Task task = taskMapper.toTask(taskDTO);
 

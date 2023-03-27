@@ -1,18 +1,23 @@
-package com.javahere.reachyourgoal.service;
+package com.javahere.reachyourgoal.service.impl;
 
+import com.javahere.reachyourgoal.config.PasswordEncoder;
 import com.javahere.reachyourgoal.dto.UserDTO;
 import com.javahere.reachyourgoal.dto.UserDTOLogin;
 import com.javahere.reachyourgoal.entity.APIResponse;
 import com.javahere.reachyourgoal.entity.User;
 import com.javahere.reachyourgoal.mapper.UserMapper;
 import com.javahere.reachyourgoal.repository.UserRepository;
+import com.javahere.reachyourgoal.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
@@ -30,6 +35,8 @@ public class UserServiceImpl implements UserService {
         if (user2 != null) {
             throw new RuntimeException("There is user with this email");
         }
+
+        userDTO.setPassword(passwordEncoder.bCryptPasswordEncoder().encode(userDTO.getPassword()));
 
         User user = userMapper.toUser(userDTO);
 
@@ -55,5 +62,10 @@ public class UserServiceImpl implements UserService {
         }
 
         return user;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("username or password is invalid"));
     }
 }

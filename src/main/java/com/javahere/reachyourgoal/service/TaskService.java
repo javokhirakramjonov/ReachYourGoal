@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface TaskService {
 
-    APIResponse createTask(TaskDTO taskDTO, User user);
+    APIResponse createTask(TaskDTO taskDTO);
 
     APIResponse createDailyTaskForPeriod(
             TaskDTO taskDTO,
