@@ -1,7 +1,7 @@
 package com.javahere.reachyourgoal.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,10 +18,10 @@ public class Attachment {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @NotEmpty
+    @NotBlank
     private String fileName;
 
-    @NotEmpty
+    @NotBlank
     private String address;
 
     @ManyToMany

@@ -1,13 +1,13 @@
 package com.javahere.reachyourgoal.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -20,9 +20,9 @@ public class Reminder {
     private Long id;
 
     @NotNull
-    private OffsetDateTime time;
+    private LocalDateTime time;
 
-    @NotEmpty
+    @NotBlank
     private String message;
 
     @ManyToOne

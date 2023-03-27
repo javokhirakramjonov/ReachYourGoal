@@ -7,9 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
@@ -28,16 +27,14 @@ public class Task {
     private String description;
 
     @NotNull
-    @CreatedDate
-    private OffsetDateTime createdAt;
+    private LocalDate taskDate;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "task_status_id")
-    private TaskStatus taskStatus;
+    @Enumerated(EnumType.STRING)
+    private TaskStatus taskStatus = TaskStatus.NOT_STARTED;
 
     @ManyToMany
     private Set<Attachment> attachments;
