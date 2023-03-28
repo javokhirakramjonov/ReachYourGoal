@@ -43,14 +43,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean login(UserDTOLogin userDTOLogin) {
-        User user = userRepository
-                .findByUsernameAndPassword(
-                        userDTOLogin.getUsername(),
-                        passwordEncoder.bCryptPasswordEncoder().encode(userDTOLogin.getPassword())
-                )
-                .orElse(null);
 
-        return user != null;
+        User user = userRepository.findByUsername(userDTOLogin.getUsername()).orElse(null);
+
+        if (user == null) {
+            return false;
+        }
+
+        return passwordEncoder
+                .bCryptPasswordEncoder()
+                .matches(userDTOLogin.getPassword(), user.getPassword());
     }
 
     @Override
