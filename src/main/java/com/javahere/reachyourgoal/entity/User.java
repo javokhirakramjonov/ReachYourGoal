@@ -29,9 +29,11 @@ public class User implements UserDetails {
     @NotBlank
     private String lastname;
 
+    @Column(unique = true)
     @NotBlank
     private String email;
 
+    @Column(unique = true)
     @NotBlank
     private String username;
 

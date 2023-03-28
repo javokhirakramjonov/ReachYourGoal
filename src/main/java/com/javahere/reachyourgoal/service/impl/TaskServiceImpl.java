@@ -2,7 +2,6 @@ package com.javahere.reachyourgoal.service.impl;
 
 import com.javahere.reachyourgoal.dto.DayStatusDTO;
 import com.javahere.reachyourgoal.dto.TaskDTO;
-import com.javahere.reachyourgoal.entity.APIResponse;
 import com.javahere.reachyourgoal.entity.Task;
 import com.javahere.reachyourgoal.entity.User;
 import com.javahere.reachyourgoal.mapper.TaskMapper;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -26,52 +26,48 @@ public class TaskServiceImpl implements TaskService {
     private final TaskMapper taskMapper;
 
     @Override
-    public APIResponse createTask(TaskDTO taskDTO) {
+    public TaskDTO createTask(TaskDTO taskDTO) {
 
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = getCurrentUser();
 
         Task task = taskMapper.toTask(taskDTO);
 
         task.setUser(user);
 
-        taskRepository.save(task);
-
-        return new APIResponse(201, "Task created");
+        return taskMapper.toTaskDTO(taskRepository.save(task));
     }
 
     @Override
-    public APIResponse createDailyTaskForPeriod(
+    public List<TaskDTO> createDailyTaskForPeriod(
             TaskDTO taskDTO,
             LocalDate fromDate,
             LocalDate toDate,
-            Integer frequency,
-            User user
+            Integer frequency
     ) {
+        User user = getCurrentUser();
+
         Task task = taskMapper.toTask(taskDTO);
 
         task.setUser(user);
 
-        if (frequency <= 0) {
-            throw new RuntimeException("Frequency must be positive");
-        }
-
-        if (fromDate.isAfter(toDate)) {
-            throw new RuntimeException("Invalid range of dates");
-        }
+        LinkedList<Task> tasks = new LinkedList<>();
 
         fromDate
                 .datesUntil(toDate, Period.ofDays(frequency))
                 .forEach(date -> {
                     task.setTaskDate(date);
 
-                    taskRepository.save(task);
+                    tasks.add(taskRepository.save(task));
                 });
 
-        return new APIResponse(201, "Tasks created");
+        return tasks.stream()
+                .map(taskMapper::toTaskDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<TaskDTO> getTasks(LocalDate date, User user) {
+    public List<TaskDTO> getTasks(LocalDate date) {
+        User user = getCurrentUser();
         return taskRepository
                 .findAllByUserIdAndTaskDate(user.getId(), date)
                 .stream()
@@ -80,15 +76,12 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<DayStatusDTO> getDayStatuses(LocalDate fromDate, LocalDate toDate, User user) {
-        if (fromDate.isAfter(toDate)) {
-            throw new RuntimeException("Invalid range of dates");
-        }
+    public List<DayStatusDTO> getDayStatuses(LocalDate fromDate, LocalDate toDate) {
 
         return fromDate
                 .datesUntil(toDate, Period.ofDays(1))
                 .map(date -> {
-                    List<TaskDTO> tasks = getTasks(date, user);
+                    List<TaskDTO> tasks = getTasks(date);
 
                     AtomicInteger notStarted = new AtomicInteger();
                     AtomicInteger inProgress = new AtomicInteger();
@@ -110,5 +103,9 @@ public class TaskServiceImpl implements TaskService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    private User getCurrentUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

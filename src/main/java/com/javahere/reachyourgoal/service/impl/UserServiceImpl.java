@@ -3,7 +3,6 @@ package com.javahere.reachyourgoal.service.impl;
 import com.javahere.reachyourgoal.config.PasswordEncoder;
 import com.javahere.reachyourgoal.dto.UserDTO;
 import com.javahere.reachyourgoal.dto.UserDTOLogin;
-import com.javahere.reachyourgoal.entity.APIResponse;
 import com.javahere.reachyourgoal.entity.User;
 import com.javahere.reachyourgoal.mapper.UserMapper;
 import com.javahere.reachyourgoal.repository.UserRepository;
@@ -21,47 +20,37 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    @Override
+    public Boolean usernameExists(String username) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        return user != null;
+    }
 
     @Override
-    public APIResponse createUser(UserDTO userDTO) {
+    public Boolean emailExists(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        return user != null;
+    }
 
-        User user1 = userRepository.findByUsername(userDTO.getUsername()).orElse(null);
-        User user2 = userRepository.findByEmail(userDTO.getEmail()).orElse(null);
-
-        if (user1 != null) {
-            throw new RuntimeException("There is user with this username");
-        }
-
-        if (user2 != null) {
-            throw new RuntimeException("There is user with this email");
-        }
-
+    @Override
+    public UserDTO createUser(UserDTO userDTO) {
         userDTO.setPassword(passwordEncoder.bCryptPasswordEncoder().encode(userDTO.getPassword()));
 
         User user = userMapper.toUser(userDTO);
 
-        userRepository.save(user);
-
-        return new APIResponse(201, "User created");
+        return userMapper.toUserDTO(userRepository.save(user));
     }
 
     @Override
-    public APIResponse login(UserDTOLogin userDTOLogin) {
-        getUser(userDTOLogin.getUsername(), userDTOLogin.getPassword());
+    public Boolean login(UserDTOLogin userDTOLogin) {
+        User user = userRepository
+                .findByUsernameAndPassword(
+                        userDTOLogin.getUsername(),
+                        passwordEncoder.bCryptPasswordEncoder().encode(userDTOLogin.getPassword())
+                )
+                .orElse(null);
 
-        return new APIResponse(200, "success");
-    }
-
-    @Override
-    public User getUser(String username, String password) {
-
-        User user = userRepository.findByUsername(username).orElse(null);
-
-        if (user == null || !user.getPassword().equals(password)) {
-            throw new RuntimeException("Username or Password is invalid");
-        }
-
-        return user;
+        return user != null;
     }
 
     @Override
