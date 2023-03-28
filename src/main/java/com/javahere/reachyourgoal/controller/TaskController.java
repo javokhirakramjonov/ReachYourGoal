@@ -28,7 +28,7 @@ public class TaskController {
     }
 
     @PostMapping("/create/period")
-    public ResponseEntity<List<TaskDTO>> createDailyTaskForPeriod(
+    public ResponseEntity<String> createDailyTaskForPeriod(
             @RequestParam(name = "frequency") Integer frequency,
             @RequestParam(name = "fromDate") String fromDate,
             @RequestParam(name = "toDate") String toDate,
@@ -43,7 +43,7 @@ public class TaskController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(savedTasks);
+                .body(savedTasks + " tasks saved successfully");
     }
 
     @GetMapping("/get")

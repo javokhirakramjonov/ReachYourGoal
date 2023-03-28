@@ -4,8 +4,6 @@ import com.javahere.reachyourgoal.dto.TaskDTO;
 import com.javahere.reachyourgoal.entity.Task;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-
 @Component
 public class TaskMapper {
 
@@ -14,7 +12,7 @@ public class TaskMapper {
 
         task.setName(taskDTO.getName());
         task.setDescription(taskDTO.getDescription());
-        task.setTaskDate(LocalDate.now());
+        task.setTaskDate(taskDTO.getTaskDate());
 
         return task;
     }
