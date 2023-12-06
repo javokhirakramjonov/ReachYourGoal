@@ -7,7 +7,7 @@ import java.time.LocalDate
 data class TaskDate(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0L,
+    val id: Int = 0,
 
     @Column(name = "date")
     val date: LocalDate,
