@@ -1,21 +1,15 @@
 package me.javahere.reachyourgoal.domain
 
-import jakarta.persistence.*
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Column
+import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDate
 
-@Entity(name = "task_dates")
+@Table(name = "task_dates")
 data class TaskDate(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int = 0,
 
-    @Column(name = "date")
+    @Column("date")
     val date: LocalDate,
-
-    @ManyToMany(
-        fetch = FetchType.LAZY,
-        mappedBy = "dates"
-    )
-    @Column(name = "tasks")
-    val tasks: Set<Task> = emptySet()
 )
