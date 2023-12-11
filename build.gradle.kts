@@ -38,6 +38,8 @@ dependencies {
 	implementation("org.flywaydb:flyway-core")
 	implementation("org.postgresql:postgresql")
 	implementation("org.postgresql:r2dbc-postgresql")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("com.auth0:java-jwt:3.19.2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("io.projectreactor:reactor-test")
