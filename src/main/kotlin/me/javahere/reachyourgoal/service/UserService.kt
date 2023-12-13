@@ -8,5 +8,5 @@ interface UserService : ReactiveUserDetailsService {
     suspend fun isUsernameExists(username: String): Boolean
     suspend fun isEmailExists(email: String): Boolean
     suspend fun registerUser(user: RequestRegister)
-    suspend fun findUserByUsername(username: String): UserDto?
+    suspend fun findUserByEmail(email: String): UserDto?
 }

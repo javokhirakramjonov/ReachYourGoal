@@ -52,8 +52,8 @@ class UserServiceImpl(
         userRepository.save(userWithEncodedPassword.transform())
     }
 
-    override suspend fun findUserByUsername(username: String): UserDto? {
-        return userRepository.findByUsername(username)?.transform()
+    override suspend fun findUserByEmail(email: String): UserDto? {
+        return userRepository.findByEmail(email)?.transform()
     }
 
 }

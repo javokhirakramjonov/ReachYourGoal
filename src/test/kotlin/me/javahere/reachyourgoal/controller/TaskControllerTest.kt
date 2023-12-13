@@ -1,13 +1,15 @@
 package me.javahere.reachyourgoal.controller
 
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import me.javahere.reachyourgoal.PostgresExtension
 import me.javahere.reachyourgoal.domain.Role
 import me.javahere.reachyourgoal.domain.User
+import me.javahere.reachyourgoal.dto.TaskDto
 import me.javahere.reachyourgoal.dto.request.RequestLogin
-import me.javahere.reachyourgoal.dto.request.RequestRegister
+import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
+import me.javahere.reachyourgoal.repository.TaskRepository
 import me.javahere.reachyourgoal.repository.UserRepository
-import me.javahere.reachyourgoal.security.JwtService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,25 +18,23 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.reactive.server.WebTestClient
 
 @SpringBootTest
 @AutoConfigureWebTestClient
 @ExtendWith(PostgresExtension::class)
-class UserControllerTest(
+class TaskControllerTest(
     @Autowired private val webTestClient: WebTestClient,
-    @Autowired private val jwtService: JwtService,
+    @Autowired private val passwordEncoder: PasswordEncoder,
     @Autowired private val userRepository: UserRepository,
-    @Autowired private val passwordEncoder: PasswordEncoder
+    @Autowired private val taskRepository: TaskRepository
 ) {
 
     @Test
-    @DirtiesContext
-    fun shouldLogin() {
+    fun shouldAddTask() {
         runBlocking {
-            val username = "username5"
-            val password = "password5"
+            val username = "username2"
+            val password = "password"
 
             val mockUser = User(
                 id = null,
@@ -62,32 +62,28 @@ class UserControllerTest(
                 .expectBody().returnResult().responseHeaders
 
             val accessToken = responseHeaders[HttpHeaders.AUTHORIZATION]?.get(0)
-            val refreshToken = responseHeaders["Refresh-Token"]?.get(0)
 
-            val decodedAccessToken = jwtService.decodeAccessToken(accessToken!!)
-            jwtService.decodeRefreshToken(refreshToken!!)
+            val requestTaskCreate = RequestTaskCreate(
+                "task",
+                null
+            )
 
-            Assertions.assertTrue(jwtService.getRoles(decodedAccessToken).any { it.authority == "USER" })
+            val response = webTestClient
+                .post()
+                .uri("/api/v1/tasks")
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .bodyValue(requestTaskCreate)
+                .exchange()
+                .expectStatus().isOk
+
+            val id = response.expectBody(TaskDto::class.java).returnResult().responseBody?.id
+
+            Assertions.assertNotNull(id)
+
+            val createdTask = taskRepository.findAll().firstOrNull { it.id == id }
+
+            Assertions.assertNotNull(createdTask)
         }
+
     }
-
-    @DirtiesContext
-    @Test
-    fun shouldRegister() {
-
-        val mockUser = RequestRegister(
-            "name",
-            "name2",
-            "username4",
-            "email4",
-            "pass"
-        )
-
-        webTestClient
-            .post().uri("/auth/register")
-            .bodyValue(mockUser)
-            .exchange()
-            .expectStatus().isOk
-    }
-
 }

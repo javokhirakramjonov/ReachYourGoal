@@ -1,5 +1,7 @@
 package me.javahere.reachyourgoal.domain
 
+import me.javahere.reachyourgoal.dto.TaskDto
+import me.javahere.reachyourgoal.util.Transformable
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -22,4 +24,17 @@ data class Task(
 
     @Column("user_id")
     val userId: UUID,
-)
+) : Transformable<TaskDto> {
+
+    override fun transform(): TaskDto {
+        return TaskDto(
+            id = id!!,
+            name = name,
+            description = description,
+            spentTime = spentTime,
+            status = status,
+            userId = userId
+        )
+    }
+
+}

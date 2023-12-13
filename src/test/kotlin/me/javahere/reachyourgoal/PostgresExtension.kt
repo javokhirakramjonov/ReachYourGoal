@@ -6,11 +6,10 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 
-
 @Testcontainers
 class PostgresExtension : BeforeAllCallback, AfterAllCallback {
 
-    private var database = PostgreSQLContainer("postgres:15.3-alpine").withReuse(true)
+    private var database = PostgreSQLContainer("postgres:15.3-alpine")
 
     override fun afterAll(context: ExtensionContext) {
         database.stop()
