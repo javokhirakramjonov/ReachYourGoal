@@ -1,5 +1,7 @@
 package me.javahere.reachyourgoal.domain
 
+import me.javahere.reachyourgoal.dto.UserDto
+import me.javahere.reachyourgoal.util.Transformable
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -35,7 +37,7 @@ data class User(
     val isEnabled: Boolean = true,
     @Column("role")
     val role: Role
-) : UserDetails {
+) : UserDetails, Transformable<UserDto> {
     override fun getAuthorities() = listOf(SimpleGrantedAuthority(role.name))
 
     override fun getPassword() = password
@@ -49,4 +51,14 @@ data class User(
     override fun isCredentialsNonExpired() = isCredentialsExpired.not()
 
     override fun isEnabled() = isEnabled
+
+    override fun transform(): UserDto {
+        return UserDto(
+            id = id!!,
+            firstName = firstName,
+            lastName = lastName,
+            email = email,
+            username = username
+        )
+    }
 }

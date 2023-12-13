@@ -1,6 +1,6 @@
 package me.javahere.reachyourgoal.controller.handler
 
-import me.javahere.reachyourgoal.dto.RequestRegister
+import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.service.impl.UserServiceImpl
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component

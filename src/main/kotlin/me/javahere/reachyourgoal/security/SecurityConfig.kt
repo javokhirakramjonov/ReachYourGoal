@@ -44,6 +44,7 @@ class SecurityConfiguration {
             authorize("/auth/**", permitAll)
             authorize("/api/**", hasAuthority(Role.USER.name))
             authorize("/admin/**", hasAuthority(Role.ADMIN.name))
+            authorize(anyExchange, authenticated)
         }
 
         addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)

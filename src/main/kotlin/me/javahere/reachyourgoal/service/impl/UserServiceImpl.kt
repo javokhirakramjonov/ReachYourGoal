@@ -2,7 +2,8 @@ package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.domain.User
-import me.javahere.reachyourgoal.dto.RequestRegister
+import me.javahere.reachyourgoal.dto.UserDto
+import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.repository.UserRepository
 import me.javahere.reachyourgoal.service.UserService
 import org.springframework.security.authentication.BadCredentialsException
@@ -49,6 +50,10 @@ class UserServiceImpl(
         )
 
         userRepository.save(userWithEncodedPassword.transform())
+    }
+
+    override suspend fun findUserByUsername(username: String): UserDto? {
+        return userRepository.findByUsername(username)?.transform()
     }
 
 }

@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.security
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.configuration.exception.HttpExceptionFactory.badRequest
-import me.javahere.reachyourgoal.dto.RequestLogin
+import me.javahere.reachyourgoal.dto.request.RequestLogin
 import org.springframework.core.ResolvableType
 import org.springframework.http.MediaType
 import org.springframework.http.codec.json.AbstractJackson2Decoder

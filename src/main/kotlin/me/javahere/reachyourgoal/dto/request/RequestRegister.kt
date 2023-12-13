@@ -1,4 +1,4 @@
-package me.javahere.reachyourgoal.dto
+package me.javahere.reachyourgoal.dto.request
 
 import me.javahere.reachyourgoal.domain.Role
 import me.javahere.reachyourgoal.domain.User
