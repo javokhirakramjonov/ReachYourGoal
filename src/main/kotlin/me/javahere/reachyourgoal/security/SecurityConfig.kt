@@ -1,7 +1,7 @@
 package me.javahere.reachyourgoal.security
 
 import me.javahere.reachyourgoal.domain.Role
-import me.javahere.reachyourgoal.service.UserService
+import me.javahere.reachyourgoal.service.impl.UserServiceImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -76,7 +76,7 @@ class SecurityConfiguration {
 
     @Bean
     fun reactiveAuthenticationManager(
-        userService: UserService,
+        userService: UserServiceImpl,
         passwordEncoder: PasswordEncoder
     ): ReactiveAuthenticationManager =
         UserDetailsRepositoryReactiveAuthenticationManager(userService).apply {

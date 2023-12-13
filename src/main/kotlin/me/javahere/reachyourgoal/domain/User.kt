@@ -25,14 +25,14 @@ data class User(
     @JvmField
     val password: String,
     @Column("is_account_expired")
-    val isAccountExpired: Boolean,
+    val isAccountExpired: Boolean = false,
     @Column("is_account_locked")
-    val isAccountLocked: Boolean,
+    val isAccountLocked: Boolean = false,
     @Column("is_credentials_expired")
-    val isCredentialsExpired: Boolean,
+    val isCredentialsExpired: Boolean = false,
     @Column("is_enabled")
     @JvmField
-    val isEnabled: Boolean,
+    val isEnabled: Boolean = true,
     @Column("role")
     val role: Role
 ) : UserDetails {
