@@ -1,21 +1,17 @@
 package me.javahere.reachyourgoal.security
 
-import me.javahere.reachyourgoal.PostgresExtension
+import me.javahere.reachyourgoal.TestContainerRelatedTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
-import org.springframework.boot.test.context.SpringBootTest
 import java.time.Duration
 import java.util.*
 
-@SpringBootTest
 @AutoConfigureWebTestClient
-@ExtendWith(PostgresExtension::class)
 class JwtServiceTest(
     @Autowired private val jwtService: JwtService
-) {
+) : TestContainerRelatedTest() {
 
     private val EXPIRE_ACCESS_TOKEN = Duration.ofMinutes(15).toMillis().toInt()
 

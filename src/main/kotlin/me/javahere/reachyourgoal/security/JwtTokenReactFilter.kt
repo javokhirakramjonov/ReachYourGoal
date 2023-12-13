@@ -1,6 +1,5 @@
 package me.javahere.reachyourgoal.security
 
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
@@ -17,7 +16,6 @@ class JwtTokenReactFilter(
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
         val token = exchange.jwtAccessToken() ?: return chain.filter(exchange)
         try {
-            log.info("🍄🍄🍄 JWT token: $token")
             val auth = UsernamePasswordAuthenticationToken(
                 jwtService.getUsername(token),
                 null,
@@ -26,15 +24,12 @@ class JwtTokenReactFilter(
             val context: Context = ReactiveSecurityContextHolder.withAuthentication(auth)
             return chain.filter(exchange).contextWrite(context)
         } catch (e: Exception) {
-            log.error("JWT exception", e)
+            return chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.clearContext())
         }
-        return chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.clearContext())
     }
 
     companion object {
         fun ServerWebExchange.jwtAccessToken(): String? =
             request.headers.getFirst(AUTHORIZATION)?.substringAfter("Bearer ")
-
-        private val log = LoggerFactory.getLogger(this::class.java)
     }
 }

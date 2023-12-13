@@ -30,7 +30,9 @@ class SecurityConfiguration {
 
     @Bean
     fun securityWebFilterChain(
-        http: ServerHttpSecurity, jwtService: JwtService, jwtAuthenticationFilter: AuthenticationWebFilter
+        http: ServerHttpSecurity,
+        jwtService: JwtService,
+        jwtAuthenticationFilter: AuthenticationWebFilter
     ): SecurityWebFilterChain = http {
 
         csrf { disable() }
