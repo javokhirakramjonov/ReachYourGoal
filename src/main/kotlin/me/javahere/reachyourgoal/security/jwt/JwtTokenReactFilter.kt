@@ -1,4 +1,4 @@
-package me.javahere.reachyourgoal.security
+package me.javahere.reachyourgoal.security.jwt
 
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken

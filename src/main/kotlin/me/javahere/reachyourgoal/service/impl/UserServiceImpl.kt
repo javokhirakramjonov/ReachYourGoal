@@ -44,12 +44,14 @@ class UserServiceImpl(
         return userWithEmail != null
     }
 
-    override suspend fun registerUser(user: RequestRegister) {
+    override suspend fun registerUser(user: RequestRegister): UserDto {
         val userWithEncodedPassword = user.copy(
             password = passwordEncoder.encode(user.password)
         )
 
-        userRepository.save(userWithEncodedPassword.transform())
+        val createdUser = userRepository.save(userWithEncodedPassword.transform())
+
+        return createdUser.transform()
     }
 
     override suspend fun findUserByEmail(email: String): UserDto? {

@@ -1,4 +1,4 @@
-package me.javahere.reachyourgoal.security
+package me.javahere.reachyourgoal.security.jwt
 
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.configuration.exception.HttpExceptionFactory.unauthorized

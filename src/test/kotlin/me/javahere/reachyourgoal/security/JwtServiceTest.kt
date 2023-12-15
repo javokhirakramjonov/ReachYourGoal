@@ -1,6 +1,7 @@
 package me.javahere.reachyourgoal.security
 
 import me.javahere.reachyourgoal.PostgresExtension
+import me.javahere.reachyourgoal.security.jwt.JwtService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

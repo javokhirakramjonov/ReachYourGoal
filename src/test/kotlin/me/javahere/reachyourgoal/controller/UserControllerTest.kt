@@ -7,7 +7,7 @@ import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.dto.request.RequestLogin
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.repository.UserRepository
-import me.javahere.reachyourgoal.security.JwtService
+import me.javahere.reachyourgoal.security.jwt.JwtService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

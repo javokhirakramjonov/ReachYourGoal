@@ -40,6 +40,8 @@ dependencies {
 	implementation("org.postgresql:r2dbc-postgresql")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("com.auth0:java-jwt:3.19.2")
+	implementation("org.springdoc:springdoc-openapi-starter-webflux-api:2.3.0")
+	implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
 	testImplementation("io.projectreactor:reactor-test")

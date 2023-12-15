@@ -1,6 +1,8 @@
 package me.javahere.reachyourgoal.security
 
 import me.javahere.reachyourgoal.domain.Role
+import me.javahere.reachyourgoal.security.jwt.JwtService
+import me.javahere.reachyourgoal.security.jwt.JwtTokenReactFilter
 import me.javahere.reachyourgoal.service.impl.UserServiceImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -44,7 +46,7 @@ class SecurityConfiguration {
             authorize("/auth/**", permitAll)
             authorize("/api/**", hasAuthority(Role.USER.name))
             authorize("/admin/**", hasAuthority(Role.ADMIN.name))
-            authorize(anyExchange, authenticated)
+            authorize(anyExchange, permitAll)
         }
 
         addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)

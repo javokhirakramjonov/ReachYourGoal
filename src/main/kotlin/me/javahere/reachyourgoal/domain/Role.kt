@@ -2,5 +2,6 @@ package me.javahere.reachyourgoal.domain
 
 enum class Role {
     ADMIN,
-    USER
+    USER,
+    SWAGGER_ENABLED_USER
 }

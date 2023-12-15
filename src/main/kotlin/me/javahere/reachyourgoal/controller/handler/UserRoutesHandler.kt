@@ -4,7 +4,10 @@ import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.service.impl.UserServiceImpl
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.server.*
+import org.springframework.web.reactive.function.server.ServerRequest
+import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.awaitBody
+import org.springframework.web.reactive.function.server.bodyValueAndAwait
 
 @Component
 class UserRoutesHandler(
@@ -19,12 +22,12 @@ class UserRoutesHandler(
                 .bodyValueAndAwait("Username is already exists")
 
             userService.isEmailExists(user.email) -> ServerResponse.status(HttpStatus.CONFLICT)
-                .bodyValueAndAwait("Username is already exists")
+                .bodyValueAndAwait("Email is already exists")
 
             else -> {
-                userService.registerUser(user)
+                val createdUser = userService.registerUser(user)
 
-                ServerResponse.ok().buildAndAwait()
+                ServerResponse.ok().bodyValueAndAwait(createdUser)
             }
         }
     }

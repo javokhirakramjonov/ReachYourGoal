@@ -7,6 +7,6 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 interface UserService : ReactiveUserDetailsService {
     suspend fun isUsernameExists(username: String): Boolean
     suspend fun isEmailExists(email: String): Boolean
-    suspend fun registerUser(user: RequestRegister)
+    suspend fun registerUser(user: RequestRegister): UserDto
     suspend fun findUserByEmail(email: String): UserDto?
 }
