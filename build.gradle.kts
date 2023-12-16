@@ -49,6 +49,7 @@ dependencies {
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:postgresql")
 	testImplementation("org.testcontainers:r2dbc")
+    testImplementation("io.mockk:mockk:1.13.8")
 }
 
 tasks.withType<KotlinCompile> {

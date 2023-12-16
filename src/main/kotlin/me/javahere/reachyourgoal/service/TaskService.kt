@@ -7,7 +7,7 @@ import java.util.*
 
 interface TaskService {
     suspend fun createTask(task: RequestTaskCreate, userId: UUID): TaskDto
-    suspend fun getTaskById(id: UUID, userId: UUID): TaskDto?
-    suspend fun getAllTasks(userId: UUID): Flow<TaskDto>
+    suspend fun getTaskByTaskIdAndUserId(id: UUID, userId: UUID): TaskDto?
+    fun getAllTasksByUserId(userId: UUID): Flow<TaskDto>
     suspend fun updateTask(task: TaskDto): TaskDto?
 }

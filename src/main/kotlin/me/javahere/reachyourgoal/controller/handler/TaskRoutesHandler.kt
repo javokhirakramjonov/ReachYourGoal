@@ -36,7 +36,7 @@ class TaskRoutesHandler(
         val userId = getUserId(serverRequest)
 
         val id = UUID.fromString(serverRequest.pathVariable("id"))
-        val task = taskService.getTaskById(id, userId)
+        val task = taskService.getTaskByTaskIdAndUserId(id, userId)
 
         return if (task != null)
             ServerResponse.ok().bodyValueAndAwait(task)
@@ -47,7 +47,7 @@ class TaskRoutesHandler(
     suspend fun getAllTasks(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
 
-        val allTasks = taskService.getAllTasks(userId)
+        val allTasks = taskService.getAllTasksByUserId(userId)
 
         return ServerResponse.ok().bodyAndAwait(allTasks)
     }
