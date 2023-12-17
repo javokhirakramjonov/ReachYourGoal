@@ -40,4 +40,8 @@ class TaskServiceImpl(
             .updateTask(task.transform())
             .transform()
     }
+
+    override suspend fun deleteTaskByTaskIdAndUserId(taskId: UUID, userId: UUID) {
+        taskDataSource.deleteTaskByTaskIdAndUserId(taskId, userId)
+    }
 }
