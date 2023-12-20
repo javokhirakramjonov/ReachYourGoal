@@ -14,8 +14,9 @@ class MockTaskDataSource : TaskDataSource {
     private val tasks = mutableListOf<Task>()
 
     override suspend fun createTask(task: Task): Task {
-        tasks.add(task)
-        return task
+        val taskWithId = if (task.id == null) task.copy(id = UUID.randomUUID()) else task
+        tasks.add(taskWithId)
+        return taskWithId
     }
 
     override fun retrieveAllTasksByUserId(userId: UUID): Flow<Task> {
