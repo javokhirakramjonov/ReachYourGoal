@@ -5,12 +5,11 @@ import java.util.*
 
 data class RequestTaskCreate(
     val name: String,
-    val description: String?
+    val description: String? = null
 ) {
 
     fun transform(userId: UUID): Task {
         return Task(
-            id = null,
             name = name,
             description = description,
             userId = userId
