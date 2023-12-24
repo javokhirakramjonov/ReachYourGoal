@@ -3,9 +3,9 @@ package me.javahere.reachyourgoal.service
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
-import me.javahere.reachyourgoal.datasource.TaskDataSource
 import me.javahere.reachyourgoal.datasource.mock.MockTaskDataSource
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
@@ -16,11 +16,7 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 class TaskServiceTest {
-
-    private val mockDataSource = mockk<TaskDataSource>(relaxed = true, relaxUnitFun = true)
-    private val mockTaskService = TaskServiceImpl(mockDataSource)
-
-    private val dataSource = MockTaskDataSource()
+    private val dataSource = spyk(MockTaskDataSource())
     private val taskService = TaskServiceImpl(dataSource)
 
     private val existedUserId = MockConstants.USER_ID
@@ -39,22 +35,21 @@ class TaskServiceTest {
     fun `should call it's datasource methods`() {
         runBlocking {
             // given
-            val task = mockk<RequestTaskCreate>(relaxed = true)
-            every { task.name } returns "task"
+            val task = RequestTaskCreate("task")
 
             // when
-            val createdTask = mockTaskService.createTask(task, existedUserId)
-            mockTaskService.getTaskByTaskIdAndUserId(createdTask.id, existedUserId)
-            mockTaskService.getAllTasksByUserId(existedUserId)
-            mockTaskService.updateTask(createdTask)
-            mockTaskService.deleteTaskByTaskIdAndUserId(createdTask.id, existedUserId)
+            val createdTask = taskService.createTask(task, existedUserId)
+            taskService.getTaskByTaskIdAndUserId(createdTask.id, existedUserId)
+            taskService.getAllTasksByUserId(existedUserId)
+            taskService.updateTask(createdTask)
+            taskService.deleteTaskByTaskIdAndUserId(createdTask.id, existedUserId)
 
             // then
-            coVerify(atLeast = 1) { mockDataSource.createTask(any()) }
-            coVerify(atLeast = 1) { mockDataSource.retrieveTaskByTaskIdAndUserId(any(), any()) }
-            coVerify(atLeast = 1) { mockDataSource.retrieveAllTasksByUserId(any()) }
-            coVerify(atLeast = 1) { mockDataSource.updateTask(any()) }
-            coVerify(atLeast = 1) { mockDataSource.deleteTaskByTaskIdAndUserId(any(), any()) }
+            coVerify(atLeast = 1) { dataSource.createTask(any()) }
+            coVerify(atLeast = 1) { dataSource.retrieveTaskByTaskIdAndUserId(any(), any()) }
+            coVerify(atLeast = 1) { dataSource.retrieveAllTasksByUserId(any()) }
+            coVerify(atLeast = 1) { dataSource.updateTask(any()) }
+            coVerify(atLeast = 1) { dataSource.deleteTaskByTaskIdAndUserId(any(), any()) }
         }
     }
 
