@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+	CREATE SCHEMA app;
+	ALTER ROLE "$POSTGRES_USER" SET search_path = app;
+
+  GRANT ALL ON DATABASE "$POSTGRES_DB" TO "$POSTGRES_USER";
+  GRANT ALL ON SCHEMA app TO "$POSTGRES_USER";
+EOSQL

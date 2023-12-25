@@ -5,14 +5,10 @@ services:
     container_name: reach_your_goal_database_container
     image: postgres:15.3-alpine
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - "./pg-init.sql:/docker-entrypoint-initdb.d/master_db_init.sql"
+      - "./pg-init.sh:/docker-entrypoint-initdb.d/db_init.sh"
     environment:
-      POSTGRES_DB: reach_your_goal_database
-      POSTGRES_USER: javahere
-      POSTGRES_PASSWORD: whynotbro
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
-
-volumes:
-  pgdata:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
