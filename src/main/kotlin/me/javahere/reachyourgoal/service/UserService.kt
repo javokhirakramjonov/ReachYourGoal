@@ -7,9 +7,9 @@ import java.util.*
 interface UserService {
     suspend fun registerUser(user: RequestRegister): UserDto
 
-    suspend fun findUserById(userId: UUID): UserDto?
-    suspend fun findUserByEmail(email: String): UserDto?
-    suspend fun findUserByUsername(username: String): UserDto?
+    suspend fun findUserById(userId: UUID): UserDto
+    suspend fun findUserByEmail(email: String): UserDto
+    suspend fun findUserByUsername(username: String): UserDto
 
     suspend fun isUsernameExists(username: String): Boolean
     suspend fun isEmailExists(email: String): Boolean
@@ -19,12 +19,12 @@ interface UserService {
         firstName: String? = null,
         lastName: String? = null,
         username: String? = null,
-    ): UserDto?
+    ): UserDto
 
     suspend fun updateEmail(
         userId: UUID,
         newEmail: String
-    ): UserDto?
+    ): UserDto
 
     suspend fun deleteUserById(userId: UUID)
 }

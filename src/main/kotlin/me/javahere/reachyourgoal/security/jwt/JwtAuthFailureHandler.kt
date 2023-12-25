@@ -2,7 +2,8 @@ package me.javahere.reachyourgoal.security.jwt
 
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
-import me.javahere.reachyourgoal.configuration.exception.HttpExceptionFactory
+import me.javahere.reachyourgoal.exception.ReachYourGoalException
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.server.WebFilterExchange
@@ -16,7 +17,8 @@ class JwtAuthFailureHandler : ServerAuthenticationFailureHandler {
     override fun onAuthenticationFailure(
         webFilterExchange: WebFilterExchange, exception: AuthenticationException?
     ): Mono<Void> = mono {
-        val exchange = webFilterExchange.exchange ?: throw HttpExceptionFactory.unauthorized()
+        val exchange =
+            webFilterExchange.exchange ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
 
         with(exchange.response) {
             statusCode = UNAUTHORIZED

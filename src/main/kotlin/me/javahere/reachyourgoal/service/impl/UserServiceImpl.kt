@@ -5,10 +5,10 @@ import me.javahere.reachyourgoal.datasource.UserDataSource
 import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
-import me.javahere.reachyourgoal.exception.DuplicatedElementException
+import me.javahere.reachyourgoal.exception.ReachYourGoalException
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
 import me.javahere.reachyourgoal.service.UserService
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -33,23 +33,31 @@ class UserServiceImpl(
         return createdUser.transform()
     }
 
-    override suspend fun findUserById(userId: UUID): UserDto? {
+    override suspend fun findUserById(userId: UUID): UserDto {
         return userDataSource
             .retrieveUserById(userId)
             ?.transform()
+            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No user found with that userId: $userId"))
     }
 
-    override suspend fun findUserByEmail(email: String): UserDto? {
-        return userDataSource.retrieveUserByEmail(email)?.transform()
+    override suspend fun findUserByEmail(email: String): UserDto {
+        return userDataSource
+            .retrieveUserByEmail(email)
+            ?.transform()
+            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No user found with that email: $email"))
     }
 
-    override suspend fun findUserByUsername(username: String): UserDto? {
-        return userDataSource.retrieveUserByUsername(username)?.transform()
+    override suspend fun findUserByUsername(username: String): UserDto {
+        return userDataSource
+            .retrieveUserByUsername(username)
+            ?.transform()
+            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No user found with that username: $username"))
     }
 
     override fun findByUsername(username: String): Mono<UserDetails> = mono {
         val user: User =
-            userDataSource.retrieveUserByUsername(username) ?: throw BadCredentialsException("Invalid Credentials")
+            userDataSource.retrieveUserByUsername(username)
+                ?: throw ReachYourGoalException(ReachYourGoalExceptionType.BadCredentials)
 
         val authorities: List<GrantedAuthority> = user.authorities
 
@@ -75,14 +83,15 @@ class UserServiceImpl(
         firstName: String?,
         lastName: String?,
         username: String?,
-    ): UserDto? {
-        val foundUser = userDataSource.retrieveUserById(userId) ?: return null
+    ): UserDto {
+        val foundUser = userDataSource.retrieveUserById(userId)
+            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No user found with that userId: $userId"))
 
         if (username != null) {
             val userWithUsername = userDataSource.retrieveUserByUsername(username)
 
             if (userWithUsername != null && userWithUsername.id != userId)
-                throw DuplicatedElementException("username: $username is already exists")
+                throw ReachYourGoalException(exceptionType = ReachYourGoalExceptionType.AlreadyExists("username: $username is already exists"))
         }
 
         val newFirstName = firstName ?: foundUser.firstName
@@ -100,7 +109,7 @@ class UserServiceImpl(
         return updatedUser.transform()
     }
 
-    override suspend fun updateEmail(userId: UUID, newEmail: String): UserDto? {
+    override suspend fun updateEmail(userId: UUID, newEmail: String): UserDto {
         TODO()
     }
 

@@ -1,7 +1,8 @@
 package me.javahere.reachyourgoal.security.jwt
 
 import kotlinx.coroutines.reactor.mono
-import me.javahere.reachyourgoal.configuration.exception.HttpExceptionFactory.unauthorized
+import me.javahere.reachyourgoal.exception.ReachYourGoalException
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.web.server.WebFilterExchange
@@ -23,7 +24,8 @@ class JwtAuthSuccessHandler(
     override fun onAuthenticationSuccess(
         webFilterExchange: WebFilterExchange, authentication: Authentication
     ): Mono<Void> = mono {
-        val principal = authentication.principal ?: throw unauthorized()
+        val principal =
+            authentication.principal ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
 
         when (principal) {
             is User -> {
@@ -32,7 +34,8 @@ class JwtAuthSuccessHandler(
                 val accessToken = jwtService.accessToken(principal.username, EXPIRE_ACCESS_TOKEN, roles)
                 val refreshToken = jwtService.refreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
 
-                val exchange = webFilterExchange.exchange ?: throw unauthorized()
+                val exchange =
+                    webFilterExchange.exchange ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
 
                 with(exchange.response.headers) {
                     setBearerAuth(accessToken)
@@ -41,7 +44,7 @@ class JwtAuthSuccessHandler(
 
             }
 
-            else -> throw RuntimeException("Not User!")
+            else -> throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthenticated)
         }
 
         return@mono null

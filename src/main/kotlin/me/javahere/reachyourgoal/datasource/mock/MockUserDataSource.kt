@@ -2,7 +2,6 @@ package me.javahere.reachyourgoal.datasource.mock
 
 import me.javahere.reachyourgoal.datasource.UserDataSource
 import me.javahere.reachyourgoal.domain.User
-import me.javahere.reachyourgoal.exception.DuplicatedElementException
 import me.javahere.reachyourgoal.util.MockConstants.USER_EMAIL
 import me.javahere.reachyourgoal.util.MockConstants.USER_FIRSTNAME
 import me.javahere.reachyourgoal.util.MockConstants.USER_ID
@@ -16,7 +15,7 @@ import java.util.*
 @Repository
 class MockUserDataSource() : UserDataSource {
 
-    private val users = mutableListOf<User>(
+    private val users = mutableListOf(
         User(
             id = USER_ID,
             firstName = USER_FIRSTNAME,
@@ -30,8 +29,6 @@ class MockUserDataSource() : UserDataSource {
 
     override suspend fun createUser(user: User): User {
         val userWithId = if (user.id == null) user.copy(id = UUID.randomUUID()) else user
-
-        if (users.any { it.id == user.id || it.username == user.username || it.email == user.email }) throw DuplicatedElementException()
 
         users.add(userWithId)
 
@@ -51,9 +48,11 @@ class MockUserDataSource() : UserDataSource {
     }
 
     override suspend fun updateUser(user: User): User {
-        val index = users.indexOfFirst { it.id == user.id && it.username == user.username && it.email == user.email }
+        val foundUser = users.firstOrNull { it.id == user.id }
 
-        if (index == -1) return createUser(user)
+        if (foundUser == null) return createUser(user)
+
+        val index = users.indexOf(foundUser)
 
         users[index] = user
 

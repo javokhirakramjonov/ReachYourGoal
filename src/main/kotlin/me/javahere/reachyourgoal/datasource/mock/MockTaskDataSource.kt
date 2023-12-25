@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
 import me.javahere.reachyourgoal.datasource.TaskDataSource
 import me.javahere.reachyourgoal.domain.Task
-import me.javahere.reachyourgoal.exception.DuplicatedElementException
 import me.javahere.reachyourgoal.util.MockConstants.TASK_ID
 import me.javahere.reachyourgoal.util.MockConstants.TASK_NAME
 import me.javahere.reachyourgoal.util.MockConstants.USER_ID
@@ -26,8 +25,6 @@ class MockTaskDataSource : TaskDataSource {
     override suspend fun createTask(task: Task): Task {
         val taskWithId = if (task.id == null) task.copy(id = UUID.randomUUID()) else task
 
-        if (tasks.any { it.id == taskWithId.id }) throw DuplicatedElementException()
-
         tasks.add(taskWithId)
 
         return taskWithId
@@ -46,9 +43,14 @@ class MockTaskDataSource : TaskDataSource {
     }
 
     override suspend fun updateTask(task: Task): Task {
-        val index = tasks.indexOfFirst { it.id == task.id && it.userId == task.userId }
+        val foundTask = tasks.firstOrNull {
+            it.id == task.id &&
+                    it.userId == task.userId
+        }
 
-        if (index == -1) return createTask(task)
+        if (foundTask == null) return createTask(task)
+
+        val index = tasks.indexOf(foundTask)
 
         tasks[index] = task
 

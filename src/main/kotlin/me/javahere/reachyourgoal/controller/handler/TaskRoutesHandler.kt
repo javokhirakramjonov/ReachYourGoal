@@ -1,7 +1,8 @@
 package me.javahere.reachyourgoal.controller.handler
 
-import me.javahere.reachyourgoal.configuration.exception.HttpExceptionFactory
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
+import me.javahere.reachyourgoal.exception.ReachYourGoalException
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.service.UserService
 import org.springframework.stereotype.Component
@@ -15,9 +16,10 @@ class TaskRoutesHandler(
 ) {
 
     private suspend fun getUserId(serverRequest: ServerRequest): UUID {
-        val email = serverRequest.awaitPrincipal()?.name ?: throw HttpExceptionFactory.unauthorized()
+        val email = serverRequest.awaitPrincipal()?.name
+            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
 
-        val user = userService.findUserByEmail(email) ?: throw HttpExceptionFactory.unauthorized()
+        val user = userService.findUserByEmail(email)
 
         return user.id
     }
@@ -38,10 +40,7 @@ class TaskRoutesHandler(
         val id = UUID.fromString(serverRequest.pathVariable("id"))
         val task = taskService.getTaskByTaskIdAndUserId(id, userId)
 
-        return if (task != null)
-            ServerResponse.ok().bodyValueAndAwait(task)
-        else
-            ServerResponse.notFound().buildAndAwait()
+        return ServerResponse.ok().bodyValueAndAwait(task)
     }
 
     suspend fun getAllTasks(serverRequest: ServerRequest): ServerResponse {

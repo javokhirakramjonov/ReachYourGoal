@@ -47,6 +47,7 @@ dependencies {
 	testImplementation("io.projectreactor:reactor-test")
 	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation("org.testcontainers:junit-jupiter")
+	testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
 	testImplementation("org.testcontainers:postgresql")
 	testImplementation("org.testcontainers:r2dbc")
     testImplementation("io.mockk:mockk:1.13.8")
@@ -60,5 +61,10 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> {
+	jvmArgs("-XX:+EnableDynamicAgentLoading")
 	useJUnitPlatform()
+}
+
+tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun> {
+	jvmArgs("-XX:+EnableDynamicAgentLoading")
 }

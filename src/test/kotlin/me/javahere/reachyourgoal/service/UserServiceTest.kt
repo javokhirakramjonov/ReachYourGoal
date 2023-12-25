@@ -1,168 +1,143 @@
 package me.javahere.reachyourgoal.service
 
+import io.kotest.assertions.throwables.shouldThrowExactly
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.coVerify
 import io.mockk.spyk
-import kotlinx.coroutines.runBlocking
 import me.javahere.reachyourgoal.datasource.mock.MockUserDataSource
 import me.javahere.reachyourgoal.dto.request.RequestRegister
+import me.javahere.reachyourgoal.exception.ReachYourGoalException
 import me.javahere.reachyourgoal.service.impl.UserServiceImpl
 import me.javahere.reachyourgoal.util.MockConstants
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
-class UserServiceTest {
+class UserServiceTest : StringSpec({
 
-    private val dataSource = spyk(MockUserDataSource())
-    private val userService: UserService = UserServiceImpl(
+    val dataSource = spyk(MockUserDataSource())
+    val userService: UserService = UserServiceImpl(
         userDataSource = dataSource,
         passwordEncoder = BCryptPasswordEncoder()
     )
 
-    private val existedUserId = MockConstants.USER_ID
-    private val existedUserUsername = MockConstants.USER_USERNAME
-    private val existedUserEmail = MockConstants.USER_EMAIL
+    val existedUserId = MockConstants.USER_ID
+    val existedUserUsername = MockConstants.USER_USERNAME
+    val existedUserEmail = MockConstants.USER_EMAIL
 
-    @Test
-    fun `should call it's datasource methods`() {
-        runBlocking {
-            // given
-            val user = RequestRegister(
-                firstname = "firstname",
-                lastname = "lastname",
-                username = "username",
-                email = "email",
-                password = "password"
-            )
+    "should call it's datasource methods" {
+        // given
+        val user = RequestRegister(
+            firstname = "firstname",
+            lastname = "lastname",
+            username = "username",
+            email = "email",
+            password = "password"
+        )
 
-            // when
-            userService.registerUser(user)
-            userService.findUserById(existedUserId)
-            userService.findUserByEmail(user.email)
-            userService.findUserByUsername(user.username)
-            userService.isUsernameExists(user.username)
-            userService.isEmailExists(user.email)
-            userService.updateUser(existedUserId)
-            userService.deleteUserById(existedUserId)
+        // when
+        val createdUser = userService.registerUser(user)
+        userService.findUserById(createdUser.id)
+        userService.findUserByEmail(createdUser.email)
+        userService.findUserByUsername(createdUser.username)
+        userService.isUsernameExists(createdUser.username)
+        userService.isEmailExists(createdUser.email)
+        userService.updateUser(createdUser.id)
+        userService.deleteUserById(createdUser.id)
 //            TODO(uncomment when service implements)
 //            userService.updateEmail(existedUserId, "newEmail")
 
-            // then
-            coVerify(atLeast = 1) { dataSource.createUser(any()) }
-            coVerify(atLeast = 1) { dataSource.retrieveUserById(any()) }
-            coVerify(atLeast = 1) { dataSource.retrieveUserByEmail(any()) }
-            coVerify(atLeast = 1) { dataSource.retrieveUserByUsername(any()) }
-            coVerify(atLeast = 1) { dataSource.updateUser(any()) }
-            coVerify(atLeast = 1) { dataSource.deleteUserById(any()) }
-        }
+        // then
+        coVerify(atLeast = 1) { dataSource.createUser(any()) }
+        coVerify(atLeast = 1) { dataSource.retrieveUserById(any()) }
+        coVerify(atLeast = 1) { dataSource.retrieveUserByEmail(any()) }
+        coVerify(atLeast = 1) { dataSource.retrieveUserByUsername(any()) }
+        coVerify(atLeast = 1) { dataSource.updateUser(any()) }
+        coVerify(atLeast = 1) { dataSource.deleteUserById(any()) }
     }
 
-    @Test
-    fun `should check email exists`() {
-        runBlocking {
-            // when
-            val isEmailExists = userService.isEmailExists(existedUserEmail)
+    "should check email exists" {
+        // when
+        val isEmailExists = userService.isEmailExists(existedUserEmail)
 
-            // then
-            Assertions.assertTrue(isEmailExists)
-        }
+        // then
+        isEmailExists shouldBe true
     }
 
-    @Test
-    fun `should check username exists`() {
-        runBlocking {
-            // when
-            val isUsernameExists = userService.isUsernameExists(existedUserUsername)
+    "should check username exists" {
+        // when
+        val isUsernameExists = userService.isUsernameExists(existedUserUsername)
 
-            // then
-            Assertions.assertTrue(isUsernameExists)
-        }
+        // then
+        isUsernameExists shouldBe true
     }
 
-    @Test
-    fun `should find user by email`() {
-        runBlocking {
-            // when
-            val foundUser = userService.findUserByEmail(existedUserEmail)
+    "should find user by email" {
+        // when
+        val foundUser = userService.findUserByEmail(existedUserEmail)
 
-            // then
-            Assertions.assertNotNull(foundUser)
-        }
+        // then
+        foundUser.shouldNotBeNull()
     }
 
-    @Test
-    fun `should find user by username`() {
-        runBlocking {
-            // when
-            val foundUser = userService.findUserByUsername(existedUserUsername)
+    "should find user by username" {
+        // when
+        val foundUser = userService.findUserByUsername(existedUserUsername)
 
-            // then
-            Assertions.assertNotNull(foundUser)
-        }
+        // then
+        foundUser.shouldNotBeNull()
     }
 
-    @Test
-    fun `should find user by userId`() {
-        runBlocking {
-            // when
-            val foundUser = userService.findUserById(existedUserId)
+    "should find user by userId" {
+        // when
+        val foundUser = userService.findUserById(existedUserId)
 
-            // then
-            Assertions.assertNotNull(foundUser)
-        }
+        // then
+        foundUser.shouldNotBeNull()
     }
 
-    @Test
-    fun `should register user`() {
-        runBlocking {
-            // given
-            val user = RequestRegister(
-                firstname = "firstname",
-                lastname = "lastname",
-                username = "username",
-                email = "email",
-                password = "password"
-            )
+    "should register user" {
+        // given
+        val user = RequestRegister(
+            firstname = "firstname",
+            lastname = "lastname",
+            username = "username",
+            email = "email",
+            password = "password"
+        )
 
-            // when
-            val createdUser = userService.registerUser(user)
-            val foundUser = userService.findUserById(createdUser.id)
+        // when
+        val createdUser = userService.registerUser(user)
+        val foundUser = userService.findUserById(createdUser.id)
 
-            // then
-            Assertions.assertNotNull(foundUser)
-        }
+        // then
+        foundUser.shouldNotBeNull()
     }
 
-    @Test
-    fun `should update user`() {
-        runBlocking {
-            //given
-            val newFirstname = "hello"
+    "should update user" {
+        //given
+        val newFirstname = "hello"
 
-            // when
-            userService.updateUser(existedUserId, firstName = newFirstname)
-            val foundUser = userService.findUserById(existedUserId)
+        // when
+        userService.updateUser(existedUserId, firstName = newFirstname)
+        val foundUser = userService.findUserById(existedUserId)
 
-            // then
-            Assertions.assertEquals(newFirstname, foundUser?.firstName)
-        }
+        // then
+        newFirstname shouldBe foundUser.firstName
     }
 
-    @Test
-    fun `should update user's email`() {
+    "should update user's email" {
 //        TODO(learn how to implement it)
     }
 
-    @Test
-    fun `should delete user by userId`() {
-        runBlocking {
-            // when
-            userService.deleteUserById(existedUserId)
-            val foundUser = userService.findUserById(existedUserId)
+    "should delete user by userId" {
+        // when
+        userService.deleteUserById(existedUserId)
 
-            // then
-            Assertions.assertNull(foundUser)
+        // then
+        shouldThrowExactly<ReachYourGoalException> {
+            userService.findUserById(existedUserId)
         }
     }
 
-}
+})
