@@ -1,15 +1,17 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   r2dbc:
-    url: r2dbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${DATABASE_NAME:reach_your_goal_database}
-    username: ${POSTGRES_USERNAME:javahere}
-    password: ${POSTGRES_PASSWORD:whynotbro}
+    url: r2dbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${DATABASE_NAME}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
   flyway:
-    user: ${POSTGRES_USERNAME:javahere}
-    password: ${POSTGRES_PASSWORD:whynotbro}
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${DATABASE_NAME:reach_your_goal_database}
+    user: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${DATABASE_NAME}
 app:
-  secret: secret
-  refresh: refresh
+  secret: ${JWT_SECRET}
+  refresh: ${JWT_REFRESH_SECRET}
 
 springdoc:
   api-docs:
