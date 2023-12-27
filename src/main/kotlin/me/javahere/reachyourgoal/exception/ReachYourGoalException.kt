@@ -1,3 +1,3 @@
 package me.javahere.reachyourgoal.exception
 
-class ReachYourGoalException(val exceptionType: ReachYourGoalExceptionType) : RuntimeException(exceptionType.message)
+class ReachYourGoalException(vararg val errors: ReachYourGoalExceptionType) : RuntimeException()

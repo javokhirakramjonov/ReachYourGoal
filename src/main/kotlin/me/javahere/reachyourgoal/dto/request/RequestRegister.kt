@@ -2,6 +2,7 @@ package me.javahere.reachyourgoal.dto.request
 
 import me.javahere.reachyourgoal.domain.Role
 import me.javahere.reachyourgoal.domain.User
+import me.javahere.reachyourgoal.domain.UserUnConfirmed
 import me.javahere.reachyourgoal.util.Transformable
 
 data class RequestRegister(
@@ -14,11 +15,21 @@ data class RequestRegister(
 
     override fun transform(): User = User(
         id = null,
-        firstName = firstname,
-        lastName = lastname,
+        firstname = firstname,
+        lastname = lastname,
         username = username,
         email = email,
         password = password,
         role = Role.USER
+    )
+
+    fun transformToUserUnConfirmed(token: String): UserUnConfirmed = UserUnConfirmed(
+        id = null,
+        firstname = firstname,
+        lastname = lastname,
+        username = username,
+        email = email,
+        password = password,
+        token = token
     )
 }

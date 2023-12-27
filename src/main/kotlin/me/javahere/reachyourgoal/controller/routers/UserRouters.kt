@@ -61,6 +61,7 @@ class UserRouters {
     fun userRoutes(userRoutesHandler: UserRoutesHandler) = coRouter {
         "/auth".nest {
             POST("/register", userRoutesHandler::register)
+            GET("/confirm", userRoutesHandler::confirm)
         }
     }
 }

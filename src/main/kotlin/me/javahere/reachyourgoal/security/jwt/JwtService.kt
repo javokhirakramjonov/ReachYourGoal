@@ -7,6 +7,7 @@ import me.javahere.reachyourgoal.util.EMPTY
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.util.*
 
 @Service
@@ -15,12 +16,17 @@ class JwtService(
     @Value("\${app.refresh}") val refresh: String
 ) {
 
-    fun accessToken(username: String, expirationInMillis: Int, roles: Array<String>): String =
+    companion object {
+        val EXPIRE_ACCESS_TOKEN = Duration.ofMinutes(15).toMillis()
+        val EXPIRE_REFRESH_TOKEN = Duration.ofHours(4).toMillis()
+    }
+
+    fun accessToken(username: String, expirationInMillis: Long, roles: Array<String>): String =
         generate(username, expirationInMillis, roles, secret)
 
     fun decodeAccessToken(accessToken: String): DecodedJWT = decode(secret, accessToken)
 
-    fun refreshToken(username: String, expirationInMillis: Int, roles: Array<String>): String =
+    fun refreshToken(username: String, expirationInMillis: Long, roles: Array<String>): String =
         generate(username, expirationInMillis, roles, refresh)
 
     fun decodeRefreshToken(refreshToken: String): DecodedJWT = decode(refresh, refreshToken)
@@ -31,7 +37,7 @@ class JwtService(
     fun getRoles(token: String): List<SimpleGrantedAuthority> = getRoles(decodeAccessToken(token))
     fun getUsername(token: String): String = decodeAccessToken(token).subject
 
-    fun generate(username: String, expirationInMillis: Int, roles: Array<String>, signature: String): String =
+    fun generate(username: String, expirationInMillis: Long, roles: Array<String>, signature: String): String =
         JWT.create()
             .withSubject(username)
             .withExpiresAt(Date(System.currentTimeMillis() + expirationInMillis))

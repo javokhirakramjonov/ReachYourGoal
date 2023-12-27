@@ -1,8 +1,7 @@
 package me.javahere.reachyourgoal.controller.handler
 
 import me.javahere.reachyourgoal.dto.request.RequestRegister
-import me.javahere.reachyourgoal.service.impl.UserServiceImpl
-import org.springframework.http.HttpStatus
+import me.javahere.reachyourgoal.service.UserService
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -11,25 +10,27 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
 
 @Component
 class UserRoutesHandler(
-    private val userService: UserServiceImpl
+    private val userService: UserService
 ) {
 
     suspend fun register(serverRequest: ServerRequest): ServerResponse {
         val user = serverRequest.awaitBody(RequestRegister::class)
 
-        return when {
-            userService.isUsernameExists(user.username) -> ServerResponse.status(HttpStatus.CONFLICT)
-                .bodyValueAndAwait("Username is already exists")
+        userService.registerUser(user)
 
-            userService.isEmailExists(user.email) -> ServerResponse.status(HttpStatus.CONFLICT)
-                .bodyValueAndAwait("Email is already exists")
+        return ServerResponse
+            .ok()
+            .bodyValueAndAwait("Registration successful! A confirmation email has been sent to your email address. Please follow the instructions to activate your account.")
+    }
 
-            else -> {
-                val createdUser = userService.registerUser(user)
+    suspend fun confirm(serverRequest: ServerRequest): ServerResponse {
+        val token = serverRequest.queryParam("token").get()
 
-                ServerResponse.ok().bodyValueAndAwait(createdUser)
-            }
-        }
+        val confirmedUser = userService.confirm(token)
+
+        return ServerResponse
+            .ok()
+            .bodyValueAndAwait(confirmedUser)
     }
 
 }

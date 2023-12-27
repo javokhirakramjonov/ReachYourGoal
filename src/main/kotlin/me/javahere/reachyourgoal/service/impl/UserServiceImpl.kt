@@ -7,30 +7,75 @@ import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.exception.ReachYourGoalException
 import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.security.jwt.JwtService
+import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_ACCESS_TOKEN
+import me.javahere.reachyourgoal.service.EmailService
 import me.javahere.reachyourgoal.service.UserService
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.time.Duration
 import java.util.*
 
 @Service
 class UserServiceImpl(
+    @Value("\${app.base-url}") private val baseUrl: String,
     @Qualifier("userDataSourceImpl") private val userDataSource: UserDataSource,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val jwtService: JwtService,
+    private val emailService: EmailService
 ) : UserService, ReactiveUserDetailsService {
 
-    override suspend fun registerUser(user: RequestRegister): UserDto {
-        val userWithEncodedPassword = user.copy(
-            password = passwordEncoder.encode(user.password)
+    override suspend fun registerUser(user: RequestRegister) {
+        val isUsernameAvailable = isUsernameAvailable(user.username)
+
+        if (!isUsernameAvailable) throw ReachYourGoalException(ReachYourGoalExceptionType.UsernameIsNotAvailable)
+
+        val isEmailAvailable = isEmailAvailable(user.email)
+
+        if (!isEmailAvailable) throw ReachYourGoalException(ReachYourGoalExceptionType.EmailIsNotAvailable)
+
+        val token = jwtService.accessToken(user.username, EXPIRE_ACCESS_TOKEN, emptyArray())
+
+        val newPassword = passwordEncoder.encode(user.password)
+
+        userDataSource.createUnConfirmedUser(
+            user
+                .copy(password = newPassword)
+                .transformToUserUnConfirmed(token)
         )
 
-        val createdUser = userDataSource.createUser(userWithEncodedPassword.transform())
+        val confirmationLink = "$baseUrl/auth/confirm?token=$token"
 
-        return createdUser.transform()
+        emailService.sendRegisterConfirmEmail(user.email, confirmationLink)
+    }
+
+    override suspend fun confirm(token: String): UserDto {
+        val tokenException = ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No data found for this token"))
+
+        val username = jwtService.getUsername(token)
+        val expireDate = jwtService.decodeAccessToken(token).claims["exp"]?.asLong() ?: throw tokenException
+
+        val currentTime = Duration.ofMillis(System.currentTimeMillis()).toSeconds()
+
+        if (expireDate < currentTime) throw tokenException
+
+        val unConfirmedUser = userDataSource.retrieveUnConfirmedUserByToken(token) ?: throw ReachYourGoalException(
+            ReachYourGoalExceptionType.InvalidConfirmToken
+        )
+
+        if (unConfirmedUser.username != username) throw tokenException
+
+        val requestRegister = unConfirmedUser.transform()
+
+        val confirmedUser = userDataSource.createUser(requestRegister.transform())
+
+        return confirmedUser.transform()
     }
 
     override suspend fun findUserById(userId: UUID): UserDto {
@@ -66,16 +111,18 @@ class UserServiceImpl(
         )
     }
 
-    override suspend fun isUsernameExists(username: String): Boolean {
-        val userWithUsername = userDataSource.retrieveUserByUsername(username)
-
-        return userWithUsername != null
+    override suspend fun isUsernameAvailable(username: String): Boolean {
+        return listOfNotNull(
+            userDataSource.retrieveUserByUsername(username),
+            userDataSource.retrieveUnConfirmedUserByUsername(username)
+        ).isEmpty()
     }
 
-    override suspend fun isEmailExists(email: String): Boolean {
-        val userWithEmail = userDataSource.retrieveUserByEmail(email)
-
-        return userWithEmail != null
+    override suspend fun isEmailAvailable(email: String): Boolean {
+        return listOfNotNull(
+            userDataSource.retrieveUserByEmail(email),
+            userDataSource.retrieveUnConfirmedUserByEmail(email)
+        ).isEmpty()
     }
 
     override suspend fun updateUser(
@@ -91,17 +138,17 @@ class UserServiceImpl(
             val userWithUsername = userDataSource.retrieveUserByUsername(username)
 
             if (userWithUsername != null && userWithUsername.id != userId)
-                throw ReachYourGoalException(exceptionType = ReachYourGoalExceptionType.AlreadyExists("username: $username is already exists"))
+                throw ReachYourGoalException(ReachYourGoalExceptionType.AlreadyExists("username: $username is already exists"))
         }
 
-        val newFirstName = firstName ?: foundUser.firstName
-        val newLastName = lastName ?: foundUser.lastName
+        val newFirstName = firstName ?: foundUser.firstname
+        val newLastName = lastName ?: foundUser.lastname
         val newUsername = username ?: foundUser.username
 
         val updatedUser = userDataSource.updateUser(
             foundUser.copy(
-                firstName = newFirstName,
-                lastName = newLastName,
+                firstname = newFirstName,
+                lastname = newLastName,
                 username = newUsername
             )
         )

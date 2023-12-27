@@ -62,7 +62,7 @@ class MockUserDataSourceTest : StringSpec({
         // given
         val user = userDataSource.retrieveUserById(existedUserId)!!
         val updatingUser = user.copy(
-            firstName = "updating"
+            firstname = "updating"
         )
 
         // when

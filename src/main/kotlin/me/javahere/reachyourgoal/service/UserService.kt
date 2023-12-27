@@ -5,14 +5,15 @@ import me.javahere.reachyourgoal.dto.request.RequestRegister
 import java.util.*
 
 interface UserService {
-    suspend fun registerUser(user: RequestRegister): UserDto
+    suspend fun registerUser(user: RequestRegister)
+    suspend fun confirm(token: String): UserDto
 
     suspend fun findUserById(userId: UUID): UserDto
     suspend fun findUserByEmail(email: String): UserDto
     suspend fun findUserByUsername(username: String): UserDto
 
-    suspend fun isUsernameExists(username: String): Boolean
-    suspend fun isEmailExists(email: String): Boolean
+    suspend fun isUsernameAvailable(username: String): Boolean
+    suspend fun isEmailAvailable(email: String): Boolean
 
     suspend fun updateUser(
         userId: UUID,

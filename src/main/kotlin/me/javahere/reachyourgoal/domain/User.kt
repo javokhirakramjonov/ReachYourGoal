@@ -15,9 +15,9 @@ data class User(
     @Column("id")
     val id: UUID? = null,
     @Column("first_name")
-    val firstName: String,
+    val firstname: String,
     @Column("last_name")
-    val lastName: String,
+    val lastname: String,
     @Column("username")
     @JvmField
     val username: String,
@@ -55,8 +55,8 @@ data class User(
     override fun transform(): UserDto {
         return UserDto(
             id = id!!,
-            firstName = firstName,
-            lastName = lastName,
+            firstName = firstname,
+            lastName = lastname,
             email = email,
             username = username
         )
