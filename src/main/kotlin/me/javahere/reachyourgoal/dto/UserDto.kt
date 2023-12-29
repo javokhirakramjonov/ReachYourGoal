@@ -8,4 +8,5 @@ data class UserDto(
     val lastName: String,
     val username: String,
     val email: String,
+    val isConfirmed: Boolean
 )

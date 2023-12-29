@@ -2,16 +2,17 @@ package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.datasource.UserDataSource
+import me.javahere.reachyourgoal.domain.ConfirmationToken
 import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
+import me.javahere.reachyourgoal.exception.ExceptionResponse
 import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.*
 import me.javahere.reachyourgoal.security.jwt.JwtService
-import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_ACCESS_TOKEN
+import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_CONFIRMATION_TOKEN
 import me.javahere.reachyourgoal.service.EmailService
 import me.javahere.reachyourgoal.service.UserService
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
@@ -19,35 +20,46 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import java.time.Duration
 import java.util.*
+
+typealias UserForSecurity = org.springframework.security.core.userdetails.User
 
 @Service
 class UserServiceImpl(
     @Value("\${app.base-url}") private val baseUrl: String,
-    @Qualifier("userDataSourceImpl") private val userDataSource: UserDataSource,
+    private val userDataSource: UserDataSource,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
     private val emailService: EmailService
 ) : UserService, ReactiveUserDetailsService {
 
     override suspend fun registerUser(user: RequestRegister) {
-        val isUsernameAvailable = isUsernameAvailable(user.username)
+        val isUsernameAvailable = checkAndCleanupUsernameAvailability(user.username)
+        val isEmailAvailable = checkAndCleanupEmailAvailability(user.email)
 
-        if (!isUsernameAvailable) throw ReachYourGoalException(ReachYourGoalExceptionType.UsernameIsNotAvailable)
+        val exceptions = mutableListOf<ReachYourGoalException>()
 
-        val isEmailAvailable = isEmailAvailable(user.email)
+        if (!isUsernameAvailable) exceptions += ReachYourGoalException(USERNAME_IS_NOT_AVAILABLE)
+        if (!isEmailAvailable) exceptions += ReachYourGoalException(EMAIL_IS_NOT_AVAILABLE)
 
-        if (!isEmailAvailable) throw ReachYourGoalException(ReachYourGoalExceptionType.EmailIsNotAvailable)
+        if (exceptions.isNotEmpty()) throw ExceptionResponse(exceptions)
 
-        val token = jwtService.accessToken(user.username, EXPIRE_ACCESS_TOKEN, emptyArray())
+        val token = jwtService.accessToken(user.username, EXPIRE_CONFIRMATION_TOKEN, emptyArray())
 
         val newPassword = passwordEncoder.encode(user.password)
 
-        userDataSource.createUnConfirmedUser(
+        val createdUser = userDataSource.createUser(
             user
+                .transform()
                 .copy(password = newPassword)
-                .transformToUserUnConfirmed(token)
+        )
+
+        userDataSource.createConfirmationToken(
+            ConfirmationToken(
+                token = token,
+                expireDate = System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN,
+                userId = createdUser.id!!
+            )
         )
 
         val confirmationLink = "$baseUrl/auth/confirm?token=$token"
@@ -56,24 +68,19 @@ class UserServiceImpl(
     }
 
     override suspend fun confirm(token: String): UserDto {
-        val tokenException = ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No data found for this token"))
+        val tokenException = ExceptionResponse(ReachYourGoalException(INVALID_CONFIRM_TOKEN))
 
         val username = jwtService.getUsername(token)
-        val expireDate = jwtService.decodeAccessToken(token).claims["exp"]?.asLong() ?: throw tokenException
 
-        val currentTime = Duration.ofMillis(System.currentTimeMillis()).toSeconds()
+        val confirmationToken = userDataSource.retrieveConfirmationTokenByToken(token) ?: throw tokenException
+        val expireTime = confirmationToken.expireDate
+        val currentTime = System.currentTimeMillis()
 
-        if (expireDate < currentTime) throw tokenException
+        if (expireTime < currentTime) throw tokenException
 
-        val unConfirmedUser = userDataSource.retrieveUnConfirmedUserByToken(token) ?: throw ReachYourGoalException(
-            ReachYourGoalExceptionType.InvalidConfirmToken
-        )
+        val user = userDataSource.retrieveUserByUsername(username) ?: throw tokenException
 
-        if (unConfirmedUser.username != username) throw tokenException
-
-        val requestRegister = unConfirmedUser.transform()
-
-        val confirmedUser = userDataSource.createUser(requestRegister.transform())
+        val confirmedUser = userDataSource.updateUser(user.copy(isConfirmed = true))
 
         return confirmedUser.transform()
     }
@@ -82,47 +89,65 @@ class UserServiceImpl(
         return userDataSource
             .retrieveUserById(userId)
             ?.transform()
-            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No user found with that userId: $userId"))
+            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, "No user found with that userId: $userId"))
     }
 
     override suspend fun findUserByEmail(email: String): UserDto {
         return userDataSource
             .retrieveUserByEmail(email)
             ?.transform()
-            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No user found with that email: $email"))
+            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, "No user found with that email: $email"))
     }
 
     override suspend fun findUserByUsername(username: String): UserDto {
         return userDataSource
             .retrieveUserByUsername(username)
             ?.transform()
-            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No user found with that username: $username"))
+            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, "No user found with that username: $username"))
     }
 
     override fun findByUsername(username: String): Mono<UserDetails> = mono {
         val user: User =
             userDataSource.retrieveUserByUsername(username)
-                ?: throw ReachYourGoalException(ReachYourGoalExceptionType.BadCredentials)
+                ?: throw ExceptionResponse(ReachYourGoalException(BAD_CREDENTIALS))
+
+        if (!user.isConfirmed) throw ExceptionResponse(ReachYourGoalException(EMAIL_NOT_CONFIRMED))
 
         val authorities: List<GrantedAuthority> = user.authorities
 
-        org.springframework.security.core.userdetails.User(
-            user.email, user.password, authorities
-        )
+        UserForSecurity(user.email, user.password, authorities)
     }
 
-    override suspend fun isUsernameAvailable(username: String): Boolean {
-        return listOfNotNull(
-            userDataSource.retrieveUserByUsername(username),
-            userDataSource.retrieveUnConfirmedUserByUsername(username)
-        ).isEmpty()
+    private suspend fun checkAndCleanupUsernameAvailability(username: String): Boolean {
+        return checkAndCleanupAvailability(username) { userDataSource.retrieveUserByUsername(it) }
     }
 
-    override suspend fun isEmailAvailable(email: String): Boolean {
-        return listOfNotNull(
-            userDataSource.retrieveUserByEmail(email),
-            userDataSource.retrieveUnConfirmedUserByEmail(email)
-        ).isEmpty()
+    private suspend fun checkAndCleanupEmailAvailability(email: String): Boolean {
+        return checkAndCleanupAvailability(email) { userDataSource.retrieveUserByEmail(it) }
+    }
+
+    private suspend fun checkAndCleanupAvailability(
+        identifier: String,
+        retrieveUser: suspend (String) -> User?
+    ): Boolean {
+        val user = retrieveUser(identifier) ?: return true
+
+        if (user.isConfirmed) return false
+
+        val confirmationToken = userDataSource.retrieveConfirmationTokenByUserId(user.id!!) ?: return run {
+            userDataSource.deleteUserById(user.id)
+            true
+        }
+
+        val expireTime = jwtService.decodeAccessToken(confirmationToken.token).expiresAt.time
+        val currentTime = System.currentTimeMillis()
+
+        return if (expireTime < currentTime) {
+            userDataSource.deleteUserById(user.id)
+            true
+        } else {
+            false
+        }
     }
 
     override suspend fun updateUser(
@@ -132,13 +157,13 @@ class UserServiceImpl(
         username: String?,
     ): UserDto {
         val foundUser = userDataSource.retrieveUserById(userId)
-            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("No user found with that userId: $userId"))
+            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, "No user found with that userId: $userId"))
 
         if (username != null) {
             val userWithUsername = userDataSource.retrieveUserByUsername(username)
 
             if (userWithUsername != null && userWithUsername.id != userId)
-                throw ReachYourGoalException(ReachYourGoalExceptionType.AlreadyExists("username: $username is already exists"))
+                throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, "username: $username is already exists"))
         }
 
         val newFirstName = firstName ?: foundUser.firstname
@@ -156,8 +181,12 @@ class UserServiceImpl(
         return updatedUser.transform()
     }
 
-    override suspend fun updateEmail(userId: UUID, newEmail: String): UserDto {
+    override suspend fun updateEmail(userId: UUID, newEmail: String) {
         TODO()
+    }
+
+    override suspend fun confirmUpdateEmail(token: String, newEmail: String): UserDto {
+        TODO("Not yet implemented")
     }
 
     override suspend fun deleteUserById(userId: UUID) {

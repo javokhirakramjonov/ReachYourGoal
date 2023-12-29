@@ -1,8 +1,10 @@
 package me.javahere.reachyourgoal.security.jwt
 
 import kotlinx.coroutines.reactor.mono
+import me.javahere.reachyourgoal.exception.ExceptionResponse
 import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.UN_AUTHENTICATED
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.UN_AUTHORIZED
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_ACCESS_TOKEN
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_REFRESH_TOKEN
 import org.springframework.security.core.Authentication
@@ -21,7 +23,7 @@ class JwtAuthSuccessHandler(
         webFilterExchange: WebFilterExchange, authentication: Authentication
     ): Mono<Void> = mono {
         val principal =
-            authentication.principal ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
+            authentication.principal ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
 
         when (principal) {
             is User -> {
@@ -31,7 +33,7 @@ class JwtAuthSuccessHandler(
                 val refreshToken = jwtService.refreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
 
                 val exchange =
-                    webFilterExchange.exchange ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
+                    webFilterExchange.exchange ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
 
                 with(exchange.response.headers) {
                     setBearerAuth(accessToken)
@@ -40,7 +42,7 @@ class JwtAuthSuccessHandler(
 
             }
 
-            else -> throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthenticated)
+            else -> throw ExceptionResponse(ReachYourGoalException(UN_AUTHENTICATED))
         }
 
         return@mono null

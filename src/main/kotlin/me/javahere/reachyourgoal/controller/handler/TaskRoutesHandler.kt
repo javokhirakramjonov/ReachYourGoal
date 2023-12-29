@@ -1,8 +1,7 @@
 package me.javahere.reachyourgoal.controller.handler
 
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.*
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.service.UserService
 import org.springframework.stereotype.Component
@@ -17,7 +16,7 @@ class TaskRoutesHandler(
 
     private suspend fun getUserId(serverRequest: ServerRequest): UUID {
         val email = serverRequest.awaitPrincipal()?.name
-            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
+            ?: throw ExceptionResponse(ReachYourGoalException(ReachYourGoalExceptionType.UN_AUTHENTICATED))
 
         val user = userService.findUserByEmail(email)
 

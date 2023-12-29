@@ -12,9 +12,6 @@ interface UserService {
     suspend fun findUserByEmail(email: String): UserDto
     suspend fun findUserByUsername(username: String): UserDto
 
-    suspend fun isUsernameAvailable(username: String): Boolean
-    suspend fun isEmailAvailable(email: String): Boolean
-
     suspend fun updateUser(
         userId: UUID,
         firstName: String? = null,
@@ -25,7 +22,9 @@ interface UserService {
     suspend fun updateEmail(
         userId: UUID,
         newEmail: String
-    ): UserDto
+    )
+
+    suspend fun confirmUpdateEmail(token: String, newEmail: String): UserDto
 
     suspend fun deleteUserById(userId: UUID)
 }
