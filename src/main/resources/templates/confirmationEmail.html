@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Email Confirmation</title>
+</head>
+<body>
+<h3>Confirmation Email</h3>
+<p>Click the link below to confirm your registration:</p>
+<a th:href="@{${confirmationLink}}">Confirm Registration</a>
+</body>
+</html>

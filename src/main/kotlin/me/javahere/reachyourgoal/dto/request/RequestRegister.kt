@@ -14,8 +14,8 @@ data class RequestRegister(
 
     override fun transform(): User = User(
         id = null,
-        firstName = firstname,
-        lastName = lastname,
+        firstname = firstname,
+        lastname = lastname,
         username = username,
         email = email,
         password = password,

@@ -15,9 +15,9 @@ data class User(
     @Column("id")
     val id: UUID? = null,
     @Column("first_name")
-    val firstName: String,
+    val firstname: String,
     @Column("last_name")
-    val lastName: String,
+    val lastname: String,
     @Column("username")
     @JvmField
     val username: String,
@@ -36,7 +36,9 @@ data class User(
     @JvmField
     val isEnabled: Boolean = true,
     @Column("role")
-    val role: Role
+    val role: Role,
+    @Column("is_confirmed")
+    val isConfirmed: Boolean = false
 ) : UserDetails, Transformable<UserDto> {
     override fun getAuthorities() = listOf(SimpleGrantedAuthority(role.name))
 
@@ -55,10 +57,11 @@ data class User(
     override fun transform(): UserDto {
         return UserDto(
             id = id!!,
-            firstName = firstName,
-            lastName = lastName,
+            firstName = firstname,
+            lastName = lastname,
             email = email,
-            username = username
+            username = username,
+            isConfirmed = isConfirmed
         )
     }
 }

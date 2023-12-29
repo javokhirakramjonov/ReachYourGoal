@@ -4,8 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.datasource.TaskDataSource
 import me.javahere.reachyourgoal.dto.TaskDto
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.*
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.util.transformCollection
 import org.springframework.beans.factory.annotation.Qualifier
@@ -27,7 +26,12 @@ class TaskServiceImpl(
         return taskDataSource
             .retrieveTaskByTaskIdAndUserId(id, userId)
             ?.transform()
-            ?: throw ReachYourGoalException(ReachYourGoalExceptionType.NotFound("There is no task with id: $id assigned to user with id: $userId"))
+            ?: throw ExceptionResponse(
+                ReachYourGoalException(
+                    ReachYourGoalExceptionType.NOT_FOUND,
+                    "There is no task with id: $id assigned to user with id: $userId"
+                )
+            )
     }
 
     override fun getAllTasksByUserId(userId: UUID): Flow<TaskDto> {

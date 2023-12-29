@@ -9,9 +9,21 @@ spring:
     user: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${DATABASE_NAME}
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${EMAIL}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 app:
   secret: ${JWT_SECRET}
   refresh: ${JWT_REFRESH_SECRET}
+  base-url: ${BASE_URL}
 
 springdoc:
   api-docs:

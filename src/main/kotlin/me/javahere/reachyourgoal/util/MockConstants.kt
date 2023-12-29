@@ -1,17 +1,28 @@
 package me.javahere.reachyourgoal.util
 
-import me.javahere.reachyourgoal.domain.Role
+import me.javahere.reachyourgoal.domain.*
+import java.time.Duration
 import java.util.*
 
 object MockConstants {
-    val USER_ID = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479")
-    const val USER_FIRSTNAME = "mock_firstname"
-    const val USER_LASTNAME = "mock_lastname"
-    const val USER_USERNAME = "mock_username"
-    const val USER_EMAIL = "mock_user@mail.com"
-    const val USER_PASSWORD = "mock_password"
-    val USER_ROLE = Role.USER
+    //user
+    val existedMockUser = User(
+        id = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479"),
+        firstname = "mock_firstname",
+        lastname = "mock_lastname",
+        username = "mock_username",
+        email = "mock_user@mail.com",
+        password = "mock_password",
+        role = Role.USER
+    )
 
-    val TASK_ID = UUID.fromString("06e8569a-8c4a-4c3c-98fa-3c42e7c4d12a")
-    const val TASK_NAME = "mock_task"
+    //task
+    val existedMockTask = Task(
+        id = UUID.fromString("06e8569a-8c4a-4c3c-98fa-3c42e7c4d12a"),
+        name = "mock_task",
+        description = "mock_description",
+        spentTime = Duration.ofHours(2).toMillis(),
+        status = TaskStatus.IN_PROGRESS,
+        userId = existedMockUser.id!!
+    )
 }

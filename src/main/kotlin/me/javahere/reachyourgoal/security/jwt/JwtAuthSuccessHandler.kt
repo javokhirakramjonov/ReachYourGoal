@@ -1,31 +1,29 @@
 package me.javahere.reachyourgoal.security.jwt
 
 import kotlinx.coroutines.reactor.mono
+import me.javahere.reachyourgoal.exception.ExceptionResponse
 import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.UN_AUTHENTICATED
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.UN_AUTHORIZED
+import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_ACCESS_TOKEN
+import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_REFRESH_TOKEN
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.web.server.WebFilterExchange
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import java.time.Duration
 
 @Component
 class JwtAuthSuccessHandler(
     private val jwtService: JwtService,
 ) : ServerAuthenticationSuccessHandler {
 
-    companion object {
-        private val EXPIRE_ACCESS_TOKEN = Duration.ofMinutes(15).toMillis().toInt()
-        private val EXPIRE_REFRESH_TOKEN = Duration.ofHours(4).toMillis().toInt()
-    }
-
     override fun onAuthenticationSuccess(
         webFilterExchange: WebFilterExchange, authentication: Authentication
     ): Mono<Void> = mono {
         val principal =
-            authentication.principal ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
+            authentication.principal ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
 
         when (principal) {
             is User -> {
@@ -35,7 +33,7 @@ class JwtAuthSuccessHandler(
                 val refreshToken = jwtService.refreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
 
                 val exchange =
-                    webFilterExchange.exchange ?: throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthorized)
+                    webFilterExchange.exchange ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
 
                 with(exchange.response.headers) {
                     setBearerAuth(accessToken)
@@ -44,7 +42,7 @@ class JwtAuthSuccessHandler(
 
             }
 
-            else -> throw ReachYourGoalException(ReachYourGoalExceptionType.UnAuthenticated)
+            else -> throw ExceptionResponse(ReachYourGoalException(UN_AUTHENTICATED))
         }
 
         return@mono null

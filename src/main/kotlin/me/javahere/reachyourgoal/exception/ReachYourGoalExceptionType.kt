@@ -1,11 +1,15 @@
 package me.javahere.reachyourgoal.exception
 
-sealed class ReachYourGoalExceptionType(val message: String? = null) {
-    data object BadRequest : ReachYourGoalExceptionType()
-    data object UnAuthorized : ReachYourGoalExceptionType()
-    data object UnAuthenticated : ReachYourGoalExceptionType()
-    data object BadCredentials : ReachYourGoalExceptionType()
-
-    data class AlreadyExists(val msg: String) : ReachYourGoalExceptionType(msg)
-    data class NotFound(val msg: String) : ReachYourGoalExceptionType(msg)
+enum class ReachYourGoalExceptionType {
+    BAD_REQUEST,
+    UN_AUTHORIZED,
+    UN_AUTHENTICATED,
+    BAD_CREDENTIALS,
+    USERNAME_IS_NOT_AVAILABLE,
+    EMAIL_IS_NOT_AVAILABLE,
+    INVALID_CONFIRM_TOKEN,
+    EMAIL_NOT_CONFIRMED,
+    ALREADY_EXISTS,
+    NOT_FOUND,
+    UNDEFINED,
 }
