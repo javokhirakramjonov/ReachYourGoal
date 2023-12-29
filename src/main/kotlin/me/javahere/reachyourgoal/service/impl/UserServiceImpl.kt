@@ -54,17 +54,23 @@ class UserServiceImpl(
                 .copy(password = newPassword)
         )
 
+        val expireDate = System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN
+
         userDataSource.createConfirmationToken(
             ConfirmationToken(
                 token = token,
-                expireDate = System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN,
+                expireDate = expireDate,
                 userId = createdUser.id!!
             )
         )
 
         val confirmationLink = "$baseUrl/auth/confirm?token=$token"
 
-        emailService.sendRegisterConfirmEmail(user.email, confirmationLink)
+        emailService.sendRegisterConfirmEmail(
+            user.email,
+            confirmationLink,
+            Date(expireDate)
+        )
     }
 
     override suspend fun confirm(token: String): UserDto {
