@@ -6,13 +6,18 @@ import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
+import java.util.*
 
 @Service
 class EmailServiceImpl(
     private val mailSender: JavaMailSender,
     private val templateEngine: TemplateEngine
 ) : EmailService {
-    override fun sendRegisterConfirmEmail(email: String, confirmationLink: String) {
+    override fun sendRegisterConfirmEmail(
+        email: String,
+        confirmationLink: String,
+        expireDateTime: Date
+    ) {
         val message = mailSender.createMimeMessage()
         val helper = MimeMessageHelper(message, true, "UTF-8")
 
@@ -21,6 +26,7 @@ class EmailServiceImpl(
 
         val context = Context()
         context.setVariable("confirmationLink", confirmationLink)
+        context.setVariable("expireDateTime", expireDateTime)
         val htmlContent = templateEngine.process("confirmationEmail", context)
 
         helper.setText(htmlContent, true)
