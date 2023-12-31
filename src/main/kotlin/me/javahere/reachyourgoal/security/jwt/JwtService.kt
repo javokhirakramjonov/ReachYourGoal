@@ -36,7 +36,7 @@ class JwtService(
         .map { SimpleGrantedAuthority(it) }
 
     fun getRoles(token: String): List<SimpleGrantedAuthority> = getRoles(decodeAccessToken(token))
-    fun getSubject(token: String): String = decodeAccessToken(token).subject
+    fun getUsername(token: String): String = decodeAccessToken(token).subject
 
     fun generate(username: String, expirationInMillis: Long, roles: Array<String>, signature: String): String =
         JWT.create()

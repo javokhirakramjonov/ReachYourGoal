@@ -69,13 +69,3 @@ tasks.withType<Test> {
 tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun> {
 	jvmArgs("-XX:+EnableDynamicAgentLoading")
 }
-
-tasks.register("preApplication") {
-	doLast {
-		exec {
-			commandLine("./local_keys_parser.sh")
-		}
-	}
-}
-
-tasks.getByName("bootRun").dependsOn("preApplication")
