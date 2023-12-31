@@ -18,18 +18,47 @@ class EmailServiceImpl(
         confirmationLink: String,
         expireDateTime: Date
     ) {
-        val message = mailSender.createMimeMessage()
-        val helper = MimeMessageHelper(message, true, "UTF-8")
-
-        helper.setTo(email)
-        helper.setSubject("Confirmation Email")
-
         val context = Context()
         context.setVariable("confirmationLink", confirmationLink)
         context.setVariable("expireDateTime", expireDateTime)
         val htmlContent = templateEngine.process("confirmationEmail", context)
 
-        helper.setText(htmlContent, true)
+        sendEmail(
+            to = email,
+            subject = "Confirmation email",
+            content = htmlContent,
+        )
+    }
+
+    override fun sendUpdateEmailConfirmEmail(
+        email: String,
+        confirmationLink: String,
+        expireDateTime: Date
+    ) {
+        val context = Context()
+        context.setVariable("confirmationLink", confirmationLink)
+        context.setVariable("expireDateTime", expireDateTime)
+        val htmlContent = templateEngine.process("confirmationNewEmail", context)
+
+        sendEmail(
+            to = email,
+            subject = "Confirmation email",
+            content = htmlContent,
+        )
+    }
+
+    private fun sendEmail(
+        to: String,
+        subject: String,
+        content: String,
+        htmlEnabled: Boolean = true
+    ) {
+        val message = mailSender.createMimeMessage()
+        val helper = MimeMessageHelper(message, true, "UTF-8")
+
+        helper.setTo(to)
+        helper.setSubject(subject)
+        helper.setText(content, htmlEnabled)
 
         mailSender.send(message)
     }
