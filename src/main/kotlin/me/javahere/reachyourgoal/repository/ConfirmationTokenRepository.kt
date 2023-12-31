@@ -8,5 +8,4 @@ interface ConfirmationTokenRepository : CoroutineCrudRepository<ConfirmationToke
     suspend fun findByToken(token: String): ConfirmationToken?
     suspend fun findByUserId(userId: UUID): ConfirmationToken?
     suspend fun deleteByExpireDateBefore(time: Long)
-    suspend fun deleteAllByUserId(userId: UUID)
 }
