@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import me.javahere.reachyourgoal.controller.handler.UserRoutesHandler
 import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
+import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.annotations.RouterOperations
 import org.springframework.context.annotation.Bean
@@ -49,10 +50,38 @@ class UserRouters {
                                 )
                             )
                         )
-                    ),
+                    )
+                )
+            )
+        ),
+        RouterOperation(
+            path = "/auth/updateEmail",
+            produces = arrayOf(MediaType.APPLICATION_JSON_VALUE),
+            method = arrayOf(RequestMethod.POST),
+            beanClass = UserRoutesHandler::class,
+            beanMethod = "updateEmail",
+            operation = Operation(
+                operationId = "updateEmail",
+                requestBody = RequestBody(
+                    content = arrayOf(
+                        Content(
+                            schema = Schema(
+                                implementation = RequestUpdateEmail::class
+                            )
+                        )
+                    )
+                ),
+                responses = arrayOf(
                     ApiResponse(
-                        responseCode = "409",
-                        description = "Email or Username is already exists"
+                        responseCode = "200",
+                        description = "Successful operation",
+                        content = arrayOf(
+                            Content(
+                                schema = Schema(
+                                    implementation = UserDto::class
+                                )
+                            )
+                        )
                     )
                 )
             )
@@ -62,6 +91,8 @@ class UserRouters {
         "/auth".nest {
             POST("/register", userRoutesHandler::register)
             GET("/confirm", userRoutesHandler::confirm)
+            POST("/updateEmail", userRoutesHandler::updateEmail)
+            GET("/confirmNewEmail", userRoutesHandler::confirmNewEmail)
         }
     }
 }
