@@ -10,11 +10,14 @@ import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
 import me.javahere.reachyourgoal.exception.ExceptionResponse
 import me.javahere.reachyourgoal.exception.ReachYourGoalException
 import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.*
+import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_CONFIRMATION_TOKEN
 import me.javahere.reachyourgoal.service.EmailService
 import me.javahere.reachyourgoal.service.UserService
+import me.javahere.reachyourgoal.util.getMessage
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -31,7 +34,8 @@ class UserServiceImpl(
     private val userDataSource: UserDataSource,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
-    private val emailService: EmailService
+    private val emailService: EmailService,
+    private val messageSource: ResourceBundleMessageSource
 ) : UserService, ReactiveUserDetailsService {
 
     private val tokenException = ExceptionResponse(ReachYourGoalException(INVALID_CONFIRM_TOKEN))
@@ -109,24 +113,42 @@ class UserServiceImpl(
     }
 
     override suspend fun findUserById(userId: UUID): UserDto {
+        val errorMessageArguments = arrayOf(userId)
+        val errorMessage = messageSource.getMessage(
+            MessagesEnum.USER_NOT_FOUND_FOR_ID_EXCEPTION.key,
+            *errorMessageArguments
+        )
+
         return userDataSource
             .retrieveUserById(userId)
             ?.transform()
-            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, "No user found with that userId: $userId"))
+            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, errorMessage))
     }
 
     override suspend fun findUserByEmail(email: String): UserDto {
+        val errorMessageArguments = arrayOf(email)
+        val errorMessage = messageSource.getMessage(
+            MessagesEnum.USER_NOT_FOUND_FOR_EMAIL_EXCEPTION.key,
+            *errorMessageArguments
+        )
+
         return userDataSource
             .retrieveUserByEmail(email)
             ?.transform()
-            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, "No user found with that email: $email"))
+            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, errorMessage))
     }
 
     override suspend fun findUserByUsername(username: String): UserDto {
+        val errorMessageArguments = arrayOf(username)
+        val errorMessage = messageSource.getMessage(
+            MessagesEnum.USER_NOT_FOUND_FOR_USERNAME_EXCEPTION.key,
+            *errorMessageArguments
+        )
+
         return userDataSource
             .retrieveUserByUsername(username)
             ?.transform()
-            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, "No user found with that username: $username"))
+            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, errorMessage))
     }
 
     override fun findByUsername(username: String): Mono<UserDetails> = mono {
@@ -179,14 +201,26 @@ class UserServiceImpl(
         lastName: String?,
         username: String?,
     ): UserDto {
+        val userNotFoundErrorMessageArguments = arrayOf(userId.toString())
+        val userNotFoundErrorMessage = messageSource.getMessage(
+            MessagesEnum.USER_NOT_FOUND_FOR_ID_EXCEPTION.key,
+            *userNotFoundErrorMessageArguments
+        )
+
         val foundUser = userDataSource.retrieveUserById(userId)
-            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, "No user found with that userId: $userId"))
+            ?: throw ExceptionResponse(ReachYourGoalException(NOT_FOUND, userNotFoundErrorMessage))
 
         if (username != null) {
+            val usernameExistsErrorMessageArguments = arrayOf(username)
+            val usernameExistsErrorMessage = messageSource.getMessage(
+                MessagesEnum.USERNAME_ALREADY_EXISTS_EXCEPTION.key,
+                *usernameExistsErrorMessageArguments
+            )
+
             val userWithUsername = userDataSource.retrieveUserByUsername(username)
 
             if (userWithUsername != null && userWithUsername.id != userId)
-                throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, "username: $username is already exists"))
+                throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, usernameExistsErrorMessage))
         }
 
         val newFirstName = firstName ?: foundUser.firstname
@@ -205,10 +239,27 @@ class UserServiceImpl(
     }
 
     override suspend fun updateEmail(request: RequestUpdateEmail) {
+        val emailAssignedToCurrentUserErrorMessageArguments = arrayOf(request.newEmail)
+        val emailAssignedToCurrentUserErrorMessage = messageSource.getMessage(
+            MessagesEnum.EMAIL_ALREADY_ASSIGNED_TO_CURRENT_USER_EXCEPTION.key,
+            *emailAssignedToCurrentUserErrorMessageArguments
+        )
+
         val user = findUserById(request.userId)
 
         if (user.email == request.newEmail)
-            throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, "The user has already the email"))
+            throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, emailAssignedToCurrentUserErrorMessage))
+
+        val userWithEmail = userDataSource.retrieveUserByEmail(request.newEmail)
+        if (userWithEmail != null && userWithEmail.id != request.userId) {
+            val emailExistsErrorMessageArguments = arrayOf(request.newEmail)
+            val emailExistsErrorMessage = messageSource.getMessage(
+                MessagesEnum.EMAIL_ALREADY_EXISTS_EXCEPTION.key,
+                *emailExistsErrorMessageArguments
+            )
+
+            throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, emailExistsErrorMessage))
+        }
 
         val token = jwtService.accessToken(request.newEmail, EXPIRE_CONFIRMATION_TOKEN, emptyArray())
 

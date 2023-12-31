@@ -2,13 +2,17 @@ package me.javahere.reachyourgoal.controller.handler
 
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
+import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.service.UserService
+import me.javahere.reachyourgoal.util.getMessage
+import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 
 @Component
 class UserRoutesHandler(
-    private val userService: UserService
+    private val userService: UserService,
+    private val messageSource: ResourceBundleMessageSource
 ) {
 
     suspend fun register(serverRequest: ServerRequest): ServerResponse {
@@ -18,7 +22,7 @@ class UserRoutesHandler(
 
         return ServerResponse
             .ok()
-            .bodyValueAndAwait("Registration successful! A confirmation email has been sent to your email address. Please follow the instructions to activate your account.")
+            .bodyValueAndAwait(MessagesEnum.REGISTRATION_EMAIL_CONFIRMATION_SENT.key)
     }
 
     suspend fun updateEmail(serverRequest: ServerRequest): ServerResponse {
@@ -28,7 +32,7 @@ class UserRoutesHandler(
 
         return ServerResponse
             .ok()
-            .bodyValueAndAwait("Confirmation link has been sent and please confirm the new email.")
+            .bodyValueAndAwait(messageSource.getMessage(MessagesEnum.NEW_EMAIL_CONFIRMATION_SENT.key))
     }
 
     suspend fun confirm(serverRequest: ServerRequest): ServerResponse {
