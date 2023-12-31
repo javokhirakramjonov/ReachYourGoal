@@ -10,10 +10,4 @@ interface EmailService {
         expireDateTime: Date
     )
 
-    fun sendUpdateEmailConfirmEmail(
-        email: String,
-        confirmationLink: String,
-        expireDateTime: Date
-    )
-
 }

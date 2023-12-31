@@ -2,14 +2,11 @@ package me.javahere.reachyourgoal.service
 
 import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
-import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
 import java.util.*
 
 interface UserService {
     suspend fun registerUser(user: RequestRegister)
-
-    suspend fun confirmRegister(token: String): UserDto
-    suspend fun confirmNewEmail(token: String): UserDto
+    suspend fun confirm(token: String): UserDto
 
     suspend fun findUserById(userId: UUID): UserDto
     suspend fun findUserByEmail(email: String): UserDto
@@ -22,7 +19,12 @@ interface UserService {
         username: String? = null,
     ): UserDto
 
-    suspend fun updateEmail(request: RequestUpdateEmail)
+    suspend fun updateEmail(
+        userId: UUID,
+        newEmail: String
+    )
+
+    suspend fun confirmUpdateEmail(token: String, newEmail: String): UserDto
 
     suspend fun deleteUserById(userId: UUID)
 }
