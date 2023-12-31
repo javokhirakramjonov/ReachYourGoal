@@ -6,6 +6,7 @@ import me.javahere.reachyourgoal.domain.ConfirmationToken
 import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
+import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
 import me.javahere.reachyourgoal.exception.ExceptionResponse
 import me.javahere.reachyourgoal.exception.ReachYourGoalException
 import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.*
@@ -32,6 +33,8 @@ class UserServiceImpl(
     private val jwtService: JwtService,
     private val emailService: EmailService
 ) : UserService, ReactiveUserDetailsService {
+
+    private val tokenException = ExceptionResponse(ReachYourGoalException(INVALID_CONFIRM_TOKEN))
 
     override suspend fun registerUser(user: RequestRegister) {
         val isUsernameAvailable = checkAndCleanupUsernameAvailability(user.username)
@@ -73,22 +76,36 @@ class UserServiceImpl(
         )
     }
 
-    override suspend fun confirm(token: String): UserDto {
-        val tokenException = ExceptionResponse(ReachYourGoalException(INVALID_CONFIRM_TOKEN))
+    override suspend fun confirmRegister(token: String): UserDto {
+        val confirmationToken = validateAndGetConfirmationToken(token)
 
-        val username = jwtService.getUsername(token)
+        val user = userDataSource.retrieveUserById(confirmationToken.userId) ?: throw tokenException
 
+        val confirmedUser = userDataSource.updateUser(user.copy(isConfirmed = true))
+
+        return confirmedUser.transform()
+    }
+
+    override suspend fun confirmNewEmail(token: String): UserDto {
+        val confirmationToken = validateAndGetConfirmationToken(token)
+
+        val newEmail = jwtService.getSubject(token)
+
+        val user = userDataSource.retrieveUserById(confirmationToken.userId) ?: throw tokenException
+
+        val confirmedUser = userDataSource.updateUser(user.copy(email = newEmail))
+
+        return confirmedUser.transform()
+    }
+
+    private suspend fun validateAndGetConfirmationToken(token: String): ConfirmationToken {
         val confirmationToken = userDataSource.retrieveConfirmationTokenByToken(token) ?: throw tokenException
         val expireTime = confirmationToken.expireDate
         val currentTime = System.currentTimeMillis()
 
         if (expireTime < currentTime) throw tokenException
 
-        val user = userDataSource.retrieveUserByUsername(username) ?: throw tokenException
-
-        val confirmedUser = userDataSource.updateUser(user.copy(isConfirmed = true))
-
-        return confirmedUser.transform()
+        return confirmationToken
     }
 
     override suspend fun findUserById(userId: UUID): UserDto {
@@ -187,12 +204,33 @@ class UserServiceImpl(
         return updatedUser.transform()
     }
 
-    override suspend fun updateEmail(userId: UUID, newEmail: String) {
-        TODO()
-    }
+    override suspend fun updateEmail(request: RequestUpdateEmail) {
+        val user = findUserById(request.userId)
 
-    override suspend fun confirmUpdateEmail(token: String, newEmail: String): UserDto {
-        TODO("Not yet implemented")
+        if (user.email == request.newEmail)
+            throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, "The user has already the email"))
+
+        val token = jwtService.accessToken(request.newEmail, EXPIRE_CONFIRMATION_TOKEN, emptyArray())
+
+        val expireDate = System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN
+
+        userDataSource.deleteAllConfirmationTokensByUserId(user.id)
+
+        userDataSource.createConfirmationToken(
+            ConfirmationToken(
+                token = token,
+                expireDate = expireDate,
+                userId = user.id
+            )
+        )
+
+        val confirmationLink = "$baseUrl/auth/confirmNewEmail?token=$token"
+
+        emailService.sendUpdateEmailConfirmEmail(
+            request.newEmail,
+            confirmationLink,
+            Date(expireDate)
+        )
     }
 
     override suspend fun deleteUserById(userId: UUID) {
