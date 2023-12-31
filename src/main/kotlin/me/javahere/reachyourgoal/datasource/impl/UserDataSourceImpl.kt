@@ -52,4 +52,8 @@ class UserDataSourceImpl(
     override suspend fun deleteConfirmationTokenByExpireDateBefore(time: Long) {
         confirmationTokenRepository.deleteByExpireDateBefore(time)
     }
+
+    override suspend fun deleteAllConfirmationTokensByUserId(userId: UUID) {
+        confirmationTokenRepository.deleteAllByUserId(userId)
+    }
 }

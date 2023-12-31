@@ -3,9 +3,7 @@ package me.javahere.reachyourgoal.security.jwt
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.web.server.ServerWebExchange
-import org.springframework.web.server.WebFilter
-import org.springframework.web.server.WebFilterChain
+import org.springframework.web.server.*
 import reactor.core.publisher.Mono
 import reactor.util.context.Context
 
@@ -17,7 +15,7 @@ class JwtTokenReactFilter(
         val token = exchange.jwtAccessToken() ?: return chain.filter(exchange)
         try {
             val auth = UsernamePasswordAuthenticationToken(
-                jwtService.getUsername(token),
+                jwtService.getSubject(token),
                 null,
                 jwtService.getRoles(token)
             )

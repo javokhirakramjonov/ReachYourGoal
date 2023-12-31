@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Email Confirmation</title>
+</head>
+<body>
+<h3>Confirmation new email</h3>
+<p>Click the link below to confirm your new email:</p>
+<a th:href="@{${confirmationLink}}">Confirm new email</a>
+<p>This confirmation link is available until <span
+        th:text="${#dates.format(expireDateTime, 'HH:mm dd.MMM.yyyy')}"></span>.</p>
+</body>
+</html>
