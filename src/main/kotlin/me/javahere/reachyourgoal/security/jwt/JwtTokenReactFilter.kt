@@ -2,6 +2,7 @@ package me.javahere.reachyourgoal.security.jwt
 
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.web.server.*
 import reactor.core.publisher.Mono
@@ -13,21 +14,31 @@ class JwtTokenReactFilter(
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
         val token = exchange.jwtAccessToken() ?: return chain.filter(exchange)
-        try {
-            val auth = UsernamePasswordAuthenticationToken(
-                jwtService.getSubject(token),
-                null,
-                jwtService.getRoles(token)
-            )
-            val context: Context = ReactiveSecurityContextHolder.withAuthentication(auth)
-            return chain.filter(exchange).contextWrite(context)
-        } catch (e: Exception) {
-            return chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.clearContext())
-        }
+
+        val decodedToken = jwtService
+            .decodeAccessToken(token)
+            ?: return chain
+                .filter(exchange)
+                .contextWrite(ReactiveSecurityContextHolder.clearContext())
+
+        val username = decodedToken.subject
+        val roles = decodedToken
+            .getClaim("role")
+            .asList(String::class.java)
+            .map { SimpleGrantedAuthority(it) }
+
+        val auth = UsernamePasswordAuthenticationToken(
+            username,
+            null,
+            roles
+        )
+        val context: Context = ReactiveSecurityContextHolder.withAuthentication(auth)
+
+        return chain.filter(exchange).contextWrite(context)
     }
 
-    companion object {
-        fun ServerWebExchange.jwtAccessToken(): String? =
-            request.headers.getFirst(AUTHORIZATION)?.substringAfter("Bearer ")
-    }
+    private fun ServerWebExchange.jwtAccessToken(): String? = request
+        .headers
+        .getFirst(AUTHORIZATION)
+        ?.substringAfter("Bearer ")
 }

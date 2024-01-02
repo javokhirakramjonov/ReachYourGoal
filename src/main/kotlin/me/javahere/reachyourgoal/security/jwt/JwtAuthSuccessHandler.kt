@@ -29,8 +29,8 @@ class JwtAuthSuccessHandler(
             is User -> {
                 val roles = principal.authorities.map { it.authority }.toTypedArray()
 
-                val accessToken = jwtService.accessToken(principal.username, EXPIRE_ACCESS_TOKEN, roles)
-                val refreshToken = jwtService.refreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
+                val accessToken = jwtService.generateAccessToken(principal.username, EXPIRE_ACCESS_TOKEN, roles)
+                val refreshToken = jwtService.generateRefreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
 
                 val exchange =
                     webFilterExchange.exchange ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
@@ -39,7 +39,6 @@ class JwtAuthSuccessHandler(
                     setBearerAuth(accessToken)
                     set("Refresh-Token", refreshToken)
                 }
-
             }
 
             else -> throw ExceptionResponse(ReachYourGoalException(UN_AUTHENTICATED))

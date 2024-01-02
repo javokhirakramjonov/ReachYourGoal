@@ -12,19 +12,13 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder
-import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.config.web.server.invoke
+import org.springframework.security.config.web.server.*
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter
-import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
-import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler
-import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
+import org.springframework.security.web.server.authentication.*
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
-
 
 @Configuration
 @EnableWebFluxSecurity
@@ -46,7 +40,8 @@ class SecurityConfiguration {
             authorize("/auth/**", permitAll)
             authorize("/api/**", hasAuthority(Role.USER.name))
             authorize("/admin/**", hasAuthority(Role.ADMIN.name))
-            authorize(anyExchange, permitAll)
+            authorize("/webjars/swagger-ui/index.html", permitAll)
+            authorize(anyExchange, authenticated)
         }
 
         addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)

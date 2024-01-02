@@ -21,8 +21,8 @@ spring:
           starttls:
             enable: true
 app:
-  secret: ${JWT_SECRET}
-  refresh: ${JWT_REFRESH_SECRET}
+  access-secret: ${JWT_ACCESS_SECRET}
+  refresh-secret: ${JWT_REFRESH_SECRET}
   base-url: ${BASE_URL}
 
 springdoc:
