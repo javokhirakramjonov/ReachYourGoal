@@ -93,6 +93,7 @@ class UserRouters {
             GET("/confirm", userRoutesHandler::confirm)
             POST("/updateEmail", userRoutesHandler::updateEmail)
             GET("/confirmNewEmail", userRoutesHandler::confirmNewEmail)
+            GET("/refreshAccessToken", userRoutesHandler::refreshAccessToken)
         }
     }
 }
