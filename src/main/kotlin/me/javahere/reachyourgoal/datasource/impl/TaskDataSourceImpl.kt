@@ -3,13 +3,16 @@ package me.javahere.reachyourgoal.datasource.impl
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.datasource.TaskDataSource
 import me.javahere.reachyourgoal.domain.Task
+import me.javahere.reachyourgoal.domain.TaskAttachment
+import me.javahere.reachyourgoal.repository.TaskAttachmentRepository
 import me.javahere.reachyourgoal.repository.TaskRepository
 import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
 class TaskDataSourceImpl(
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val taskAttachmentRepository: TaskAttachmentRepository
 ) : TaskDataSource {
 
     override suspend fun createTask(task: Task): Task {
@@ -30,5 +33,13 @@ class TaskDataSourceImpl(
 
     override suspend fun deleteTaskByTaskIdAndUserId(taskId: UUID, userId: UUID) {
         taskRepository.deleteTaskByIdAndUserId(taskId, userId)
+    }
+
+    override suspend fun createTaskAttachment(taskAttachment: TaskAttachment): TaskAttachment {
+        return taskAttachmentRepository.save(taskAttachment)
+    }
+
+    override suspend fun deleteTaskAttachmentById(taskAttachmentId: UUID) {
+        taskAttachmentRepository.deleteById(taskAttachmentId)
     }
 }

@@ -13,4 +13,5 @@ enum class MessagesEnum(val key: String) {
 	EMAIL_ALREADY_EXISTS_EXCEPTION(key = "email.already.exists.exception"),
 	EMAIL_ALREADY_ASSIGNED_TO_CURRENT_USER_EXCEPTION(key = "email.already.assigned.to.current.user.exception"),
 	REFRESH_TOKEN_NOT_FOUND_EXCEPTION(key = "refresh.token.not.found.exception"),
+	FILE_COULD_NOT_BE_SAVED(key = "file.could.not.be.saved"),
 }

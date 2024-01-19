@@ -15,6 +15,10 @@ class TaskRouters {
             GET(String.EMPTY, taskRoutesHandler::getAllTasks)
             GET("/{id}", taskRoutesHandler::getTaskById)
             POST(String.EMPTY, taskRoutesHandler::createTask)
+
+            "/uploadAttachment".nest {
+                POST(String.EMPTY, taskRoutesHandler::uploadTaskAttachments)
+            }
         }
     }
 }

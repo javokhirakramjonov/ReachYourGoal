@@ -2,6 +2,7 @@ package me.javahere.reachyourgoal.datasource
 
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.Task
+import me.javahere.reachyourgoal.domain.TaskAttachment
 import java.util.*
 
 interface TaskDataSource {
@@ -13,4 +14,8 @@ interface TaskDataSource {
     suspend fun updateTask(task: Task): Task
 
     suspend fun deleteTaskByTaskIdAndUserId(taskId: UUID, userId: UUID)
+
+    suspend fun createTaskAttachment(taskAttachment: TaskAttachment): TaskAttachment
+
+    suspend fun deleteTaskAttachmentById(taskAttachmentId: UUID)
 }

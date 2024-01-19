@@ -1,9 +1,12 @@
 package me.javahere.reachyourgoal.controller.handler
 
+import kotlinx.coroutines.reactive.awaitSingle
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
 import me.javahere.reachyourgoal.exception.*
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.service.UserService
+import org.springframework.http.codec.multipart.FilePart
+import org.springframework.http.codec.multipart.FormFieldPart
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 import java.util.*
@@ -48,6 +51,29 @@ class TaskRoutesHandler(
         val allTasks = taskService.getAllTasksByUserId(userId)
 
         return ServerResponse.ok().bodyAndAwait(allTasks)
+    }
+
+    suspend fun uploadTaskAttachments(serverRequest: ServerRequest): ServerResponse {
+        val userId = getUserId(serverRequest)
+
+        val data = serverRequest.awaitMultipartData().toSingleValueMap()
+
+        val taskIdPart = (data["taskId"] as? FormFieldPart)?.value() ?: throw ExceptionResponse(
+            ReachYourGoalException(ReachYourGoalExceptionType.BAD_REQUEST)
+        )
+        val taskId = UUID.fromString(taskIdPart)
+
+        val attachments = data
+            .entries
+            .filter { it.key != "taskId" }
+            .mapNotNull {
+                val content = (it.value as? FilePart)?.content()?.awaitSingle() ?: return@mapNotNull null
+                it.key to content
+            }
+
+        val attachmentStates = taskService.createTaskAttachments(userId, taskId, attachments)
+
+        return ServerResponse.ok().bodyValueAndAwait(attachmentStates)
     }
 
 }
