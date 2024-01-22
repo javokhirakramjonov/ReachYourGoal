@@ -1,5 +1,6 @@
 package me.javahere.reachyourgoal.service.impl
 
+import me.javahere.reachyourgoal.exception.*
 import me.javahere.reachyourgoal.service.FileService
 import org.springframework.stereotype.Service
 import java.io.File
@@ -16,5 +17,17 @@ class FileServiceImpl : FileService {
 
             true
         }.getOrDefault(false)
+    }
+
+    override suspend fun getFileByName(path: String, fileName: String): File {
+        return try {
+            File(path, fileName)
+        } catch (e: Exception) {
+            throw ExceptionResponse(ReachYourGoalException(ReachYourGoalExceptionType.NOT_FOUND))
+        }
+    }
+
+    override suspend fun deleteFileByName(taskFilePath: String, fileName: String) {
+        runCatching { File(taskFilePath, fileName).delete() }
     }
 }

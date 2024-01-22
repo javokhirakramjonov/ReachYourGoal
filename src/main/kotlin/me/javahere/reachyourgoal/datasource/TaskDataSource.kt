@@ -15,7 +15,11 @@ interface TaskDataSource {
 
     suspend fun deleteTaskByTaskIdAndUserId(taskId: UUID, userId: UUID)
 
+    fun retrieveAllTaskAttachmentsByTaskId(taskId: UUID): Flow<TaskAttachment>
+
     suspend fun createTaskAttachment(taskAttachment: TaskAttachment): TaskAttachment
 
-    suspend fun deleteTaskAttachmentById(taskAttachmentId: UUID)
+    suspend fun retrieveTaskAttachment(attachmentId: UUID, taskId: UUID): TaskAttachment?
+
+    suspend fun deleteTaskAttachmentByAttachmentIdAndTaskId(taskAttachmentId: UUID, taskId: UUID)
 }

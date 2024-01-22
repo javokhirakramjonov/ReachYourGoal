@@ -1,8 +1,8 @@
 package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.toList
 import me.javahere.reachyourgoal.datasource.TaskDataSource
+import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Service
+import java.io.File
 import java.util.*
 
 @Service
@@ -34,21 +35,7 @@ class TaskServiceImpl(
     }
 
     override suspend fun getTaskByTaskIdAndUserId(id: UUID, userId: UUID): TaskDto {
-        val errorMessageArguments = arrayOf(id, userId)
-        val errorMessage = messageSource.getMessage(
-            MessagesEnum.TASK_NOT_FOUND_EXCEPTION.key,
-            *errorMessageArguments
-        )
-
-        return taskDataSource
-            .retrieveTaskByTaskIdAndUserId(id, userId)
-            ?.transform()
-            ?: throw ExceptionResponse(
-                ReachYourGoalException(
-                    ReachYourGoalExceptionType.NOT_FOUND,
-                    errorMessage
-                )
-            )
+        return validateTaskExists(id, userId).transform()
     }
 
     override fun getAllTasksByUserId(userId: UUID): Flow<TaskDto> {
@@ -72,16 +59,8 @@ class TaskServiceImpl(
         taskId: UUID,
         attachments: List<Pair<String, DataBuffer>>
     ): List<Pair<String, TaskAttachmentDto?>> {
-        val taskExists = getAllTasksByUserId(userId)
-            .toList()
-            .any { it.id == taskId }
 
-        if (!taskExists) throw ExceptionResponse(
-            ReachYourGoalException(
-                ReachYourGoalExceptionType.NOT_FOUND,
-                MessagesEnum.TASK_NOT_FOUND_EXCEPTION.key
-            )
-        )
+        validateTaskExists(userId, taskId)
 
         return attachments
             .map { (name, content) ->
@@ -104,12 +83,67 @@ class TaskServiceImpl(
                 val status = if (isSaved) {
                     createdTaskAttachment
                 } else {
-                    taskDataSource.deleteTaskAttachmentById(createdTaskAttachment.taskId)
+                    taskDataSource.deleteTaskAttachmentByAttachmentIdAndTaskId(createdTaskAttachment.id, taskId)
 
                     null
                 }
 
                 attachmentName to status
             }
+    }
+
+    override suspend fun getAttachment(userId: UUID, taskId: UUID, attachmentId: UUID): File {
+        val attachment = validateAttachmentExists(userId, taskId, attachmentId).transform()
+
+        return fileService.getFileByName(taskFilePath, attachment.id.toString())
+    }
+
+    override suspend fun getAllAttachmentsByUserIdAndTaskId(userId: UUID, taskId: UUID): Flow<TaskAttachmentDto> {
+        validateTaskExists(userId, taskId)
+
+        return taskDataSource.retrieveAllTaskAttachmentsByTaskId(taskId).transformCollection()
+    }
+
+    override suspend fun deleteTaskAttachmentByTaskIdAndAttachmentId(userId: UUID, taskId: UUID, attachmentId: UUID) {
+        val attachment = validateAttachmentExists(userId, taskId, attachmentId).transform()
+
+        fileService.deleteFileByName(taskFilePath, attachment.id.toString())
+        taskDataSource.deleteTaskAttachmentByAttachmentIdAndTaskId(attachmentId, taskId)
+    }
+
+    private suspend fun validateTaskExists(userId: UUID, taskId: UUID): Task {
+        val errorMessageArguments = arrayOf(taskId, userId)
+        val errorMessage = messageSource.getMessage(
+            MessagesEnum.TASK_NOT_FOUND_EXCEPTION.key,
+            *errorMessageArguments
+        )
+
+        return taskDataSource
+            .retrieveTaskByTaskIdAndUserId(taskId, userId)
+            ?: throw ExceptionResponse(
+                ReachYourGoalException(
+                    ReachYourGoalExceptionType.NOT_FOUND,
+                    errorMessage
+                )
+            )
+    }
+
+    private suspend fun validateAttachmentExists(userId: UUID, taskId: UUID, attachmentId: UUID): TaskAttachment {
+        val errorMessageArguments = arrayOf(attachmentId, taskId)
+        val errorMessage = messageSource.getMessage(
+            MessagesEnum.TASK_ATTACHMENT_NOT_FOUND_EXCEPTION.key,
+            *errorMessageArguments
+        )
+
+        validateTaskExists(userId, taskId)
+
+        return taskDataSource
+            .retrieveTaskAttachment(attachmentId, taskId)
+            ?: throw ExceptionResponse(
+                ReachYourGoalException(
+                    ReachYourGoalExceptionType.NOT_FOUND,
+                    errorMessage
+                )
+            )
     }
 }

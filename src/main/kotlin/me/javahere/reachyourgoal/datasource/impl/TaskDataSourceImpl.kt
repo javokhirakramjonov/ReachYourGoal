@@ -35,11 +35,19 @@ class TaskDataSourceImpl(
         taskRepository.deleteTaskByIdAndUserId(taskId, userId)
     }
 
+    override fun retrieveAllTaskAttachmentsByTaskId(taskId: UUID): Flow<TaskAttachment> {
+        return taskAttachmentRepository.findAllByTaskId(taskId)
+    }
+
     override suspend fun createTaskAttachment(taskAttachment: TaskAttachment): TaskAttachment {
         return taskAttachmentRepository.save(taskAttachment)
     }
 
-    override suspend fun deleteTaskAttachmentById(taskAttachmentId: UUID) {
-        taskAttachmentRepository.deleteById(taskAttachmentId)
+    override suspend fun retrieveTaskAttachment(attachmentId: UUID, taskId: UUID): TaskAttachment? {
+        return taskAttachmentRepository.findByIdAndTaskId(attachmentId, taskId)
+    }
+
+    override suspend fun deleteTaskAttachmentByAttachmentIdAndTaskId(taskAttachmentId: UUID, taskId: UUID) {
+        taskAttachmentRepository.deleteByIdAndTaskId(taskAttachmentId, taskId)
     }
 }

@@ -5,6 +5,7 @@ import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
 import org.springframework.core.io.buffer.DataBuffer
+import java.io.File
 import java.util.*
 
 interface TaskService {
@@ -22,4 +23,9 @@ interface TaskService {
         taskId: UUID,
         attachments: List<Pair<String, DataBuffer>>
     ): List<Pair<String, TaskAttachmentDto?>>
+
+    suspend fun getAttachment(userId: UUID, taskId: UUID, attachmentId: UUID): File
+
+    suspend fun getAllAttachmentsByUserIdAndTaskId(userId: UUID, taskId: UUID): Flow<TaskAttachmentDto>
+    suspend fun deleteTaskAttachmentByTaskIdAndAttachmentId(userId: UUID, taskId: UUID, attachmentId: UUID)
 }

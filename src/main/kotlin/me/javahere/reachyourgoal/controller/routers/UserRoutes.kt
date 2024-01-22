@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.reactive.function.server.coRouter
 
 @Configuration
-class UserRouters {
+class UserRoutes {
 
     @Bean
     @RouterOperations(
@@ -87,7 +87,7 @@ class UserRouters {
             )
         )
     )
-    fun userRoutes(userRoutesHandler: UserRoutesHandler) = coRouter {
+    fun userRouter(userRoutesHandler: UserRoutesHandler) = coRouter {
         "/auth".nest {
             POST("/register", userRoutesHandler::register)
             GET("/confirm", userRoutesHandler::confirm)

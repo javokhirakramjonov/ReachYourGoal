@@ -21,7 +21,8 @@ data class TaskAttachment(
 ) : Transformable<TaskAttachmentDto> {
     override fun transform(): TaskAttachmentDto {
         return TaskAttachmentDto(
-            taskId = id!!,
+            id = id!!,
+            taskId = taskId,
             fileName = name
         )
     }
