@@ -31,7 +31,7 @@ class LocalContextConfig {
         val (_, lan) = query
             .split("&")
             .map { it.split("=") }
-            .firstOrNull() { (key) -> key == LOCALE_KEY }
+            .firstOrNull { (key) -> key == LOCALE_KEY }
             ?: return null
 
         return runCatching { Locale.of(lan) }.getOrNull()

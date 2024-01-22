@@ -17,7 +17,7 @@ class JwtService(
 ) {
 
     companion object {
-        val EXPIRE_ACCESS_TOKEN = Duration.ofSeconds(1).toMillis()
+        val EXPIRE_ACCESS_TOKEN = Duration.ofHours(1).toMillis()
         val EXPIRE_REFRESH_TOKEN = Duration.ofDays(30).toMillis()
         val EXPIRE_CONFIRMATION_TOKEN = Duration.ofMinutes(5).toMillis()
     }

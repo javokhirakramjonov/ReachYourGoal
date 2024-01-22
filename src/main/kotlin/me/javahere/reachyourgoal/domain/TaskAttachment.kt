@@ -1,5 +1,7 @@
 package me.javahere.reachyourgoal.domain
 
+import me.javahere.reachyourgoal.dto.TaskAttachmentDto
+import me.javahere.reachyourgoal.util.Transformable
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -13,9 +15,15 @@ data class TaskAttachment(
 
     @Column("name")
     val name: String,
-    @Column("address")
-    val address: String,
 
     @Column("task_id")
     val taskId: UUID,
-)
+) : Transformable<TaskAttachmentDto> {
+    override fun transform(): TaskAttachmentDto {
+        return TaskAttachmentDto(
+            id = id!!,
+            taskId = taskId,
+            fileName = name
+        )
+    }
+}

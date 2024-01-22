@@ -17,4 +17,5 @@ enum class ReachYourGoalExceptionType {
     ALREADY_EXISTS,
     NOT_FOUND,
     UNDEFINED,
+    INTERNAL_ERROR
 }
