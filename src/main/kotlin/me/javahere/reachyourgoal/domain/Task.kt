@@ -9,32 +9,28 @@ import java.util.*
 
 @Table(name = "tasks")
 data class Task(
-	@Id
-	@Column("id")
-	val id: UUID? = null,
-
-	@Column("name")
-	val name: String,
-	@Column("description")
-	val description: String? = null,
-	@Column("spent_time")
-	val spentTime: Long = 0L,
-	@Column("status")
-	val status: TaskStatus = TaskStatus.NOT_STARTED,
-
-	@Column("user_id")
-	val userId: UUID,
+    @Id
+    @Column("id")
+    val id: UUID? = null,
+    @Column("name")
+    val name: String,
+    @Column("description")
+    val description: String? = null,
+    @Column("spent_time")
+    val spentTime: Long = 0L,
+    @Column("status")
+    val status: TaskStatus = TaskStatus.NOT_STARTED,
+    @Column("user_id")
+    val userId: UUID,
 ) : Transformable<TaskDto> {
-
-	override fun transform(): TaskDto {
-		return TaskDto(
-			id = id!!,
-			name = name,
-			description = description,
-			spentTime = spentTime,
-			status = status,
-			userId = userId
-		)
-	}
-
+    override fun transform(): TaskDto {
+        return TaskDto(
+            id = id!!,
+            name = name,
+            description = description,
+            spentTime = spentTime,
+            status = status,
+            userId = userId,
+        )
+    }
 }

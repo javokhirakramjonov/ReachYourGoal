@@ -28,60 +28,60 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @Configuration
 @EnableWebFluxSecurity
 class SecurityConfiguration {
+    @Bean
+    fun securityWebFilterChain(
+        http: ServerHttpSecurity,
+        jwtService: JwtService,
+        jwtAuthenticationFilter: AuthenticationWebFilter,
+    ): SecurityWebFilterChain =
+        http {
+            csrf { disable() }
+            formLogin { disable() }
+            logout { disable() }
 
-	@Bean
-	fun securityWebFilterChain(
-		http: ServerHttpSecurity,
-		jwtService: JwtService,
-		jwtAuthenticationFilter: AuthenticationWebFilter
-	): SecurityWebFilterChain = http {
+            authorizeExchange {
+                authorize("/", permitAll)
+                authorize("/auth/**", permitAll)
+                authorize("/tasks/**", hasAuthority(Role.USER.name))
+                authorize("/admin/**", hasAuthority(Role.ADMIN.name))
+                authorize(anyExchange, permitAll)
+            }
 
-		csrf { disable() }
-		formLogin { disable() }
-		logout { disable() }
+            addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+            addFilterAt(JwtTokenReactFilter(jwtService), SecurityWebFiltersOrder.AUTHORIZATION)
+        }
 
-		authorizeExchange {
-			authorize("/", permitAll)
-			authorize("/auth/**", permitAll)
-			authorize("/tasks/**", hasAuthority(Role.USER.name))
-			authorize("/admin/**", hasAuthority(Role.ADMIN.name))
-			authorize(anyExchange, permitAll)
-		}
+    @Bean
+    fun authenticationWebFilter(
+        manager: ReactiveAuthenticationManager,
+        jwtConverter: ServerAuthenticationConverter,
+        successHandler: ServerAuthenticationSuccessHandler,
+        failureHandler: ServerAuthenticationFailureHandler,
+    ): AuthenticationWebFilter =
+        AuthenticationWebFilter(manager).apply {
+            setRequiresAuthenticationMatcher {
+                ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, "/auth/login").matches(it)
+            }
+            setServerAuthenticationConverter(jwtConverter)
 
-		addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-		addFilterAt(JwtTokenReactFilter(jwtService), SecurityWebFiltersOrder.AUTHORIZATION)
-	}
+            setAuthenticationSuccessHandler(successHandler)
+            setAuthenticationFailureHandler(failureHandler)
 
-	@Bean
-	fun authenticationWebFilter(
-		manager: ReactiveAuthenticationManager,
-		jwtConverter: ServerAuthenticationConverter,
-		successHandler: ServerAuthenticationSuccessHandler,
-		failureHandler: ServerAuthenticationFailureHandler
-	): AuthenticationWebFilter = AuthenticationWebFilter(manager).apply {
-		setRequiresAuthenticationMatcher {
-			ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, "/auth/login").matches(it)
-		}
-		setServerAuthenticationConverter(jwtConverter)
+            setSecurityContextRepository(NoOpServerSecurityContextRepository.getInstance())
+        }
 
-		setAuthenticationSuccessHandler(successHandler)
-		setAuthenticationFailureHandler(failureHandler)
+    @Bean
+    fun jacksonDecoder(): AbstractJackson2Decoder = Jackson2JsonDecoder()
 
-		setSecurityContextRepository(NoOpServerSecurityContextRepository.getInstance())
-	}
+    @Bean
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
-	@Bean
-	fun jacksonDecoder(): AbstractJackson2Decoder = Jackson2JsonDecoder()
-
-	@Bean
-	fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
-
-	@Bean
-	fun reactiveAuthenticationManager(
-		userService: UserServiceImpl,
-		passwordEncoder: PasswordEncoder
-	): ReactiveAuthenticationManager =
-		UserDetailsRepositoryReactiveAuthenticationManager(userService).apply {
-			setPasswordEncoder(passwordEncoder)
-		}
+    @Bean
+    fun reactiveAuthenticationManager(
+        userService: UserServiceImpl,
+        passwordEncoder: PasswordEncoder,
+    ): ReactiveAuthenticationManager =
+        UserDetailsRepositoryReactiveAuthenticationManager(userService).apply {
+            setPasswordEncoder(passwordEncoder)
+        }
 }

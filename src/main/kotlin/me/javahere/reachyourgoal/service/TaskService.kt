@@ -9,23 +9,45 @@ import java.io.File
 import java.util.*
 
 interface TaskService {
-	suspend fun createTask(task: RequestTaskCreate, userId: UUID): TaskDto
+    suspend fun createTask(
+        task: RequestTaskCreate,
+        userId: UUID,
+    ): TaskDto
 
-	suspend fun getTaskByTaskIdAndUserId(id: UUID, userId: UUID): TaskDto
-	fun getAllTasksByUserId(userId: UUID): Flow<TaskDto>
+    suspend fun getTaskByTaskIdAndUserId(
+        id: UUID,
+        userId: UUID,
+    ): TaskDto
 
-	suspend fun updateTask(task: TaskDto): TaskDto
+    fun getAllTasksByUserId(userId: UUID): Flow<TaskDto>
 
-	suspend fun deleteTaskByTaskIdAndUserId(taskId: UUID, userId: UUID)
+    suspend fun updateTask(task: TaskDto): TaskDto
 
-	suspend fun createTaskAttachments(
-		userId: UUID,
-		taskId: UUID,
-		attachments: List<Pair<String, DataBuffer>>
-	): List<Pair<String, TaskAttachmentDto?>>
+    suspend fun deleteTaskByTaskIdAndUserId(
+        taskId: UUID,
+        userId: UUID,
+    )
 
-	suspend fun getAttachment(userId: UUID, taskId: UUID, attachmentId: UUID): File
+    suspend fun createTaskAttachments(
+        userId: UUID,
+        taskId: UUID,
+        attachments: List<Pair<String, DataBuffer>>,
+    ): List<Pair<String, TaskAttachmentDto?>>
 
-	suspend fun getAllAttachmentsByUserIdAndTaskId(userId: UUID, taskId: UUID): Flow<TaskAttachmentDto>
-	suspend fun deleteTaskAttachmentByTaskIdAndAttachmentId(userId: UUID, taskId: UUID, attachmentId: UUID)
+    suspend fun getAttachment(
+        userId: UUID,
+        taskId: UUID,
+        attachmentId: UUID,
+    ): File
+
+    suspend fun getAllAttachmentsByUserIdAndTaskId(
+        userId: UUID,
+        taskId: UUID,
+    ): Flow<TaskAttachmentDto>
+
+    suspend fun deleteTaskAttachmentByTaskIdAndAttachmentId(
+        userId: UUID,
+        taskId: UUID,
+        attachmentId: UUID,
+    )
 }

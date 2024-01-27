@@ -30,252 +30,284 @@ typealias UserForSecurity = org.springframework.security.core.userdetails.User
 
 @Service
 class UserServiceImpl(
-	@Value("\${app.base-url}") private val baseUrl: String,
-	private val userDataSource: UserDataSource,
-	private val passwordEncoder: PasswordEncoder,
-	private val jwtService: JwtService,
-	private val emailService: EmailService,
-	private val messageSource: ResourceBundleMessageSource
+    @Value("\${app.base-url}") private val baseUrl: String,
+    private val userDataSource: UserDataSource,
+    private val passwordEncoder: PasswordEncoder,
+    private val jwtService: JwtService,
+    private val emailService: EmailService,
+    private val messageSource: ResourceBundleMessageSource,
 ) : UserService, ReactiveUserDetailsService {
+    private val invalidConfirmToken = ExceptionResponse(ReachYourGoalException(INVALID_CONFIRM_TOKEN))
+    private val confirmTokenExpired = ExceptionResponse(ReachYourGoalException(CONFIRM_TOKEN_EXPIRED))
 
-	private val invalidConfirmToken = ExceptionResponse(ReachYourGoalException(INVALID_CONFIRM_TOKEN))
-	private val confirmTokenExpired = ExceptionResponse(ReachYourGoalException(CONFIRM_TOKEN_EXPIRED))
+    override suspend fun registerUser(user: RequestRegister) {
+        val isUsernameAvailable = checkAndCleanupUsernameAvailability(user.username)
+        val isEmailAvailable = checkAndCleanupEmailAvailability(user.email)
 
-	override suspend fun registerUser(user: RequestRegister) {
-		val isUsernameAvailable = checkAndCleanupUsernameAvailability(user.username)
-		val isEmailAvailable = checkAndCleanupEmailAvailability(user.email)
+        val exceptions = mutableListOf<ReachYourGoalException>()
 
-		val exceptions = mutableListOf<ReachYourGoalException>()
+        if (!isUsernameAvailable) exceptions += ReachYourGoalException(USERNAME_IS_NOT_AVAILABLE)
+        if (!isEmailAvailable) exceptions += ReachYourGoalException(EMAIL_IS_NOT_AVAILABLE)
 
-		if (!isUsernameAvailable) exceptions += ReachYourGoalException(USERNAME_IS_NOT_AVAILABLE)
-		if (!isEmailAvailable) exceptions += ReachYourGoalException(EMAIL_IS_NOT_AVAILABLE)
+        if (exceptions.isNotEmpty()) throw ExceptionResponse(exceptions)
 
-		if (exceptions.isNotEmpty()) throw ExceptionResponse(exceptions)
+        val token = jwtService.generateAccessToken(user.username, EXPIRE_CONFIRMATION_TOKEN, emptyArray())
 
-		val token = jwtService.generateAccessToken(user.username, EXPIRE_CONFIRMATION_TOKEN, emptyArray())
+        val newPassword = passwordEncoder.encode(user.password)
 
-		val newPassword = passwordEncoder.encode(user.password)
+        val createdUser =
+            userDataSource.createUser(
+                user.transform().copy(password = newPassword),
+            )
 
-		val createdUser = userDataSource.createUser(
-			user.transform().copy(password = newPassword)
-		)
+        val expireDate = System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN
 
-		val expireDate = System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN
+        userDataSource.createConfirmationToken(
+            ConfirmationToken(
+                token = token,
+                expireDate = expireDate,
+                userId = createdUser.id!!,
+            ),
+        )
 
-		userDataSource.createConfirmationToken(
-			ConfirmationToken(
-				token = token, expireDate = expireDate, userId = createdUser.id!!
-			)
-		)
+        val confirmationLink = "$baseUrl/auth/confirm?token=$token"
 
-		val confirmationLink = "$baseUrl/auth/confirm?token=$token"
+        emailService.sendRegisterConfirmEmail(
+            user.email,
+            confirmationLink,
+            Date(expireDate),
+        )
+    }
 
-		emailService.sendRegisterConfirmEmail(
-			user.email, confirmationLink, Date(expireDate)
-		)
-	}
+    override suspend fun confirmRegister(token: String): UserDto {
+        val confirmationToken = validateAndGetConfirmationToken(token)
 
-	override suspend fun confirmRegister(token: String): UserDto {
-		val confirmationToken = validateAndGetConfirmationToken(token)
+        val user = userDataSource.retrieveUserById(confirmationToken.userId) ?: throw invalidConfirmToken
 
-		val user = userDataSource.retrieveUserById(confirmationToken.userId) ?: throw invalidConfirmToken
+        val confirmedUser = userDataSource.updateUser(user.copy(isConfirmed = true))
 
-		val confirmedUser = userDataSource.updateUser(user.copy(isConfirmed = true))
+        return confirmedUser.transform()
+    }
 
-		return confirmedUser.transform()
-	}
+    override suspend fun confirmNewEmail(token: String): UserDto {
+        val confirmationToken = validateAndGetConfirmationToken(token)
 
-	override suspend fun confirmNewEmail(token: String): UserDto {
-		val confirmationToken = validateAndGetConfirmationToken(token)
+        val newEmail = jwtService.decodeAccessToken(token)?.subject ?: throw invalidConfirmToken
 
-		val newEmail = jwtService.decodeAccessToken(token)?.subject ?: throw invalidConfirmToken
+        val user = userDataSource.retrieveUserById(confirmationToken.userId) ?: throw invalidConfirmToken
 
-		val user = userDataSource.retrieveUserById(confirmationToken.userId) ?: throw invalidConfirmToken
+        val confirmedUser = userDataSource.updateUser(user.copy(email = newEmail))
 
-		val confirmedUser = userDataSource.updateUser(user.copy(email = newEmail))
+        return confirmedUser.transform()
+    }
 
-		return confirmedUser.transform()
-	}
+    private suspend fun validateAndGetConfirmationToken(token: String): ConfirmationToken {
+        val confirmationToken = userDataSource.retrieveConfirmationTokenByToken(token) ?: throw invalidConfirmToken
+        val decodedJWT = jwtService.decodeAccessToken(token) ?: throw invalidConfirmToken
 
-	private suspend fun validateAndGetConfirmationToken(token: String): ConfirmationToken {
-		val confirmationToken = userDataSource.retrieveConfirmationTokenByToken(token) ?: throw invalidConfirmToken
-		val decodedJWT = jwtService.decodeAccessToken(token) ?: throw invalidConfirmToken
+        if (!jwtService.isValidExpireDate(decodedJWT)) throw confirmTokenExpired
 
-		if (!jwtService.isValidExpireDate(decodedJWT)) throw confirmTokenExpired
+        return confirmationToken
+    }
 
-		return confirmationToken
-	}
+    override suspend fun findUserById(userId: UUID): UserDto {
+        val errorMessageArguments = arrayOf(userId)
+        val errorMessage =
+            messageSource.getMessage(
+                MessagesEnum.USER_NOT_FOUND_FOR_ID_EXCEPTION.key,
+                *errorMessageArguments,
+            )
 
-	override suspend fun findUserById(userId: UUID): UserDto {
-		val errorMessageArguments = arrayOf(userId)
-		val errorMessage = messageSource.getMessage(
-			MessagesEnum.USER_NOT_FOUND_FOR_ID_EXCEPTION.key, *errorMessageArguments
-		)
+        return userDataSource.retrieveUserById(userId)?.transform() ?: throw ExceptionResponse(
+            ReachYourGoalException(
+                NOT_FOUND,
+                errorMessage,
+            ),
+        )
+    }
 
-		return userDataSource.retrieveUserById(userId)?.transform() ?: throw ExceptionResponse(
-			ReachYourGoalException(
-				NOT_FOUND,
-				errorMessage
-			)
-		)
-	}
+    override suspend fun findUserByEmail(email: String): UserDto {
+        val errorMessageArguments = arrayOf(email)
+        val errorMessage =
+            messageSource.getMessage(
+                MessagesEnum.USER_NOT_FOUND_FOR_EMAIL_EXCEPTION.key,
+                *errorMessageArguments,
+            )
 
-	override suspend fun findUserByEmail(email: String): UserDto {
-		val errorMessageArguments = arrayOf(email)
-		val errorMessage = messageSource.getMessage(
-			MessagesEnum.USER_NOT_FOUND_FOR_EMAIL_EXCEPTION.key, *errorMessageArguments
-		)
+        return userDataSource.retrieveUserByEmail(email)?.transform() ?: throw ExceptionResponse(
+            ReachYourGoalException(
+                NOT_FOUND,
+                errorMessage,
+            ),
+        )
+    }
 
-		return userDataSource.retrieveUserByEmail(email)?.transform() ?: throw ExceptionResponse(
-			ReachYourGoalException(
-				NOT_FOUND,
-				errorMessage
-			)
-		)
-	}
+    override suspend fun findUserByUsername(username: String): UserDto {
+        val errorMessageArguments = arrayOf(username)
+        val errorMessage =
+            messageSource.getMessage(
+                MessagesEnum.USER_NOT_FOUND_FOR_USERNAME_EXCEPTION.key,
+                *errorMessageArguments,
+            )
 
-	override suspend fun findUserByUsername(username: String): UserDto {
-		val errorMessageArguments = arrayOf(username)
-		val errorMessage = messageSource.getMessage(
-			MessagesEnum.USER_NOT_FOUND_FOR_USERNAME_EXCEPTION.key, *errorMessageArguments
-		)
+        return userDataSource.retrieveUserByUsername(username)?.transform() ?: throw ExceptionResponse(
+            ReachYourGoalException(NOT_FOUND, errorMessage),
+        )
+    }
 
-		return userDataSource.retrieveUserByUsername(username)?.transform() ?: throw ExceptionResponse(
-			ReachYourGoalException(NOT_FOUND, errorMessage)
-		)
-	}
+    override fun findByUsername(username: String): Mono<UserDetails> =
+        mono {
+            val user: User =
+                userDataSource.retrieveUserByUsername(username) ?: throw ExceptionResponse(
+                    ReachYourGoalException(BAD_CREDENTIALS),
+                )
 
-	override fun findByUsername(username: String): Mono<UserDetails> = mono {
-		val user: User = userDataSource.retrieveUserByUsername(username) ?: throw ExceptionResponse(
-			ReachYourGoalException(BAD_CREDENTIALS)
-		)
+            if (!user.isConfirmed) throw ExceptionResponse(ReachYourGoalException(EMAIL_NOT_CONFIRMED))
 
-		if (!user.isConfirmed) throw ExceptionResponse(ReachYourGoalException(EMAIL_NOT_CONFIRMED))
+            val authorities: List<GrantedAuthority> = user.authorities
 
-		val authorities: List<GrantedAuthority> = user.authorities
+            UserForSecurity(user.email, user.password, authorities)
+        }
 
-		UserForSecurity(user.email, user.password, authorities)
-	}
+    private suspend fun checkAndCleanupUsernameAvailability(username: String): Boolean {
+        return checkAndCleanupAvailability(username) { userDataSource.retrieveUserByUsername(it) }
+    }
 
-	private suspend fun checkAndCleanupUsernameAvailability(username: String): Boolean {
-		return checkAndCleanupAvailability(username) { userDataSource.retrieveUserByUsername(it) }
-	}
+    private suspend fun checkAndCleanupEmailAvailability(email: String): Boolean {
+        return checkAndCleanupAvailability(email) { userDataSource.retrieveUserByEmail(it) }
+    }
 
-	private suspend fun checkAndCleanupEmailAvailability(email: String): Boolean {
-		return checkAndCleanupAvailability(email) { userDataSource.retrieveUserByEmail(it) }
-	}
+    private suspend fun checkAndCleanupAvailability(
+        identifier: String,
+        retrieveUser: suspend (String) -> User?,
+    ): Boolean {
+        val user = retrieveUser(identifier)?.transform() ?: return true
 
-	private suspend fun checkAndCleanupAvailability(
-		identifier: String, retrieveUser: suspend (String) -> User?
-	): Boolean {
-		val user = retrieveUser(identifier)?.transform() ?: return true
+        if (user.isConfirmed) return false
 
-		if (user.isConfirmed) return false
+        val confirmationToken =
+            userDataSource.retrieveConfirmationTokenByUserId(user.id) ?: return run {
+                userDataSource.deleteUserById(user.id)
+                true
+            }
 
-		val confirmationToken = userDataSource.retrieveConfirmationTokenByUserId(user.id) ?: return run {
-			userDataSource.deleteUserById(user.id)
-			true
-		}
+        val decodedJWT =
+            jwtService
+                .decodeAccessToken(confirmationToken.token)
+                ?: throw invalidConfirmToken
 
-		val decodedJWT = jwtService
-			.decodeAccessToken(confirmationToken.token)
-			?: throw invalidConfirmToken
+        return if (!jwtService.isValidExpireDate(decodedJWT)) {
+            userDataSource.deleteUserById(user.id)
+            true
+        } else {
+            false
+        }
+    }
 
-		return if (!jwtService.isValidExpireDate(decodedJWT)) {
-			userDataSource.deleteUserById(user.id)
-			true
-		} else {
-			false
-		}
-	}
+    override suspend fun updateUser(
+        userId: UUID,
+        firstName: String?,
+        lastName: String?,
+        username: String?,
+    ): UserDto {
+        val userNotFoundErrorMessageArguments = arrayOf(userId.toString())
+        val userNotFoundErrorMessage =
+            messageSource.getMessage(
+                MessagesEnum.USER_NOT_FOUND_FOR_ID_EXCEPTION.key,
+                *userNotFoundErrorMessageArguments,
+            )
 
-	override suspend fun updateUser(
-		userId: UUID,
-		firstName: String?,
-		lastName: String?,
-		username: String?,
-	): UserDto {
-		val userNotFoundErrorMessageArguments = arrayOf(userId.toString())
-		val userNotFoundErrorMessage = messageSource.getMessage(
-			MessagesEnum.USER_NOT_FOUND_FOR_ID_EXCEPTION.key, *userNotFoundErrorMessageArguments
-		)
+        val foundUser =
+            userDataSource.retrieveUserById(userId) ?: throw ExceptionResponse(
+                ReachYourGoalException(
+                    NOT_FOUND,
+                    userNotFoundErrorMessage,
+                ),
+            )
 
-		val foundUser = userDataSource.retrieveUserById(userId) ?: throw ExceptionResponse(
-			ReachYourGoalException(
-				NOT_FOUND,
-				userNotFoundErrorMessage
-			)
-		)
+        if (username != null) {
+            val usernameExistsErrorMessageArguments = arrayOf(username)
+            val usernameExistsErrorMessage =
+                messageSource.getMessage(
+                    MessagesEnum.USERNAME_ALREADY_EXISTS_EXCEPTION.key,
+                    *usernameExistsErrorMessageArguments,
+                )
 
-		if (username != null) {
-			val usernameExistsErrorMessageArguments = arrayOf(username)
-			val usernameExistsErrorMessage = messageSource.getMessage(
-				MessagesEnum.USERNAME_ALREADY_EXISTS_EXCEPTION.key, *usernameExistsErrorMessageArguments
-			)
+            val userWithUsername = userDataSource.retrieveUserByUsername(username)
 
-			val userWithUsername = userDataSource.retrieveUserByUsername(username)
+            if (userWithUsername != null && userWithUsername.id != userId) {
+                throw ExceptionResponse(
+                    ReachYourGoalException(ALREADY_EXISTS, usernameExistsErrorMessage),
+                )
+            }
+        }
 
-			if (userWithUsername != null && userWithUsername.id != userId) throw ExceptionResponse(
-				ReachYourGoalException(ALREADY_EXISTS, usernameExistsErrorMessage)
-			)
-		}
+        val newFirstName = firstName ?: foundUser.firstname
+        val newLastName = lastName ?: foundUser.lastname
+        val newUsername = username ?: foundUser.username
 
-		val newFirstName = firstName ?: foundUser.firstname
-		val newLastName = lastName ?: foundUser.lastname
-		val newUsername = username ?: foundUser.username
+        val updatedUser =
+            userDataSource.updateUser(
+                foundUser.copy(
+                    firstname = newFirstName,
+                    lastname = newLastName,
+                    username = newUsername,
+                ),
+            )
 
-		val updatedUser = userDataSource.updateUser(
-			foundUser.copy(
-				firstname = newFirstName, lastname = newLastName, username = newUsername
-			)
-		)
+        return updatedUser.transform()
+    }
 
-		return updatedUser.transform()
-	}
+    override suspend fun updateEmail(request: RequestUpdateEmail) {
+        val emailAssignedToCurrentUserErrorMessageArguments = arrayOf(request.newEmail)
+        val emailAssignedToCurrentUserErrorMessage =
+            messageSource.getMessage(
+                MessagesEnum.EMAIL_ALREADY_ASSIGNED_TO_CURRENT_USER_EXCEPTION.key,
+                *emailAssignedToCurrentUserErrorMessageArguments,
+            )
 
-	override suspend fun updateEmail(request: RequestUpdateEmail) {
-		val emailAssignedToCurrentUserErrorMessageArguments = arrayOf(request.newEmail)
-		val emailAssignedToCurrentUserErrorMessage = messageSource.getMessage(
-			MessagesEnum.EMAIL_ALREADY_ASSIGNED_TO_CURRENT_USER_EXCEPTION.key,
-			*emailAssignedToCurrentUserErrorMessageArguments
-		)
+        val user = findUserById(request.userId)
 
-		val user = findUserById(request.userId)
+        if (user.email == request.newEmail) {
+            throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, emailAssignedToCurrentUserErrorMessage))
+        }
 
-		if (user.email == request.newEmail)
-			throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, emailAssignedToCurrentUserErrorMessage))
+        val userWithEmail = userDataSource.retrieveUserByEmail(request.newEmail)
+        if (userWithEmail != null && userWithEmail.id != request.userId) {
+            val emailExistsErrorMessageArguments = arrayOf(request.newEmail)
+            val emailExistsErrorMessage =
+                messageSource.getMessage(
+                    MessagesEnum.EMAIL_ALREADY_EXISTS_EXCEPTION.key,
+                    *emailExistsErrorMessageArguments,
+                )
 
-		val userWithEmail = userDataSource.retrieveUserByEmail(request.newEmail)
-		if (userWithEmail != null && userWithEmail.id != request.userId) {
-			val emailExistsErrorMessageArguments = arrayOf(request.newEmail)
-			val emailExistsErrorMessage = messageSource.getMessage(
-				MessagesEnum.EMAIL_ALREADY_EXISTS_EXCEPTION.key, *emailExistsErrorMessageArguments
-			)
+            throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, emailExistsErrorMessage))
+        }
 
-			throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, emailExistsErrorMessage))
-		}
+        val token = jwtService.generateAccessToken(request.newEmail, EXPIRE_CONFIRMATION_TOKEN, emptyArray())
 
-		val token = jwtService.generateAccessToken(request.newEmail, EXPIRE_CONFIRMATION_TOKEN, emptyArray())
+        val expireDate = System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN
 
-		val expireDate = System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN
+        userDataSource.deleteAllConfirmationTokensByUserId(user.id)
 
-		userDataSource.deleteAllConfirmationTokensByUserId(user.id)
+        userDataSource.createConfirmationToken(
+            ConfirmationToken(
+                token = token,
+                expireDate = expireDate,
+                userId = user.id,
+            ),
+        )
 
-		userDataSource.createConfirmationToken(
-			ConfirmationToken(
-				token = token, expireDate = expireDate, userId = user.id
-			)
-		)
+        val confirmationLink = "$baseUrl/auth/confirmNewEmail?token=$token"
 
-		val confirmationLink = "$baseUrl/auth/confirmNewEmail?token=$token"
+        emailService.sendUpdateEmailConfirmEmail(
+            request.newEmail,
+            confirmationLink,
+            Date(expireDate),
+        )
+    }
 
-		emailService.sendUpdateEmailConfirmEmail(
-			request.newEmail, confirmationLink, Date(expireDate)
-		)
-	}
-
-	override suspend fun deleteUserById(userId: UUID) {
-		userDataSource.deleteUserById(userId)
-	}
-
+    override suspend fun deleteUserById(userId: UUID) {
+        userDataSource.deleteUserById(userId)
+    }
 }

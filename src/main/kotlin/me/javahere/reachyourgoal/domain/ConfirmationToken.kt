@@ -7,13 +7,13 @@ import java.util.*
 
 @Table(name = "confirmation_tokens")
 data class ConfirmationToken(
-	@Id
-	@Column("id")
-	val id: UUID? = null,
-	@Column("token")
-	val token: String,
-	@Column("expire_date")
-	val expireDate: Long,
-	@Column("user_id")
-	val userId: UUID
+    @Id
+    @Column("id")
+    val id: UUID? = null,
+    @Column("token")
+    val token: String,
+    @Column("expire_date")
+    val expireDate: Long,
+    @Column("user_id")
+    val userId: UUID,
 )
