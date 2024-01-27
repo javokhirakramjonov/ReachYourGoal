@@ -6,9 +6,15 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.util.*
 
 interface TaskRepository : CoroutineCrudRepository<Task, UUID> {
+    fun findAllByUserId(userId: UUID): Flow<Task>
 
-	fun findAllByUserId(userId: UUID): Flow<Task>
-	suspend fun findTaskByIdAndUserId(id: UUID, userId: UUID): Task?
-	suspend fun deleteTaskByIdAndUserId(taskId: UUID, userId: UUID)
+    suspend fun findTaskByIdAndUserId(
+        id: UUID,
+        userId: UUID,
+    ): Task?
 
+    suspend fun deleteTaskByIdAndUserId(
+        taskId: UUID,
+        userId: UUID,
+    )
 }

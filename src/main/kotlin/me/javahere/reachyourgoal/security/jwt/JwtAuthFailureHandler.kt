@@ -14,17 +14,18 @@ import reactor.core.publisher.Mono
 
 @Component
 class JwtAuthFailureHandler : ServerAuthenticationFailureHandler {
+    override fun onAuthenticationFailure(
+        webFilterExchange: WebFilterExchange,
+        exception: AuthenticationException?,
+    ): Mono<Void> =
+        mono {
+            val exchange =
+                webFilterExchange.exchange
+                    ?: throw ExceptionResponse(ReachYourGoalException(ReachYourGoalExceptionType.UN_AUTHORIZED))
 
-	override fun onAuthenticationFailure(
-		webFilterExchange: WebFilterExchange, exception: AuthenticationException?
-	): Mono<Void> = mono {
-		val exchange =
-			webFilterExchange.exchange
-				?: throw ExceptionResponse(ReachYourGoalException(ReachYourGoalExceptionType.UN_AUTHORIZED))
-
-		with(exchange.response) {
-			statusCode = UNAUTHORIZED
-			setComplete().awaitFirstOrNull()
-		}
-	}
+            with(exchange.response) {
+                statusCode = UNAUTHORIZED
+                setComplete().awaitFirstOrNull()
+            }
+        }
 }

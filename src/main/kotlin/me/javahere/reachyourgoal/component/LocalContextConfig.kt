@@ -9,42 +9,42 @@ import java.util.*
 
 @Configuration
 class LocalContextConfig {
+    companion object {
+        private const val LOCALE_KEY = "locale"
+    }
 
-	companion object {
-		private const val LOCALE_KEY = "locale"
-	}
+    @Bean
+    fun localeContextWebFilter(): WebFilter {
+        return WebFilter { exchange, chain ->
+            val query = exchange.request.uri.query
 
-	@Bean
-	fun localeContextWebFilter(): WebFilter {
-		return WebFilter { exchange, chain ->
-			val query = exchange.request.uri.query
+            val locale = query?.let(::getLocaleFromQueryParam)
 
-			val locale = query?.let(::getLocaleFromQueryParam)
+            locale?.let(LocaleContextHolder::setLocale)
 
-			locale?.let(LocaleContextHolder::setLocale)
+            chain.filter(exchange)
+        }
+    }
 
-			chain.filter(exchange)
-		}
-	}
+    private fun getLocaleFromQueryParam(query: String): Locale? {
+        val (_, lan) =
+            query
+                .split("&")
+                .map { it.split("=") }
+                .firstOrNull { (key) -> key == LOCALE_KEY }
+                ?: return null
 
-	private fun getLocaleFromQueryParam(query: String): Locale? {
-		val (_, lan) = query
-			.split("&")
-			.map { it.split("=") }
-			.firstOrNull { (key) -> key == LOCALE_KEY }
-			?: return null
+        return runCatching { Locale.of(lan) }.getOrNull()
+    }
 
-		return runCatching { Locale.of(lan) }.getOrNull()
-	}
+    @Bean
+    fun messageSource(): ResourceBundleMessageSource {
+        val messageSource = ResourceBundleMessageSource()
 
-	@Bean
-	fun messageSource(): ResourceBundleMessageSource {
-		val messageSource = ResourceBundleMessageSource()
+        messageSource.setBasenames("messages/messages")
+        messageSource.setDefaultLocale(Locale.of("en"))
+        messageSource.setDefaultEncoding("UTF-8")
 
-		messageSource.setBasenames("messages/messages")
-		messageSource.setDefaultLocale(Locale.of("en"))
-		messageSource.setDefaultEncoding("UTF-8")
-
-		return messageSource
-	}
+        return messageSource
+    }
 }

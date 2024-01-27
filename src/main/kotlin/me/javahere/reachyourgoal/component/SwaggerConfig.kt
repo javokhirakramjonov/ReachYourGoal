@@ -11,34 +11,34 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class SwaggerConfig {
-	@Bean
-	fun openAPI(): OpenAPI {
-		return OpenAPI()
-			.addSecurityItem(SecurityRequirement().addList("Bearer Authentication"))
-			.components(
-				Components()
-					.addSecuritySchemes(
-						"Bearer Authentication",
-						createAPIKeyScheme()
-					)
-			)
-			.info(
-				Info()
-					.title("Reach Your Goal API")
-					.version("1.0")
-					.contact(
-						Contact()
-							.name("Javokhir")
-							.email("javokhir.akramjonov@gmail.com")
-							.url("https://www.linkedin.com/in/javahere")
-					)
-			)
-	}
+    @Bean
+    fun openAPI(): OpenAPI {
+        return OpenAPI()
+            .addSecurityItem(SecurityRequirement().addList("Bearer Authentication"))
+            .components(
+                Components()
+                    .addSecuritySchemes(
+                        "Bearer Authentication",
+                        createAPIKeyScheme(),
+                    ),
+            )
+            .info(
+                Info()
+                    .title("Reach Your Goal API")
+                    .version("1.0")
+                    .contact(
+                        Contact()
+                            .name("Javokhir")
+                            .email("javokhir.akramjonov@gmail.com")
+                            .url("https://www.linkedin.com/in/javahere"),
+                    ),
+            )
+    }
 
-	private fun createAPIKeyScheme(): SecurityScheme {
-		return SecurityScheme()
-			.type(SecurityScheme.Type.HTTP)
-			.bearerFormat("JWT")
-			.scheme("bearer")
-	}
+    private fun createAPIKeyScheme(): SecurityScheme {
+        return SecurityScheme()
+            .type(SecurityScheme.Type.HTTP)
+            .bearerFormat("JWT")
+            .scheme("bearer")
+    }
 }

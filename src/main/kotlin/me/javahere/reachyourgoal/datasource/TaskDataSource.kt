@@ -6,20 +6,33 @@ import me.javahere.reachyourgoal.domain.TaskAttachment
 import java.util.*
 
 interface TaskDataSource {
-	suspend fun createTask(task: Task): Task
+    suspend fun createTask(task: Task): Task
 
-	fun retrieveAllTasksByUserId(userId: UUID): Flow<Task>
-	suspend fun retrieveTaskByTaskIdAndUserId(taskId: UUID, userId: UUID): Task?
+    fun retrieveAllTasksByUserId(userId: UUID): Flow<Task>
 
-	suspend fun updateTask(task: Task): Task
+    suspend fun retrieveTaskByTaskIdAndUserId(
+        taskId: UUID,
+        userId: UUID,
+    ): Task?
 
-	suspend fun deleteTaskByTaskIdAndUserId(taskId: UUID, userId: UUID)
+    suspend fun updateTask(task: Task): Task
 
-	fun retrieveAllTaskAttachmentsByTaskId(taskId: UUID): Flow<TaskAttachment>
+    suspend fun deleteTaskByTaskIdAndUserId(
+        taskId: UUID,
+        userId: UUID,
+    )
 
-	suspend fun createTaskAttachment(taskAttachment: TaskAttachment): TaskAttachment
+    fun retrieveAllTaskAttachmentsByTaskId(taskId: UUID): Flow<TaskAttachment>
 
-	suspend fun retrieveTaskAttachment(attachmentId: UUID, taskId: UUID): TaskAttachment?
+    suspend fun createTaskAttachment(taskAttachment: TaskAttachment): TaskAttachment
 
-	suspend fun deleteTaskAttachmentByAttachmentIdAndTaskId(taskAttachmentId: UUID, taskId: UUID)
+    suspend fun retrieveTaskAttachment(
+        attachmentId: UUID,
+        taskId: UUID,
+    ): TaskAttachment?
+
+    suspend fun deleteTaskAttachmentByAttachmentIdAndTaskId(
+        taskAttachmentId: UUID,
+        taskId: UUID,
+    )
 }

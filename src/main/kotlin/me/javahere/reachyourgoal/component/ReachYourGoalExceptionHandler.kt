@@ -12,21 +12,18 @@ import reactor.core.publisher.Mono
 
 @RestControllerAdvice
 class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
+    @ExceptionHandler
+    fun handleExceptions(ex: Exception): Mono<ResponseEntity<*>> {
+        val errors =
+            when (ex) {
+                is ExceptionResponse -> ex.exceptions.toList()
+                else -> listOf(ReachYourGoalException(ReachYourGoalExceptionType.UNDEFINED, ex.message))
+            }
 
-	@ExceptionHandler
-	fun handleExceptions(
-		ex: Exception,
-	): Mono<ResponseEntity<*>> {
-		val errors = when (ex) {
-			is ExceptionResponse -> ex.exceptions.toList()
-			else -> listOf(ReachYourGoalException(ReachYourGoalExceptionType.UNDEFINED, ex.message))
-		}
-
-		return Mono.just(
-			ResponseEntity
-				.status(HttpStatus.BAD_REQUEST)
-				.body(errors)
-		)
-	}
-
+        return Mono.just(
+            ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(errors),
+        )
+    }
 }
