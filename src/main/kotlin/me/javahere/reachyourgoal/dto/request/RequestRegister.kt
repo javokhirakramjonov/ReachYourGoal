@@ -4,7 +4,7 @@ import me.javahere.reachyourgoal.domain.Role
 import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.util.Transformable
 
-data class RequestRegister(
+class RequestRegister(
     val firstname: String,
     val lastname: String,
     val username: String,

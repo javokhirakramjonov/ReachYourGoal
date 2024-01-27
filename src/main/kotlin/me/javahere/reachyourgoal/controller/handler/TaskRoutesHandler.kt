@@ -2,7 +2,6 @@ package me.javahere.reachyourgoal.controller.handler
 
 import kotlinx.coroutines.reactive.awaitSingle
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
-import me.javahere.reachyourgoal.exception.ExceptionGroup
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.service.TaskService
@@ -24,7 +23,7 @@ class TaskRoutesHandler(
     private suspend fun getUserId(serverRequest: ServerRequest): UUID {
         val email =
             serverRequest.awaitPrincipal()?.name
-                ?: throw ExceptionGroup(RYGException(RYGExceptionType.UN_AUTHENTICATED))
+                ?: throw RYGException(RYGExceptionType.UN_AUTHENTICATED)
 
         val user = userService.findUserByEmail(email)
 
@@ -93,19 +92,15 @@ class TaskRoutesHandler(
         val userId = getUserId(serverRequest)
         val taskId = UUID.fromString(serverRequest.pathVariable("taskId"))
 
-        val data = serverRequest.awaitMultipartData().toSingleValueMap()
+        val data = serverRequest.awaitMultipartData()
 
-        val attachments =
-            data
-                .entries
-                .mapNotNull {
-                    val content = (it.value as? FilePart)?.content()?.awaitSingle() ?: return@mapNotNull null
-                    it.key to content
-                }
+        val attachment = data["file"]?.firstOrNull()
 
-        val attachmentStates = taskService.createTaskAttachment(userId, taskId, attachments)
+        val (fileName, content) = (attachment as FilePart).let { it.name() to it.content().awaitSingle() }
 
-        return ServerResponse.ok().bodyValueAndAwait(attachmentStates)
+        val attachmentState = taskService.createTaskAttachment(userId, taskId, fileName, content)
+
+        return ServerResponse.ok().bodyValueAndAwait(attachmentState)
     }
 
     suspend fun deleteTaskAttachmentById(serverRequest: ServerRequest): ServerResponse {

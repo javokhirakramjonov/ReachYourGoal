@@ -31,8 +31,9 @@ interface TaskService {
     suspend fun createTaskAttachment(
         userId: UUID,
         taskId: UUID,
-        attachments: List<Pair<String, DataBuffer>>,
-    ): List<Pair<String, TaskAttachmentDto?>>
+        attachmentName: String,
+        attachment: DataBuffer,
+    ): TaskAttachmentDto
 
     suspend fun getTaskAttachmentById(
         userId: UUID,

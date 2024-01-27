@@ -1,7 +1,6 @@
 package me.javahere.reachyourgoal.security.jwt
 
 import kotlinx.coroutines.reactor.mono
-import me.javahere.reachyourgoal.exception.ExceptionGroup
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType.UN_AUTHENTICATED
 import me.javahere.reachyourgoal.exception.RYGExceptionType.UN_AUTHORIZED
@@ -24,7 +23,7 @@ class JwtAuthSuccessHandler(
     ): Mono<Void> =
         mono {
             val principal =
-                authentication.principal ?: throw ExceptionGroup(RYGException(UN_AUTHORIZED))
+                authentication.principal ?: throw RYGException(UN_AUTHORIZED)
 
             when (principal) {
                 is User -> {
@@ -34,7 +33,7 @@ class JwtAuthSuccessHandler(
                     val refreshToken = jwtService.generateRefreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
 
                     val exchange =
-                        webFilterExchange.exchange ?: throw ExceptionGroup(RYGException(UN_AUTHORIZED))
+                        webFilterExchange.exchange ?: throw RYGException(UN_AUTHORIZED)
 
                     with(exchange.response.headers) {
                         setBearerAuth(accessToken)
@@ -42,7 +41,7 @@ class JwtAuthSuccessHandler(
                     }
                 }
 
-                else -> throw ExceptionGroup(RYGException(UN_AUTHENTICATED))
+                else -> throw RYGException(UN_AUTHENTICATED)
             }
 
             return@mono null

@@ -3,7 +3,6 @@ package me.javahere.reachyourgoal.security.jwt
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
-import me.javahere.reachyourgoal.exception.ExceptionGroup
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.util.EMPTY
@@ -41,9 +40,9 @@ class JwtService(
 
     fun refreshAccessToken(refreshToken: String): String {
         val invalidRefreshToken =
-            ExceptionGroup(RYGException(RYGExceptionType.INVALID_REFRESH_TOKEN))
+            RYGException(RYGExceptionType.INVALID_REFRESH_TOKEN)
         val refreshTokenExpired =
-            ExceptionGroup(RYGException(RYGExceptionType.REFRESH_TOKEN_EXPIRED))
+            RYGException(RYGExceptionType.REFRESH_TOKEN_EXPIRED)
 
         val decodedJWT = decodeRefreshToken(refreshToken) ?: throw invalidRefreshToken
 

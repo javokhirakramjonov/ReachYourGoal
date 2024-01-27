@@ -2,7 +2,6 @@ package me.javahere.reachyourgoal.controller.handler
 
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
-import me.javahere.reachyourgoal.exception.ExceptionGroup
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.localize.MessagesEnum
@@ -62,11 +61,9 @@ class UserRoutesHandler(
 
     suspend fun refreshAccessToken(serverRequest: ServerRequest): ServerResponse {
         val refreshTokenNotFoundException =
-            ExceptionGroup(
-                RYGException(
-                    RYGExceptionType.NOT_FOUND,
-                    messageSource.getMessage(MessagesEnum.REFRESH_TOKEN_NOT_FOUND_EXCEPTION.key),
-                ),
+            RYGException(
+                RYGExceptionType.NOT_FOUND,
+                messageSource.getMessage(MessagesEnum.REFRESH_TOKEN_NOT_FOUND_EXCEPTION.key),
             )
 
         val refreshToken =
