@@ -39,12 +39,27 @@ class SecurityConfiguration {
             formLogin { disable() }
             logout { disable() }
 
+            val permitAllPaths =
+                arrayOf(
+                    "/",
+                    "/auth/**",
+                    "v2/api-docs",
+                    "v3/api-docs",
+                    "v3/api-docs/**",
+                    "/swagger/resources",
+                    "/swagger/resources/**",
+                    "/configuration",
+                    "/configuration/**",
+                    "/swagger-ui/**",
+                    "/webjars/**",
+                    "/swagger-ui.html",
+                )
+
             authorizeExchange {
-                authorize("/", permitAll)
-                authorize("/auth/**", permitAll)
+                authorize(ServerWebExchangeMatchers.pathMatchers(*permitAllPaths), permitAll)
                 authorize("/tasks/**", hasAuthority(Role.USER.name))
                 authorize("/admin/**", hasAuthority(Role.ADMIN.name))
-                authorize(anyExchange, permitAll)
+                authorize(anyExchange, authenticated)
             }
 
             addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)

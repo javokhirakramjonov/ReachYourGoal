@@ -130,7 +130,7 @@ class TaskRoutes(
     )
     fun getTaskAttachmentsByTaskId() =
         coRouter {
-            GET("/tasks/{taskId}/attachments", taskRoutesHandler::getTaskAttachmentsByTaskId)
+            GET("/tasks/{taskId}/attachments", taskRoutesHandler::getAllTaskAttachments)
         }
 
     @Bean
@@ -155,7 +155,7 @@ class TaskRoutes(
     )
     fun downloadAttachmentByTaskIdAndAttachmentId() =
         coRouter {
-            GET("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesHandler::downloadAttachmentByTaskIdAndAttachmentId)
+            GET("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesHandler::downloadTaskAttachmentById)
         }
 
     @Bean
@@ -189,7 +189,7 @@ class TaskRoutes(
     )
     fun uploadTaskAttachments() =
         coRouter {
-            POST("/tasks/{taskId}/attachments/upload", taskRoutesHandler::uploadTaskAttachments)
+            POST("/tasks/{taskId}/attachments/upload", taskRoutesHandler::uploadTaskAttachment)
         }
 
     @Bean
@@ -207,6 +207,6 @@ class TaskRoutes(
     )
     fun deleteAttachmentByAttachmentId() =
         coRouter {
-            DELETE("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesHandler::deleteAttachmentByAttachmentId)
+            DELETE("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesHandler::deleteTaskAttachmentById)
         }
 }

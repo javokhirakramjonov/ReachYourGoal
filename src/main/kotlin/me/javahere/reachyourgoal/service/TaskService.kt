@@ -14,38 +14,38 @@ interface TaskService {
         userId: UUID,
     ): TaskDto
 
-    suspend fun getTaskByTaskIdAndUserId(
-        id: UUID,
+    suspend fun getTaskById(
+        taskId: UUID,
         userId: UUID,
     ): TaskDto
 
-    fun getAllTasksByUserId(userId: UUID): Flow<TaskDto>
+    fun getAllTasks(userId: UUID): Flow<TaskDto>
 
     suspend fun updateTask(task: TaskDto): TaskDto
 
-    suspend fun deleteTaskByTaskIdAndUserId(
+    suspend fun deleteTaskById(
         taskId: UUID,
         userId: UUID,
     )
 
-    suspend fun createTaskAttachments(
+    suspend fun createTaskAttachment(
         userId: UUID,
         taskId: UUID,
         attachments: List<Pair<String, DataBuffer>>,
     ): List<Pair<String, TaskAttachmentDto?>>
 
-    suspend fun getAttachment(
+    suspend fun getTaskAttachmentById(
         userId: UUID,
         taskId: UUID,
         attachmentId: UUID,
     ): File
 
-    suspend fun getAllAttachmentsByUserIdAndTaskId(
+    suspend fun getAllTaskAttachments(
         userId: UUID,
         taskId: UUID,
     ): Flow<TaskAttachmentDto>
 
-    suspend fun deleteTaskAttachmentByTaskIdAndAttachmentId(
+    suspend fun deleteTaskAttachmentById(
         userId: UUID,
         taskId: UUID,
         attachmentId: UUID,

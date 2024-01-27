@@ -23,7 +23,7 @@ interface UserDataSource {
 
     suspend fun deleteUserById(userId: UUID)
 
-    suspend fun deleteConfirmationTokenByExpireDateBefore(time: Long)
+    suspend fun deleteConfirmationTokenBeforeByTime(time: Long)
 
     suspend fun deleteAllConfirmationTokensByUserId(userId: UUID)
 }

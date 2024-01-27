@@ -2,9 +2,9 @@ package me.javahere.reachyourgoal.controller.handler
 
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
-import me.javahere.reachyourgoal.exception.ExceptionResponse
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ExceptionGroup
+import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.service.UserService
@@ -23,7 +23,7 @@ class UserRoutesHandler(
     suspend fun register(serverRequest: ServerRequest): ServerResponse {
         val user = serverRequest.awaitBody(RequestRegister::class)
 
-        userService.registerUser(user)
+        userService.register(user)
 
         return ServerResponse
             .ok()
@@ -62,9 +62,9 @@ class UserRoutesHandler(
 
     suspend fun refreshAccessToken(serverRequest: ServerRequest): ServerResponse {
         val refreshTokenNotFoundException =
-            ExceptionResponse(
-                ReachYourGoalException(
-                    ReachYourGoalExceptionType.NOT_FOUND,
+            ExceptionGroup(
+                RYGException(
+                    RYGExceptionType.NOT_FOUND,
                     messageSource.getMessage(MessagesEnum.REFRESH_TOKEN_NOT_FOUND_EXCEPTION.key),
                 ),
             )

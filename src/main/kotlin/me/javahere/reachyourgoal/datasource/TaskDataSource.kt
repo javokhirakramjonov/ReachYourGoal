@@ -8,30 +8,30 @@ import java.util.*
 interface TaskDataSource {
     suspend fun createTask(task: Task): Task
 
-    fun retrieveAllTasksByUserId(userId: UUID): Flow<Task>
+    fun retrieveAllTasks(userId: UUID): Flow<Task>
 
-    suspend fun retrieveTaskByTaskIdAndUserId(
+    suspend fun retrieveTaskById(
         taskId: UUID,
         userId: UUID,
     ): Task?
 
     suspend fun updateTask(task: Task): Task
 
-    suspend fun deleteTaskByTaskIdAndUserId(
+    suspend fun deleteTaskById(
         taskId: UUID,
         userId: UUID,
     )
 
-    fun retrieveAllTaskAttachmentsByTaskId(taskId: UUID): Flow<TaskAttachment>
+    fun retrieveAllTaskAttachments(taskId: UUID): Flow<TaskAttachment>
 
     suspend fun createTaskAttachment(taskAttachment: TaskAttachment): TaskAttachment
 
-    suspend fun retrieveTaskAttachment(
+    suspend fun retrieveTaskAttachmentById(
         attachmentId: UUID,
         taskId: UUID,
     ): TaskAttachment?
 
-    suspend fun deleteTaskAttachmentByAttachmentIdAndTaskId(
+    suspend fun deleteTaskAttachmentById(
         taskAttachmentId: UUID,
         taskId: UUID,
     )

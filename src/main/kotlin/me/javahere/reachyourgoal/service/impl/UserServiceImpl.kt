@@ -7,9 +7,9 @@ import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
-import me.javahere.reachyourgoal.exception.ExceptionResponse
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.*
+import me.javahere.reachyourgoal.exception.ExceptionGroup
+import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionType.*
 import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_CONFIRMATION_TOKEN
@@ -37,19 +37,19 @@ class UserServiceImpl(
     private val emailService: EmailService,
     private val messageSource: ResourceBundleMessageSource,
 ) : UserService, ReactiveUserDetailsService {
-    private val invalidConfirmToken = ExceptionResponse(ReachYourGoalException(INVALID_CONFIRM_TOKEN))
-    private val confirmTokenExpired = ExceptionResponse(ReachYourGoalException(CONFIRM_TOKEN_EXPIRED))
+    private val invalidConfirmToken = ExceptionGroup(RYGException(INVALID_CONFIRM_TOKEN))
+    private val confirmTokenExpired = ExceptionGroup(RYGException(CONFIRM_TOKEN_EXPIRED))
 
-    override suspend fun registerUser(user: RequestRegister) {
+    override suspend fun register(user: RequestRegister) {
         val isUsernameAvailable = checkAndCleanupUsernameAvailability(user.username)
         val isEmailAvailable = checkAndCleanupEmailAvailability(user.email)
 
-        val exceptions = mutableListOf<ReachYourGoalException>()
+        val exceptions = mutableListOf<RYGException>()
 
-        if (!isUsernameAvailable) exceptions += ReachYourGoalException(USERNAME_IS_NOT_AVAILABLE)
-        if (!isEmailAvailable) exceptions += ReachYourGoalException(EMAIL_IS_NOT_AVAILABLE)
+        if (!isUsernameAvailable) exceptions += RYGException(USERNAME_IS_NOT_AVAILABLE)
+        if (!isEmailAvailable) exceptions += RYGException(EMAIL_IS_NOT_AVAILABLE)
 
-        if (exceptions.isNotEmpty()) throw ExceptionResponse(exceptions)
+        if (exceptions.isNotEmpty()) throw ExceptionGroup(exceptions)
 
         val token = jwtService.generateAccessToken(user.username, EXPIRE_CONFIRMATION_TOKEN, emptyArray())
 
@@ -118,8 +118,8 @@ class UserServiceImpl(
                 *errorMessageArguments,
             )
 
-        return userDataSource.retrieveUserById(userId)?.transform() ?: throw ExceptionResponse(
-            ReachYourGoalException(
+        return userDataSource.retrieveUserById(userId)?.transform() ?: throw ExceptionGroup(
+            RYGException(
                 NOT_FOUND,
                 errorMessage,
             ),
@@ -134,8 +134,8 @@ class UserServiceImpl(
                 *errorMessageArguments,
             )
 
-        return userDataSource.retrieveUserByEmail(email)?.transform() ?: throw ExceptionResponse(
-            ReachYourGoalException(
+        return userDataSource.retrieveUserByEmail(email)?.transform() ?: throw ExceptionGroup(
+            RYGException(
                 NOT_FOUND,
                 errorMessage,
             ),
@@ -150,19 +150,19 @@ class UserServiceImpl(
                 *errorMessageArguments,
             )
 
-        return userDataSource.retrieveUserByUsername(username)?.transform() ?: throw ExceptionResponse(
-            ReachYourGoalException(NOT_FOUND, errorMessage),
+        return userDataSource.retrieveUserByUsername(username)?.transform() ?: throw ExceptionGroup(
+            RYGException(NOT_FOUND, errorMessage),
         )
     }
 
     override fun findByUsername(username: String): Mono<UserDetails> =
         mono {
             val user: User =
-                userDataSource.retrieveUserByUsername(username) ?: throw ExceptionResponse(
-                    ReachYourGoalException(BAD_CREDENTIALS),
+                userDataSource.retrieveUserByUsername(username) ?: throw ExceptionGroup(
+                    RYGException(BAD_CREDENTIALS),
                 )
 
-            if (!user.isConfirmed) throw ExceptionResponse(ReachYourGoalException(EMAIL_NOT_CONFIRMED))
+            if (!user.isConfirmed) throw ExceptionGroup(RYGException(EMAIL_NOT_CONFIRMED))
 
             val authorities: List<GrantedAuthority> = user.authorities
 
@@ -218,8 +218,8 @@ class UserServiceImpl(
             )
 
         val foundUser =
-            userDataSource.retrieveUserById(userId) ?: throw ExceptionResponse(
-                ReachYourGoalException(
+            userDataSource.retrieveUserById(userId) ?: throw ExceptionGroup(
+                RYGException(
                     NOT_FOUND,
                     userNotFoundErrorMessage,
                 ),
@@ -236,8 +236,8 @@ class UserServiceImpl(
             val userWithUsername = userDataSource.retrieveUserByUsername(username)
 
             if (userWithUsername != null && userWithUsername.id != userId) {
-                throw ExceptionResponse(
-                    ReachYourGoalException(ALREADY_EXISTS, usernameExistsErrorMessage),
+                throw ExceptionGroup(
+                    RYGException(ALREADY_EXISTS, usernameExistsErrorMessage),
                 )
             }
         }
@@ -269,7 +269,7 @@ class UserServiceImpl(
         val user = findUserById(request.userId)
 
         if (user.email == request.newEmail) {
-            throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, emailAssignedToCurrentUserErrorMessage))
+            throw ExceptionGroup(RYGException(ALREADY_EXISTS, emailAssignedToCurrentUserErrorMessage))
         }
 
         val userWithEmail = userDataSource.retrieveUserByEmail(request.newEmail)
@@ -281,7 +281,7 @@ class UserServiceImpl(
                     *emailExistsErrorMessageArguments,
                 )
 
-            throw ExceptionResponse(ReachYourGoalException(ALREADY_EXISTS, emailExistsErrorMessage))
+            throw ExceptionGroup(RYGException(ALREADY_EXISTS, emailExistsErrorMessage))
         }
 
         val token = jwtService.generateAccessToken(request.newEmail, EXPIRE_CONFIRMATION_TOKEN, emptyArray())

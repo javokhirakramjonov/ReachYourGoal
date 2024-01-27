@@ -6,7 +6,7 @@ import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
 import java.util.*
 
 interface UserService {
-    suspend fun registerUser(user: RequestRegister)
+    suspend fun register(user: RequestRegister)
 
     suspend fun confirmRegister(token: String): UserDto
 
