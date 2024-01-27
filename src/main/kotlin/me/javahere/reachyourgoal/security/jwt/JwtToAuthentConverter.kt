@@ -3,7 +3,9 @@ package me.javahere.reachyourgoal.security.jwt
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.dto.request.RequestLogin
-import me.javahere.reachyourgoal.exception.*
+import me.javahere.reachyourgoal.exception.ExceptionResponse
+import me.javahere.reachyourgoal.exception.ReachYourGoalException
+import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
 import org.springframework.core.ResolvableType
 import org.springframework.http.MediaType
 import org.springframework.http.codec.json.AbstractJackson2Decoder
@@ -16,27 +18,27 @@ import reactor.core.publisher.Mono
 
 @Component
 class JwtToAuthentConverter(
-    private val jacksonDecoder: AbstractJackson2Decoder
+	private val jacksonDecoder: AbstractJackson2Decoder
 ) : ServerAuthenticationConverter {
 
-    override fun convert(exchange: ServerWebExchange): Mono<Authentication> = mono {
-        val loginRequest: RequestLogin =
-            getUsernameAndPassword(exchange) ?: throw ExceptionResponse(
-                ReachYourGoalException(
-                    ReachYourGoalExceptionType.BAD_REQUEST
-                )
-            )
+	override fun convert(exchange: ServerWebExchange): Mono<Authentication> = mono {
+		val loginRequest: RequestLogin =
+			getUsernameAndPassword(exchange) ?: throw ExceptionResponse(
+				ReachYourGoalException(
+					ReachYourGoalExceptionType.BAD_REQUEST
+				)
+			)
 
-        UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
-    }
+		UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
+	}
 
-    private suspend fun getUsernameAndPassword(exchange: ServerWebExchange): RequestLogin? {
-        val dataBuffer = exchange.request.body
-        val type = ResolvableType.forClass(RequestLogin::class.java)
-        return jacksonDecoder
-            .decodeToMono(dataBuffer, type, MediaType.APPLICATION_JSON, mapOf())
-            .onErrorResume { Mono.empty<RequestLogin>() }
-            .cast(RequestLogin::class.java)
-            .awaitFirstOrNull()
-    }
+	private suspend fun getUsernameAndPassword(exchange: ServerWebExchange): RequestLogin? {
+		val dataBuffer = exchange.request.body
+		val type = ResolvableType.forClass(RequestLogin::class.java)
+		return jacksonDecoder
+			.decodeToMono(dataBuffer, type, MediaType.APPLICATION_JSON, mapOf())
+			.onErrorResume { Mono.empty<RequestLogin>() }
+			.cast(RequestLogin::class.java)
+			.awaitFirstOrNull()
+	}
 }

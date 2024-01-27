@@ -16,34 +16,34 @@ import reactor.core.publisher.Mono
 
 @Component
 class JwtAuthSuccessHandler(
-    private val jwtService: JwtService,
+	private val jwtService: JwtService,
 ) : ServerAuthenticationSuccessHandler {
 
-    override fun onAuthenticationSuccess(
-        webFilterExchange: WebFilterExchange, authentication: Authentication
-    ): Mono<Void> = mono {
-        val principal =
-            authentication.principal ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
+	override fun onAuthenticationSuccess(
+		webFilterExchange: WebFilterExchange, authentication: Authentication
+	): Mono<Void> = mono {
+		val principal =
+			authentication.principal ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
 
-        when (principal) {
-            is User -> {
-                val roles = principal.authorities.map { it.authority }.toTypedArray()
+		when (principal) {
+			is User -> {
+				val roles = principal.authorities.map { it.authority }.toTypedArray()
 
-                val accessToken = jwtService.generateAccessToken(principal.username, EXPIRE_ACCESS_TOKEN, roles)
-                val refreshToken = jwtService.generateRefreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
+				val accessToken = jwtService.generateAccessToken(principal.username, EXPIRE_ACCESS_TOKEN, roles)
+				val refreshToken = jwtService.generateRefreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
 
-                val exchange =
-                    webFilterExchange.exchange ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
+				val exchange =
+					webFilterExchange.exchange ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
 
-                with(exchange.response.headers) {
-                    setBearerAuth(accessToken)
-                    set("Refresh-Token", refreshToken)
-                }
-            }
+				with(exchange.response.headers) {
+					setBearerAuth(accessToken)
+					set("Refresh-Token", refreshToken)
+				}
+			}
 
-            else -> throw ExceptionResponse(ReachYourGoalException(UN_AUTHENTICATED))
-        }
+			else -> throw ExceptionResponse(ReachYourGoalException(UN_AUTHENTICATED))
+		}
 
-        return@mono null
-    }
+		return@mono null
+	}
 }

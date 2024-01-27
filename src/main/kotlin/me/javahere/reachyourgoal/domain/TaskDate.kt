@@ -7,9 +7,9 @@ import java.time.LocalDate
 
 @Table(name = "task_dates")
 data class TaskDate(
-    @Id
-    val id: Int = 0,
+	@Id
+	val id: Int = 0,
 
-    @Column("date")
-    val date: LocalDate,
+	@Column("date")
+	val date: LocalDate,
 )

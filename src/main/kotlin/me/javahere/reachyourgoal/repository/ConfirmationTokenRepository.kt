@@ -5,8 +5,8 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.util.*
 
 interface ConfirmationTokenRepository : CoroutineCrudRepository<ConfirmationToken, String> {
-    suspend fun findByToken(token: String): ConfirmationToken?
-    suspend fun findByUserId(userId: UUID): ConfirmationToken?
-    suspend fun deleteByExpireDateBefore(time: Long)
-    suspend fun deleteAllByUserId(userId: UUID)
+	suspend fun findByToken(token: String): ConfirmationToken?
+	suspend fun findByUserId(userId: UUID): ConfirmationToken?
+	suspend fun deleteByExpireDateBefore(time: Long)
+	suspend fun deleteAllByUserId(userId: UUID)
 }
