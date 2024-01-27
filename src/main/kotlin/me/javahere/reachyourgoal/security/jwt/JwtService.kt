@@ -3,9 +3,9 @@ package me.javahere.reachyourgoal.security.jwt
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
-import me.javahere.reachyourgoal.exception.ExceptionResponse
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ExceptionGroup
+import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.util.EMPTY
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -41,9 +41,9 @@ class JwtService(
 
     fun refreshAccessToken(refreshToken: String): String {
         val invalidRefreshToken =
-            ExceptionResponse(ReachYourGoalException(ReachYourGoalExceptionType.INVALID_REFRESH_TOKEN))
+            ExceptionGroup(RYGException(RYGExceptionType.INVALID_REFRESH_TOKEN))
         val refreshTokenExpired =
-            ExceptionResponse(ReachYourGoalException(ReachYourGoalExceptionType.REFRESH_TOKEN_EXPIRED))
+            ExceptionGroup(RYGException(RYGExceptionType.REFRESH_TOKEN_EXPIRED))
 
         val decodedJWT = decodeRefreshToken(refreshToken) ?: throw invalidRefreshToken
 

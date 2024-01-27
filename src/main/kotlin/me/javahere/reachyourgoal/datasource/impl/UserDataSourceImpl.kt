@@ -49,7 +49,7 @@ class UserDataSourceImpl(
         userRepository.deleteById(userId)
     }
 
-    override suspend fun deleteConfirmationTokenByExpireDateBefore(time: Long) {
+    override suspend fun deleteConfirmationTokenBeforeByTime(time: Long) {
         confirmationTokenRepository.deleteByExpireDateBefore(time)
     }
 

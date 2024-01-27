@@ -1,8 +1,8 @@
 package me.javahere.reachyourgoal.service.impl
 
-import me.javahere.reachyourgoal.exception.ExceptionResponse
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ExceptionGroup
+import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.service.FileService
 import org.springframework.stereotype.Service
 import java.io.File
@@ -32,7 +32,7 @@ class FileServiceImpl : FileService {
         return try {
             File(path, fileName)
         } catch (e: Exception) {
-            throw ExceptionResponse(ReachYourGoalException(ReachYourGoalExceptionType.NOT_FOUND))
+            throw ExceptionGroup(RYGException(RYGExceptionType.NOT_FOUND))
         }
     }
 

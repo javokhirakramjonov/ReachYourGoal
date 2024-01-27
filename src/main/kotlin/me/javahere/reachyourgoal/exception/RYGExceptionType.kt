@@ -1,6 +1,6 @@
 package me.javahere.reachyourgoal.exception
 
-enum class ReachYourGoalExceptionType {
+enum class RYGExceptionType {
     BAD_REQUEST,
     UN_AUTHORIZED,
     UN_AUTHENTICATED,

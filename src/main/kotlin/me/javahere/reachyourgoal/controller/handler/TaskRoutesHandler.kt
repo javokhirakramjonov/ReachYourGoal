@@ -2,9 +2,9 @@ package me.javahere.reachyourgoal.controller.handler
 
 import kotlinx.coroutines.reactive.awaitSingle
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
-import me.javahere.reachyourgoal.exception.ExceptionResponse
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ExceptionGroup
+import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.service.UserService
 import org.springframework.core.io.FileSystemResource
@@ -24,7 +24,7 @@ class TaskRoutesHandler(
     private suspend fun getUserId(serverRequest: ServerRequest): UUID {
         val email =
             serverRequest.awaitPrincipal()?.name
-                ?: throw ExceptionResponse(ReachYourGoalException(ReachYourGoalExceptionType.UN_AUTHENTICATED))
+                ?: throw ExceptionGroup(RYGException(RYGExceptionType.UN_AUTHENTICATED))
 
         val user = userService.findUserByEmail(email)
 
@@ -43,9 +43,9 @@ class TaskRoutesHandler(
 
     suspend fun getTaskById(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
-
         val id = UUID.fromString(serverRequest.pathVariable("taskId"))
-        val task = taskService.getTaskByTaskIdAndUserId(id, userId)
+
+        val task = taskService.getTaskById(id, userId)
 
         return ServerResponse.ok().bodyValueAndAwait(task)
     }
@@ -53,30 +53,27 @@ class TaskRoutesHandler(
     suspend fun getAllTasks(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
 
-        val allTasks = taskService.getAllTasksByUserId(userId)
+        val allTasks = taskService.getAllTasks(userId)
 
         return ServerResponse.ok().bodyAndAwait(allTasks)
     }
 
-    suspend fun getTaskAttachmentsByTaskId(serverRequest: ServerRequest): ServerResponse {
+    suspend fun getAllTaskAttachments(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
-
         val taskId = UUID.fromString(serverRequest.pathVariable("taskId"))
 
-        val attachments = taskService.getAllAttachmentsByUserIdAndTaskId(userId, taskId)
+        val attachments = taskService.getAllTaskAttachments(userId, taskId)
 
         return ServerResponse.ok().bodyAndAwait(attachments)
     }
 
-    suspend fun downloadAttachmentByTaskIdAndAttachmentId(serverRequest: ServerRequest): ServerResponse {
+    suspend fun downloadTaskAttachmentById(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
-
         val taskId = UUID.fromString(serverRequest.pathVariable("taskId"))
-
         val attachmentId = UUID.fromString(serverRequest.pathVariable("attachmentId"))
 
         val attachment =
-            taskService.getAttachment(
+            taskService.getTaskAttachmentById(
                 userId = userId,
                 taskId = taskId,
                 attachmentId = attachmentId,
@@ -92,9 +89,8 @@ class TaskRoutesHandler(
             .bodyValueAndAwait(toDownload)
     }
 
-    suspend fun uploadTaskAttachments(serverRequest: ServerRequest): ServerResponse {
+    suspend fun uploadTaskAttachment(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
-
         val taskId = UUID.fromString(serverRequest.pathVariable("taskId"))
 
         val data = serverRequest.awaitMultipartData().toSingleValueMap()
@@ -107,17 +103,17 @@ class TaskRoutesHandler(
                     it.key to content
                 }
 
-        val attachmentStates = taskService.createTaskAttachments(userId, taskId, attachments)
+        val attachmentStates = taskService.createTaskAttachment(userId, taskId, attachments)
 
         return ServerResponse.ok().bodyValueAndAwait(attachmentStates)
     }
 
-    suspend fun deleteAttachmentByAttachmentId(serverRequest: ServerRequest): ServerResponse {
+    suspend fun deleteTaskAttachmentById(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
         val taskId = UUID.fromString(serverRequest.pathVariable("taskId"))
         val attachmentId = UUID.fromString(serverRequest.pathVariable("attachmentId"))
 
-        taskService.deleteTaskAttachmentByTaskIdAndAttachmentId(userId, taskId, attachmentId)
+        taskService.deleteTaskAttachmentById(userId, taskId, attachmentId)
 
         return ServerResponse.noContent().buildAndAwait()
     }

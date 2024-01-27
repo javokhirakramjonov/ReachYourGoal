@@ -7,9 +7,9 @@ import me.javahere.reachyourgoal.domain.TaskAttachment
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
-import me.javahere.reachyourgoal.exception.ExceptionResponse
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ExceptionGroup
+import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.service.FileService
 import me.javahere.reachyourgoal.service.TaskService
@@ -38,16 +38,16 @@ class TaskServiceImpl(
             .transform()
     }
 
-    override suspend fun getTaskByTaskIdAndUserId(
-        id: UUID,
+    override suspend fun getTaskById(
+        taskId: UUID,
         userId: UUID,
     ): TaskDto {
-        return validateTaskExists(userId, id).transform()
+        return validateTaskExistence(userId, taskId).transform()
     }
 
-    override fun getAllTasksByUserId(userId: UUID): Flow<TaskDto> {
+    override fun getAllTasks(userId: UUID): Flow<TaskDto> {
         return taskDataSource
-            .retrieveAllTasksByUserId(userId)
+            .retrieveAllTasks(userId)
             .transformCollection()
     }
 
@@ -57,19 +57,19 @@ class TaskServiceImpl(
             .transform()
     }
 
-    override suspend fun deleteTaskByTaskIdAndUserId(
+    override suspend fun deleteTaskById(
         taskId: UUID,
         userId: UUID,
     ) {
-        taskDataSource.deleteTaskByTaskIdAndUserId(taskId, userId)
+        taskDataSource.deleteTaskById(taskId, userId)
     }
 
-    override suspend fun createTaskAttachments(
+    override suspend fun createTaskAttachment(
         userId: UUID,
         taskId: UUID,
         attachments: List<Pair<String, DataBuffer>>,
     ): List<Pair<String, TaskAttachmentDto?>> {
-        validateTaskExists(userId, taskId)
+        validateTaskExistence(userId, taskId)
 
         return attachments
             .map { (name, content) ->
@@ -94,7 +94,7 @@ class TaskServiceImpl(
                     if (isSaved) {
                         createdTaskAttachment
                     } else {
-                        taskDataSource.deleteTaskAttachmentByAttachmentIdAndTaskId(createdTaskAttachment.id, taskId)
+                        taskDataSource.deleteTaskAttachmentById(createdTaskAttachment.id, taskId)
 
                         null
                     }
@@ -103,37 +103,37 @@ class TaskServiceImpl(
             }
     }
 
-    override suspend fun getAttachment(
+    override suspend fun getTaskAttachmentById(
         userId: UUID,
         taskId: UUID,
         attachmentId: UUID,
     ): File {
-        val attachment = validateAttachmentExists(userId, taskId, attachmentId).transform()
+        val attachment = validateTaskAttachmentExistence(userId, taskId, attachmentId).transform()
 
         return fileService.getFileByName(taskFilePath, attachment.id.toString())
     }
 
-    override suspend fun getAllAttachmentsByUserIdAndTaskId(
+    override suspend fun getAllTaskAttachments(
         userId: UUID,
         taskId: UUID,
     ): Flow<TaskAttachmentDto> {
-        validateTaskExists(userId, taskId)
+        validateTaskExistence(userId, taskId)
 
-        return taskDataSource.retrieveAllTaskAttachmentsByTaskId(taskId).transformCollection()
+        return taskDataSource.retrieveAllTaskAttachments(taskId).transformCollection()
     }
 
-    override suspend fun deleteTaskAttachmentByTaskIdAndAttachmentId(
+    override suspend fun deleteTaskAttachmentById(
         userId: UUID,
         taskId: UUID,
         attachmentId: UUID,
     ) {
-        val attachment = validateAttachmentExists(userId, taskId, attachmentId).transform()
+        val attachment = validateTaskAttachmentExistence(userId, taskId, attachmentId).transform()
 
         fileService.deleteFileByName(taskFilePath, attachment.id.toString())
-        taskDataSource.deleteTaskAttachmentByAttachmentIdAndTaskId(attachmentId, taskId)
+        taskDataSource.deleteTaskAttachmentById(attachmentId, taskId)
     }
 
-    private suspend fun validateTaskExists(
+    private suspend fun validateTaskExistence(
         userId: UUID,
         taskId: UUID,
     ): Task {
@@ -145,16 +145,16 @@ class TaskServiceImpl(
             )
 
         return taskDataSource
-            .retrieveTaskByTaskIdAndUserId(taskId, userId)
-            ?: throw ExceptionResponse(
-                ReachYourGoalException(
-                    ReachYourGoalExceptionType.NOT_FOUND,
+            .retrieveTaskById(taskId, userId)
+            ?: throw ExceptionGroup(
+                RYGException(
+                    RYGExceptionType.NOT_FOUND,
                     errorMessage,
                 ),
             )
     }
 
-    private suspend fun validateAttachmentExists(
+    private suspend fun validateTaskAttachmentExistence(
         userId: UUID,
         taskId: UUID,
         attachmentId: UUID,
@@ -166,13 +166,13 @@ class TaskServiceImpl(
                 *errorMessageArguments,
             )
 
-        validateTaskExists(userId, taskId)
+        validateTaskExistence(userId, taskId)
 
         return taskDataSource
-            .retrieveTaskAttachment(attachmentId, taskId)
-            ?: throw ExceptionResponse(
-                ReachYourGoalException(
-                    ReachYourGoalExceptionType.NOT_FOUND,
+            .retrieveTaskAttachmentById(attachmentId, taskId)
+            ?: throw ExceptionGroup(
+                RYGException(
+                    RYGExceptionType.NOT_FOUND,
                     errorMessage,
                 ),
             )

@@ -1,8 +1,8 @@
 package me.javahere.reachyourgoal.component
 
-import me.javahere.reachyourgoal.exception.ExceptionResponse
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType
+import me.javahere.reachyourgoal.exception.ExceptionGroup
+import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionType
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -16,8 +16,8 @@ class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
     fun handleExceptions(ex: Exception): Mono<ResponseEntity<*>> {
         val errors =
             when (ex) {
-                is ExceptionResponse -> ex.exceptions.toList()
-                else -> listOf(ReachYourGoalException(ReachYourGoalExceptionType.UNDEFINED, ex.message))
+                is ExceptionGroup -> ex.exceptions.toList()
+                else -> listOf(RYGException(RYGExceptionType.UNDEFINED, ex.message))
             }
 
         return Mono.just(

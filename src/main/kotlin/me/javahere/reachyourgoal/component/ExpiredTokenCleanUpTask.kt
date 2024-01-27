@@ -13,6 +13,6 @@ class ExpiredTokenCleanUpTask(
     suspend fun deleteExpiredTokens() =
         runBlocking {
             val currenTime = System.currentTimeMillis()
-            userDataSource.deleteConfirmationTokenByExpireDateBefore(currenTime)
+            userDataSource.deleteConfirmationTokenBeforeByTime(currenTime)
         }
 }

@@ -1,10 +1,10 @@
 package me.javahere.reachyourgoal.security.jwt
 
 import kotlinx.coroutines.reactor.mono
-import me.javahere.reachyourgoal.exception.ExceptionResponse
-import me.javahere.reachyourgoal.exception.ReachYourGoalException
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.UN_AUTHENTICATED
-import me.javahere.reachyourgoal.exception.ReachYourGoalExceptionType.UN_AUTHORIZED
+import me.javahere.reachyourgoal.exception.ExceptionGroup
+import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionType.UN_AUTHENTICATED
+import me.javahere.reachyourgoal.exception.RYGExceptionType.UN_AUTHORIZED
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_ACCESS_TOKEN
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_REFRESH_TOKEN
 import org.springframework.security.core.Authentication
@@ -24,7 +24,7 @@ class JwtAuthSuccessHandler(
     ): Mono<Void> =
         mono {
             val principal =
-                authentication.principal ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
+                authentication.principal ?: throw ExceptionGroup(RYGException(UN_AUTHORIZED))
 
             when (principal) {
                 is User -> {
@@ -34,7 +34,7 @@ class JwtAuthSuccessHandler(
                     val refreshToken = jwtService.generateRefreshToken(principal.username, EXPIRE_REFRESH_TOKEN, roles)
 
                     val exchange =
-                        webFilterExchange.exchange ?: throw ExceptionResponse(ReachYourGoalException(UN_AUTHORIZED))
+                        webFilterExchange.exchange ?: throw ExceptionGroup(RYGException(UN_AUTHORIZED))
 
                     with(exchange.response.headers) {
                         setBearerAuth(accessToken)
@@ -42,7 +42,7 @@ class JwtAuthSuccessHandler(
                     }
                 }
 
-                else -> throw ExceptionResponse(ReachYourGoalException(UN_AUTHENTICATED))
+                else -> throw ExceptionGroup(RYGException(UN_AUTHENTICATED))
             }
 
             return@mono null
