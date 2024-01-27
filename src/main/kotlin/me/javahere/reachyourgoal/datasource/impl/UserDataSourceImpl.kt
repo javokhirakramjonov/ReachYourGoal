@@ -10,50 +10,50 @@ import java.util.*
 
 @Repository
 class UserDataSourceImpl(
-    private val userRepository: UserRepository,
-    private val confirmationTokenRepository: ConfirmationTokenRepository
+	private val userRepository: UserRepository,
+	private val confirmationTokenRepository: ConfirmationTokenRepository
 ) : UserDataSource {
-    override suspend fun createUser(user: User): User {
-        return userRepository.save(user)
-    }
+	override suspend fun createUser(user: User): User {
+		return userRepository.save(user)
+	}
 
-    override suspend fun createConfirmationToken(confirmationToken: ConfirmationToken): ConfirmationToken {
-        return confirmationTokenRepository.save(confirmationToken)
-    }
+	override suspend fun createConfirmationToken(confirmationToken: ConfirmationToken): ConfirmationToken {
+		return confirmationTokenRepository.save(confirmationToken)
+	}
 
-    override suspend fun retrieveUserById(userId: UUID): User? {
-        return userRepository.findById(userId)
-    }
+	override suspend fun retrieveUserById(userId: UUID): User? {
+		return userRepository.findById(userId)
+	}
 
-    override suspend fun retrieveUserByUsername(username: String): User? {
-        return userRepository.findByUsername(username)
-    }
+	override suspend fun retrieveUserByUsername(username: String): User? {
+		return userRepository.findByUsername(username)
+	}
 
-    override suspend fun retrieveUserByEmail(email: String): User? {
-        return userRepository.findByEmail(email)
-    }
+	override suspend fun retrieveUserByEmail(email: String): User? {
+		return userRepository.findByEmail(email)
+	}
 
-    override suspend fun retrieveConfirmationTokenByToken(token: String): ConfirmationToken? {
-        return confirmationTokenRepository.findByToken(token)
-    }
+	override suspend fun retrieveConfirmationTokenByToken(token: String): ConfirmationToken? {
+		return confirmationTokenRepository.findByToken(token)
+	}
 
-    override suspend fun retrieveConfirmationTokenByUserId(userId: UUID): ConfirmationToken? {
-        return confirmationTokenRepository.findByUserId(userId)
-    }
+	override suspend fun retrieveConfirmationTokenByUserId(userId: UUID): ConfirmationToken? {
+		return confirmationTokenRepository.findByUserId(userId)
+	}
 
-    override suspend fun updateUser(user: User): User {
-        return userRepository.save(user)
-    }
+	override suspend fun updateUser(user: User): User {
+		return userRepository.save(user)
+	}
 
-    override suspend fun deleteUserById(userId: UUID) {
-        userRepository.deleteById(userId)
-    }
+	override suspend fun deleteUserById(userId: UUID) {
+		userRepository.deleteById(userId)
+	}
 
-    override suspend fun deleteConfirmationTokenByExpireDateBefore(time: Long) {
-        confirmationTokenRepository.deleteByExpireDateBefore(time)
-    }
+	override suspend fun deleteConfirmationTokenByExpireDateBefore(time: Long) {
+		confirmationTokenRepository.deleteByExpireDateBefore(time)
+	}
 
-    override suspend fun deleteAllConfirmationTokensByUserId(userId: UUID) {
-        confirmationTokenRepository.deleteAllByUserId(userId)
-    }
+	override suspend fun deleteAllConfirmationTokensByUserId(userId: UUID) {
+		confirmationTokenRepository.deleteAllByUserId(userId)
+	}
 }

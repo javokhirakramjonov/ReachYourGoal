@@ -10,56 +10,56 @@ import java.util.*
 
 @Service
 class EmailServiceImpl(
-    private val mailSender: JavaMailSender,
-    private val templateEngine: TemplateEngine
+	private val mailSender: JavaMailSender,
+	private val templateEngine: TemplateEngine
 ) : EmailService {
-    override fun sendRegisterConfirmEmail(
-        email: String,
-        confirmationLink: String,
-        expireDateTime: Date
-    ) {
-        val context = Context()
-        context.setVariable("confirmationLink", confirmationLink)
-        context.setVariable("expireDateTime", expireDateTime)
-        val htmlContent = templateEngine.process("confirmationEmail", context)
+	override fun sendRegisterConfirmEmail(
+		email: String,
+		confirmationLink: String,
+		expireDateTime: Date
+	) {
+		val context = Context()
+		context.setVariable("confirmationLink", confirmationLink)
+		context.setVariable("expireDateTime", expireDateTime)
+		val htmlContent = templateEngine.process("confirmationEmail", context)
 
-        sendEmail(
-            to = email,
-            subject = "Confirmation email",
-            content = htmlContent,
-        )
-    }
+		sendEmail(
+			to = email,
+			subject = "Confirmation email",
+			content = htmlContent,
+		)
+	}
 
-    override fun sendUpdateEmailConfirmEmail(
-        email: String,
-        confirmationLink: String,
-        expireDateTime: Date
-    ) {
-        val context = Context()
-        context.setVariable("confirmationLink", confirmationLink)
-        context.setVariable("expireDateTime", expireDateTime)
-        val htmlContent = templateEngine.process("confirmationNewEmail", context)
+	override fun sendUpdateEmailConfirmEmail(
+		email: String,
+		confirmationLink: String,
+		expireDateTime: Date
+	) {
+		val context = Context()
+		context.setVariable("confirmationLink", confirmationLink)
+		context.setVariable("expireDateTime", expireDateTime)
+		val htmlContent = templateEngine.process("confirmationNewEmail", context)
 
-        sendEmail(
-            to = email,
-            subject = "Confirmation email",
-            content = htmlContent,
-        )
-    }
+		sendEmail(
+			to = email,
+			subject = "Confirmation email",
+			content = htmlContent,
+		)
+	}
 
-    private fun sendEmail(
-        to: String,
-        subject: String,
-        content: String,
-        htmlEnabled: Boolean = true
-    ) {
-        val message = mailSender.createMimeMessage()
-        val helper = MimeMessageHelper(message, true, "UTF-8")
+	private fun sendEmail(
+		to: String,
+		subject: String,
+		content: String,
+		htmlEnabled: Boolean = true
+	) {
+		val message = mailSender.createMimeMessage()
+		val helper = MimeMessageHelper(message, true, "UTF-8")
 
-        helper.setTo(to)
-        helper.setSubject(subject)
-        helper.setText(content, htmlEnabled)
+		helper.setTo(to)
+		helper.setSubject(subject)
+		helper.setText(content, htmlEnabled)
 
-        mailSender.send(message)
-    }
+		mailSender.send(message)
+	}
 }

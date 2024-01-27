@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.map
 
 interface Transformable<OUTPUT> {
 
-    fun transform(): OUTPUT
+	fun transform(): OUTPUT
 
 }
 

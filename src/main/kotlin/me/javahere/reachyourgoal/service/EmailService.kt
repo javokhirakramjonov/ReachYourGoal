@@ -4,16 +4,16 @@ import java.util.*
 
 interface EmailService {
 
-    fun sendRegisterConfirmEmail(
-        email: String,
-        confirmationLink: String,
-        expireDateTime: Date
-    )
+	fun sendRegisterConfirmEmail(
+		email: String,
+		confirmationLink: String,
+		expireDateTime: Date
+	)
 
-    fun sendUpdateEmailConfirmEmail(
-        email: String,
-        confirmationLink: String,
-        expireDateTime: Date
-    )
+	fun sendUpdateEmailConfirmEmail(
+		email: String,
+		confirmationLink: String,
+		expireDateTime: Date
+	)
 
 }
