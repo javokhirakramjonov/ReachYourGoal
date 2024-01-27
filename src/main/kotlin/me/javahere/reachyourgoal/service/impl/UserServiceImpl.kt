@@ -37,8 +37,8 @@ class UserServiceImpl(
     private val emailService: EmailService,
     private val messageSource: ResourceBundleMessageSource,
 ) : UserService, ReactiveUserDetailsService {
-    private val invalidConfirmToken = ExceptionGroup(RYGException(INVALID_CONFIRM_TOKEN))
-    private val confirmTokenExpired = ExceptionGroup(RYGException(CONFIRM_TOKEN_EXPIRED))
+    private val invalidConfirmToken = RYGException(INVALID_CONFIRM_TOKEN)
+    private val confirmTokenExpired = RYGException(CONFIRM_TOKEN_EXPIRED)
 
     override suspend fun register(user: RequestRegister) {
         val isUsernameAvailable = checkAndCleanupUsernameAvailability(user.username)
@@ -118,11 +118,9 @@ class UserServiceImpl(
                 *errorMessageArguments,
             )
 
-        return userDataSource.retrieveUserById(userId)?.transform() ?: throw ExceptionGroup(
-            RYGException(
-                NOT_FOUND,
-                errorMessage,
-            ),
+        return userDataSource.retrieveUserById(userId)?.transform() ?: throw RYGException(
+            NOT_FOUND,
+            errorMessage,
         )
     }
 
@@ -134,11 +132,9 @@ class UserServiceImpl(
                 *errorMessageArguments,
             )
 
-        return userDataSource.retrieveUserByEmail(email)?.transform() ?: throw ExceptionGroup(
-            RYGException(
-                NOT_FOUND,
-                errorMessage,
-            ),
+        return userDataSource.retrieveUserByEmail(email)?.transform() ?: throw RYGException(
+            NOT_FOUND,
+            errorMessage,
         )
     }
 
@@ -150,19 +146,15 @@ class UserServiceImpl(
                 *errorMessageArguments,
             )
 
-        return userDataSource.retrieveUserByUsername(username)?.transform() ?: throw ExceptionGroup(
-            RYGException(NOT_FOUND, errorMessage),
-        )
+        return userDataSource.retrieveUserByUsername(username)?.transform() ?: throw RYGException(NOT_FOUND, errorMessage)
     }
 
     override fun findByUsername(username: String): Mono<UserDetails> =
         mono {
             val user: User =
-                userDataSource.retrieveUserByUsername(username) ?: throw ExceptionGroup(
-                    RYGException(BAD_CREDENTIALS),
-                )
+                userDataSource.retrieveUserByUsername(username) ?: throw RYGException(BAD_CREDENTIALS)
 
-            if (!user.isConfirmed) throw ExceptionGroup(RYGException(EMAIL_NOT_CONFIRMED))
+            if (!user.isConfirmed) throw RYGException(EMAIL_NOT_CONFIRMED)
 
             val authorities: List<GrantedAuthority> = user.authorities
 
@@ -218,11 +210,9 @@ class UserServiceImpl(
             )
 
         val foundUser =
-            userDataSource.retrieveUserById(userId) ?: throw ExceptionGroup(
-                RYGException(
-                    NOT_FOUND,
-                    userNotFoundErrorMessage,
-                ),
+            userDataSource.retrieveUserById(userId) ?: throw RYGException(
+                NOT_FOUND,
+                userNotFoundErrorMessage,
             )
 
         if (username != null) {
@@ -236,9 +226,7 @@ class UserServiceImpl(
             val userWithUsername = userDataSource.retrieveUserByUsername(username)
 
             if (userWithUsername != null && userWithUsername.id != userId) {
-                throw ExceptionGroup(
-                    RYGException(ALREADY_EXISTS, usernameExistsErrorMessage),
-                )
+                throw RYGException(ALREADY_EXISTS, usernameExistsErrorMessage)
             }
         }
 
@@ -269,7 +257,7 @@ class UserServiceImpl(
         val user = findUserById(request.userId)
 
         if (user.email == request.newEmail) {
-            throw ExceptionGroup(RYGException(ALREADY_EXISTS, emailAssignedToCurrentUserErrorMessage))
+            throw RYGException(ALREADY_EXISTS, emailAssignedToCurrentUserErrorMessage)
         }
 
         val userWithEmail = userDataSource.retrieveUserByEmail(request.newEmail)
@@ -281,7 +269,7 @@ class UserServiceImpl(
                     *emailExistsErrorMessageArguments,
                 )
 
-            throw ExceptionGroup(RYGException(ALREADY_EXISTS, emailExistsErrorMessage))
+            throw RYGException(ALREADY_EXISTS, emailExistsErrorMessage)
         }
 
         val token = jwtService.generateAccessToken(request.newEmail, EXPIRE_CONFIRMATION_TOKEN, emptyArray())

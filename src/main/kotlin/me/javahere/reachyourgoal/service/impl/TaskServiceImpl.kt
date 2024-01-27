@@ -7,7 +7,6 @@ import me.javahere.reachyourgoal.domain.TaskAttachment
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
-import me.javahere.reachyourgoal.exception.ExceptionGroup
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.localize.MessagesEnum
@@ -67,40 +66,32 @@ class TaskServiceImpl(
     override suspend fun createTaskAttachment(
         userId: UUID,
         taskId: UUID,
-        attachments: List<Pair<String, DataBuffer>>,
-    ): List<Pair<String, TaskAttachmentDto?>> {
+        attachmentName: String,
+        attachment: DataBuffer,
+    ): TaskAttachmentDto {
         validateTaskExistence(userId, taskId)
 
-        return attachments
-            .map { (name, content) ->
-                val newContent = ByteArray(content.readableByteCount()).also { content.read(it) }
+        val taskAttachment =
+            TaskAttachment(
+                name = attachmentName,
+                taskId = taskId,
+            )
 
-                name to newContent
-            }
-            .map { (attachmentName, content) ->
-                val taskAttachment =
-                    TaskAttachment(
-                        name = attachmentName,
-                        taskId = taskId,
-                    )
+        val createdTaskAttachment = taskDataSource.createTaskAttachment(taskAttachment).transform()
 
-                val createdTaskAttachment = taskDataSource.createTaskAttachment(taskAttachment).transform()
+        val newName = createdTaskAttachment.taskId.toString()
 
-                val newName = createdTaskAttachment.taskId.toString()
+        val newContent = ByteArray(attachment.readableByteCount()).also(attachment::read)
 
-                val isSaved = fileService.createFile(taskFilePath, newName, content)
+        val isSaved = fileService.createFile(taskFilePath, newName, newContent)
 
-                val status =
-                    if (isSaved) {
-                        createdTaskAttachment
-                    } else {
-                        taskDataSource.deleteTaskAttachmentById(createdTaskAttachment.id, taskId)
+        if (isSaved) {
+            return createdTaskAttachment
+        } else {
+            taskDataSource.deleteTaskAttachmentById(createdTaskAttachment.id, taskId)
 
-                        null
-                    }
-
-                attachmentName to status
-            }
+            throw RYGException(RYGExceptionType.INTERNAL_ERROR)
+        }
     }
 
     override suspend fun getTaskAttachmentById(
@@ -146,11 +137,9 @@ class TaskServiceImpl(
 
         return taskDataSource
             .retrieveTaskById(taskId, userId)
-            ?: throw ExceptionGroup(
-                RYGException(
-                    RYGExceptionType.NOT_FOUND,
-                    errorMessage,
-                ),
+            ?: throw RYGException(
+                RYGExceptionType.NOT_FOUND,
+                errorMessage,
             )
     }
 
@@ -170,11 +159,9 @@ class TaskServiceImpl(
 
         return taskDataSource
             .retrieveTaskAttachmentById(attachmentId, taskId)
-            ?: throw ExceptionGroup(
-                RYGException(
-                    RYGExceptionType.NOT_FOUND,
-                    errorMessage,
-                ),
+            ?: throw RYGException(
+                RYGExceptionType.NOT_FOUND,
+                errorMessage,
             )
     }
 }

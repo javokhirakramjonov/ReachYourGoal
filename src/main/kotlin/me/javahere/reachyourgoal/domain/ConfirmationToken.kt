@@ -6,7 +6,7 @@ import org.springframework.data.relational.core.mapping.Table
 import java.util.*
 
 @Table(name = "confirmation_tokens")
-data class ConfirmationToken(
+class ConfirmationToken(
     @Id
     @Column("id")
     val id: UUID? = null,

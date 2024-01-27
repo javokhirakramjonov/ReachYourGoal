@@ -6,7 +6,7 @@ import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDate
 
 @Table(name = "task_dates")
-data class TaskDate(
+class TaskDate(
     @Id
     val id: Int = 0,
     @Column("date")

@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.dto.request
 import me.javahere.reachyourgoal.domain.Task
 import java.util.*
 
-data class RequestTaskCreate(
+class RequestTaskCreate(
     val name: String,
     val description: String? = null,
 ) {

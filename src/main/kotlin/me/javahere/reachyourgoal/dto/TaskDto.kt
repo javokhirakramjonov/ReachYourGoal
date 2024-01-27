@@ -5,7 +5,7 @@ import me.javahere.reachyourgoal.domain.TaskStatus
 import me.javahere.reachyourgoal.util.Transformable
 import java.util.*
 
-data class TaskDto(
+class TaskDto(
     val id: UUID,
     val name: String,
     val description: String?,

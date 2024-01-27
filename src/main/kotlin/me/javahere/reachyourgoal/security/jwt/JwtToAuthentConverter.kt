@@ -3,7 +3,6 @@ package me.javahere.reachyourgoal.security.jwt
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.dto.request.RequestLogin
-import me.javahere.reachyourgoal.exception.ExceptionGroup
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import org.springframework.core.ResolvableType
@@ -23,10 +22,8 @@ class JwtToAuthentConverter(
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> =
         mono {
             val loginRequest: RequestLogin =
-                getUsernameAndPassword(exchange) ?: throw ExceptionGroup(
-                    RYGException(
-                        RYGExceptionType.BAD_REQUEST,
-                    ),
+                getUsernameAndPassword(exchange) ?: throw RYGException(
+                    RYGExceptionType.BAD_REQUEST,
                 )
 
             UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
