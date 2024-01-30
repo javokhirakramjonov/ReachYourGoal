@@ -16,15 +16,12 @@ import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
 @Component
-class JwtToAuthentConverter(
+class JwtToAuthConverter(
     private val jacksonDecoder: AbstractJackson2Decoder,
 ) : ServerAuthenticationConverter {
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> =
         mono {
-            val loginRequest: RequestLogin =
-                getUsernameAndPassword(exchange) ?: throw RYGException(
-                    RYGExceptionType.BAD_REQUEST,
-                )
+            val loginRequest: RequestLogin = getUsernameAndPassword(exchange) ?: throw RYGException(RYGExceptionType.BAD_REQUEST)
 
             UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
         }
@@ -32,6 +29,7 @@ class JwtToAuthentConverter(
     private suspend fun getUsernameAndPassword(exchange: ServerWebExchange): RequestLogin? {
         val dataBuffer = exchange.request.body
         val type = ResolvableType.forClass(RequestLogin::class.java)
+
         return jacksonDecoder
             .decodeToMono(dataBuffer, type, MediaType.APPLICATION_JSON, mapOf())
             .onErrorResume { Mono.empty<RequestLogin>() }

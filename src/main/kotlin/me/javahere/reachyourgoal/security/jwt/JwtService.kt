@@ -3,13 +3,11 @@ package me.javahere.reachyourgoal.security.jwt
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
-import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.util.EMPTY
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.Duration
-import java.util.*
+import java.util.Date
 
 @Service
 class JwtService(
@@ -17,47 +15,43 @@ class JwtService(
     @Value("\${app.refresh-secret}") private val refreshSecret: String,
 ) {
     companion object {
-        val EXPIRE_ACCESS_TOKEN = Duration.ofHours(1).toMillis()
+        const val JWT_EXTRA_KEY = "key"
+        const val TOKEN_PREFIX = "Bearer "
+        const val ROLES_KEY = "roles"
+        val EXPIRE_ACCESS_TOKEN = Duration.ofDays(1).toMillis()
         val EXPIRE_REFRESH_TOKEN = Duration.ofDays(30).toMillis()
         val EXPIRE_CONFIRMATION_TOKEN = Duration.ofMinutes(5).toMillis()
     }
 
     fun generateAccessToken(
+        userId: String,
         username: String,
         expirationInMillis: Long,
         roles: Array<String>,
-    ): String = generate(username, expirationInMillis, roles, accessSecret)
+        key: String = String.EMPTY,
+    ): String = generate(userId, username, expirationInMillis, roles, accessSecret, key)
 
     fun generateRefreshToken(
+        userId: String,
         username: String,
         expirationInMillis: Long,
         roles: Array<String>,
-    ): String = generate(username, expirationInMillis, roles, refreshSecret)
+        key: String = String.EMPTY,
+    ): String = generate(userId, username, expirationInMillis, roles, refreshSecret, key)
 
-    fun decodeAccessToken(accessToken: String): DecodedJWT? = decode(accessSecret, accessToken)
+    fun decodeAccessToken(accessToken: String): DecodedJWT = decode(accessSecret, accessToken)
 
-    fun decodeRefreshToken(refreshToken: String): DecodedJWT? = decode(refreshSecret, refreshToken)
+    fun decodeRefreshToken(refreshToken: String): DecodedJWT = decode(refreshSecret, refreshToken)
 
     fun refreshAccessToken(refreshToken: String): String {
-        val invalidRefreshToken =
-            RYGException(RYGExceptionType.INVALID_REFRESH_TOKEN)
-        val refreshTokenExpired =
-            RYGException(RYGExceptionType.REFRESH_TOKEN_EXPIRED)
+        val decodedJWT = decodeRefreshToken(refreshToken)
 
-        val decodedJWT = decodeRefreshToken(refreshToken) ?: throw invalidRefreshToken
-
-        if (!isValidExpireDate(decodedJWT)) throw refreshTokenExpired
-
-        val username = decodedJWT.subject
-        val roles =
-            decodedJWT
-                .getClaim("role")
-                .asList(String::class.java)
-                .toTypedArray()
+        val roles = getRoles(decodedJWT)
 
         val accessToken =
             generateAccessToken(
-                username,
+                decodedJWT.issuer,
+                decodedJWT.subject,
                 EXPIRE_ACCESS_TOKEN,
                 roles,
             )
@@ -65,32 +59,36 @@ class JwtService(
         return accessToken
     }
 
-    fun isValidExpireDate(decodedJWT: DecodedJWT): Boolean {
-        val expireTime = decodedJWT.expiresAt.time
-        val currentTime = System.currentTimeMillis()
-
-        return expireTime >= currentTime
+    fun getRoles(decodedJWT: DecodedJWT): Array<String> {
+        return decodedJWT
+            .getClaim(ROLES_KEY)
+            .asList(String::class.java)
+            .toTypedArray()
     }
 
     private fun generate(
-        username: String,
+        issuer: String,
+        subject: String,
         expirationInMillis: Long,
         roles: Array<String>,
         signature: String,
+        key: String,
     ): String =
-        JWT.create()
-            .withSubject(username)
+        JWT
+            .create()
+            .withIssuer(issuer)
+            .withSubject(subject)
+            .withClaim(JWT_EXTRA_KEY, key)
             .withExpiresAt(Date(System.currentTimeMillis() + expirationInMillis))
-            .withArrayClaim("role", roles)
+            .withArrayClaim(ROLES_KEY, roles)
             .sign(Algorithm.HMAC512(signature.toByteArray()))
 
     private fun decode(
         signature: String,
         token: String,
-    ): DecodedJWT? =
-        runCatching {
-            JWT.require(Algorithm.HMAC512(signature.toByteArray()))
-                .build()
-                .verify(token.replace("Bearer ", String.EMPTY))
-        }.getOrNull()
+    ): DecodedJWT =
+        JWT
+            .require(Algorithm.HMAC512(signature.toByteArray()))
+            .build()
+            .verify(token.replace(TOKEN_PREFIX, String.EMPTY))
 }
