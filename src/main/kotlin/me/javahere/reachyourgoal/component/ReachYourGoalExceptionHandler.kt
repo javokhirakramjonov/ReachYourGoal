@@ -12,6 +12,11 @@ import reactor.core.publisher.Mono
 
 @RestControllerAdvice
 class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
+    private data class ErrorResponse(
+        val type: String,
+        val message: String,
+    )
+
     @ExceptionHandler
     fun handleExceptions(ex: Exception): Mono<ResponseEntity<*>> {
         val errors =
@@ -20,6 +25,7 @@ class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
                 is RYGExceptionGroup -> ex.exceptions.toList()
                 else -> listOf(RYGException(RYGExceptionType.UNDEFINED, ex.message))
             }
+                .map { ErrorResponse(it.type.name, it.message.toString()) }
 
         return Mono.just(
             ResponseEntity
