@@ -2,7 +2,7 @@ package me.javahere.reachyourgoal.datasource
 
 import me.javahere.reachyourgoal.domain.ConfirmationToken
 import me.javahere.reachyourgoal.domain.User
-import java.util.*
+import java.util.UUID
 
 interface UserDataSource {
     suspend fun createUser(user: User): User

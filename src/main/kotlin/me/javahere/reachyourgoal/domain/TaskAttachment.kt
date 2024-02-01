@@ -5,7 +5,7 @@ import me.javahere.reachyourgoal.util.Transformable
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
-import java.util.*
+import java.util.UUID
 
 @Table(name = "task_attachments")
 class TaskAttachment(

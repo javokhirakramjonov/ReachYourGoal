@@ -2,7 +2,7 @@ package me.javahere.reachyourgoal.repository
 
 import me.javahere.reachyourgoal.domain.User
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
-import java.util.*
+import java.util.UUID
 
 interface UserRepository : CoroutineCrudRepository<User, UUID> {
     suspend fun findByUsername(username: String): User?

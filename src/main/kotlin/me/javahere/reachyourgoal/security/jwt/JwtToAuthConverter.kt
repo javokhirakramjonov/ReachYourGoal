@@ -3,8 +3,10 @@ package me.javahere.reachyourgoal.security.jwt
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.dto.request.RequestLogin
+import me.javahere.reachyourgoal.dto.request.validator.RequestLoginValidator
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
+import me.javahere.reachyourgoal.util.validateAndThrow
 import org.springframework.core.ResolvableType
 import org.springframework.http.MediaType
 import org.springframework.http.codec.json.AbstractJackson2Decoder
@@ -22,6 +24,10 @@ class JwtToAuthConverter(
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> =
         mono {
             val loginRequest: RequestLogin = getUsernameAndPassword(exchange) ?: throw RYGException(RYGExceptionType.BAD_REQUEST)
+
+            val requestLoginValidator = RequestLoginValidator()
+
+            requestLoginValidator.validateAndThrow(loginRequest)
 
             UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
         }

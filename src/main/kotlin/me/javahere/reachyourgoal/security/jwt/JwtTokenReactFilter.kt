@@ -20,7 +20,13 @@ class JwtTokenReactFilter(
     ): Mono<Void> {
         val token = exchange.jwtAccessToken() ?: return chain.filter(exchange)
 
-        val decodedToken = jwtService.decodeAccessToken(token)
+        val decodedToken =
+            kotlin.runCatching {
+                jwtService.decodeAccessToken(token)
+            }.getOrNull()
+                ?: return chain
+                    .filter(exchange)
+                    .contextWrite(ReactiveSecurityContextHolder.clearContext())
 
         val username = decodedToken.subject
         val roles =

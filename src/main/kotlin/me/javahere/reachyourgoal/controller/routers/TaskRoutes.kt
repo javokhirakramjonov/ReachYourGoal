@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.models.security.SecurityRequirement
-import me.javahere.reachyourgoal.controller.handler.TaskRoutesValidator
+import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
@@ -23,7 +23,7 @@ import org.springframework.web.reactive.function.server.coRouter
 
 @Configuration
 class TaskRoutes(
-    private val taskRoutesValidator: TaskRoutesValidator,
+    private val taskRoutesHandler: TaskRoutesHandler,
 ) {
     @Bean
     fun tasksOpenApi(): GroupedOpenApi {
@@ -65,7 +65,7 @@ class TaskRoutes(
     )
     fun createTask() =
         coRouter {
-            POST("/tasks", taskRoutesValidator::validateAndProcessCreateTask)
+            POST("/tasks", taskRoutesHandler::createTask)
         }
 
     @Bean
@@ -86,7 +86,7 @@ class TaskRoutes(
     )
     fun getAllTasks() =
         coRouter {
-            GET("/tasks", taskRoutesValidator::validateAndProcessGetAllTasks)
+            GET("/tasks", taskRoutesHandler::getAllTasks)
         }
 
     @Bean
@@ -108,7 +108,7 @@ class TaskRoutes(
     )
     fun getTaskById() =
         coRouter {
-            GET("/tasks/{taskId}", taskRoutesValidator::validateAndProcessGetTaskById)
+            GET("/tasks/{taskId}", taskRoutesHandler::getTaskById)
         }
 
     @Bean
@@ -130,7 +130,7 @@ class TaskRoutes(
     )
     fun getTaskAttachmentsByTaskId() =
         coRouter {
-            GET("/tasks/{taskId}/attachments", taskRoutesValidator::validateAndProcessGetAllTaskAttachments)
+            GET("/tasks/{taskId}/attachments", taskRoutesHandler::getAllTaskAttachments)
         }
 
     @Bean
@@ -155,7 +155,7 @@ class TaskRoutes(
     )
     fun downloadAttachmentByTaskIdAndAttachmentId() =
         coRouter {
-            GET("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesValidator::validateAndProcessDownloadTaskAttachmentById)
+            GET("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesHandler::downloadTaskAttachmentById)
         }
 
     @Bean
@@ -189,7 +189,7 @@ class TaskRoutes(
     )
     fun uploadTaskAttachments() =
         coRouter {
-            POST("/tasks/{taskId}/attachments/upload", taskRoutesValidator::validateAndProcessUploadTaskAttachment)
+            POST("/tasks/{taskId}/attachments/upload", taskRoutesHandler::uploadTaskAttachment)
         }
 
     @Bean
@@ -207,6 +207,6 @@ class TaskRoutes(
     )
     fun deleteAttachmentByAttachmentId() =
         coRouter {
-            DELETE("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesValidator::validateAndProcessDeleteTaskAttachmentById)
+            DELETE("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesHandler::deleteTaskAttachmentById)
         }
 }

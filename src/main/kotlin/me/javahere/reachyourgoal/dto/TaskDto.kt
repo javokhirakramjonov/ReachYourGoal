@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.dto
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskStatus
 import me.javahere.reachyourgoal.util.Transformable
-import java.util.*
+import java.util.UUID
 
 class TaskDto(
     val id: UUID,

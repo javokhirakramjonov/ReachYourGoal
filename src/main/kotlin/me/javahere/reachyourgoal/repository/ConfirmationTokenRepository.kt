@@ -2,7 +2,7 @@ package me.javahere.reachyourgoal.repository
 
 import me.javahere.reachyourgoal.domain.ConfirmationToken
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
-import java.util.*
+import java.util.UUID
 
 interface ConfirmationTokenRepository : CoroutineCrudRepository<ConfirmationToken, String> {
     suspend fun findByToken(token: String): ConfirmationToken?

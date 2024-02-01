@@ -6,8 +6,8 @@ import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
-import me.javahere.reachyourgoal.exception.ExceptionGroup
 import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.exception.RYGExceptionGroup
 import me.javahere.reachyourgoal.exception.RYGExceptionType.ALREADY_EXISTS
 import me.javahere.reachyourgoal.exception.RYGExceptionType.BAD_CREDENTIALS
 import me.javahere.reachyourgoal.exception.RYGExceptionType.EMAIL_IS_NOT_AVAILABLE
@@ -55,7 +55,7 @@ class UserServiceImpl(
         if (!isUsernameAvailable) exceptions += RYGException(USERNAME_IS_NOT_AVAILABLE)
         if (!isEmailAvailable) exceptions += RYGException(EMAIL_IS_NOT_AVAILABLE)
 
-        if (exceptions.isNotEmpty()) throw ExceptionGroup(exceptions)
+        if (exceptions.isNotEmpty()) throw RYGExceptionGroup(exceptions)
 
         val newPassword = passwordEncoder.encode(user.password)
 
@@ -152,7 +152,7 @@ class UserServiceImpl(
 
             val authorities: List<GrantedAuthority> = user.authorities
 
-            UserForSecurity(user.email, user.password, authorities)
+            UserForSecurity(user.username, user.password, authorities)
         }
 
     override suspend fun updateUser(
