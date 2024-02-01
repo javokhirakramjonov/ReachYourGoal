@@ -1,5 +1,6 @@
 package me.javahere.reachyourgoal.security.jwt
 
+import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.TOKEN_PREFIX
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -20,18 +21,18 @@ class JwtTokenReactFilter(
         val token = exchange.jwtAccessToken() ?: return chain.filter(exchange)
 
         val decodedToken =
-            jwtService
-                .decodeAccessToken(token)
+            kotlin.runCatching {
+                jwtService.decodeAccessToken(token)
+            }.getOrNull()
                 ?: return chain
                     .filter(exchange)
                     .contextWrite(ReactiveSecurityContextHolder.clearContext())
 
         val username = decodedToken.subject
         val roles =
-            decodedToken
-                .getClaim("role")
-                .asList(String::class.java)
-                .map { SimpleGrantedAuthority(it) }
+            jwtService
+                .getRoles(decodedToken)
+                .map(::SimpleGrantedAuthority)
 
         val auth =
             UsernamePasswordAuthenticationToken(
@@ -48,5 +49,5 @@ class JwtTokenReactFilter(
         request
             .headers
             .getFirst(AUTHORIZATION)
-            ?.substringAfter("Bearer ")
+            ?.substringAfter(TOKEN_PREFIX)
 }

@@ -1,6 +1,6 @@
 package me.javahere.reachyourgoal.dto.request
 
-import java.util.*
+import java.util.UUID
 
 class RequestUpdateEmail(
     val userId: UUID,

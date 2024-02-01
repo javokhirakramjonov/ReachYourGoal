@@ -6,7 +6,7 @@ import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.repository.ConfirmationTokenRepository
 import me.javahere.reachyourgoal.repository.UserRepository
 import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.UUID
 
 @Repository
 class UserDataSourceImpl(

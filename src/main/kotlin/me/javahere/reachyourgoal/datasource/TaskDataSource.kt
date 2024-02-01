@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.datasource
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
-import java.util.*
+import java.util.UUID
 
 interface TaskDataSource {
     suspend fun createTask(task: Task): Task

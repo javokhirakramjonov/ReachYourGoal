@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.service
 import me.javahere.reachyourgoal.dto.UserDto
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
-import java.util.*
+import java.util.UUID
 
 interface UserService {
     suspend fun register(user: RequestRegister)
@@ -22,7 +22,6 @@ interface UserService {
         userId: UUID,
         firstName: String? = null,
         lastName: String? = null,
-        username: String? = null,
     ): UserDto
 
     suspend fun updateEmail(request: RequestUpdateEmail)

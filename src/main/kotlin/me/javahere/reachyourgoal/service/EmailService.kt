@@ -1,6 +1,6 @@
 package me.javahere.reachyourgoal.service
 
-import java.util.*
+import java.util.Date
 
 interface EmailService {
     fun sendRegisterConfirmEmail(

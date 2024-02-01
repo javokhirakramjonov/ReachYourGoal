@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.repository
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.TaskAttachment
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
-import java.util.*
+import java.util.UUID
 
 interface TaskAttachmentRepository : CoroutineCrudRepository<TaskAttachment, UUID> {
     fun findAllByTaskId(taskId: UUID): Flow<TaskAttachment>

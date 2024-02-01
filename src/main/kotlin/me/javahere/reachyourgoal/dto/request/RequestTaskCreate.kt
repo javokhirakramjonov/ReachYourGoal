@@ -1,7 +1,7 @@
 package me.javahere.reachyourgoal.dto.request
 
 import me.javahere.reachyourgoal.domain.Task
-import java.util.*
+import java.util.UUID
 
 class RequestTaskCreate(
     val name: String,

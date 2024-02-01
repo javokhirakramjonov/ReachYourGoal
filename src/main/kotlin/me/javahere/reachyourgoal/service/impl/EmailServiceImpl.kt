@@ -6,7 +6,7 @@ import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
-import java.util.*
+import java.util.Date
 
 @Service
 class EmailServiceImpl(

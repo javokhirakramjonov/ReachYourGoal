@@ -2,16 +2,23 @@ package me.javahere.reachyourgoal.controller.handler
 
 import me.javahere.reachyourgoal.dto.request.RequestRegister
 import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
+import me.javahere.reachyourgoal.dto.request.validator.RequestRegisterValidator
+import me.javahere.reachyourgoal.dto.request.validator.RequestUpdateEmailValidator
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.service.UserService
 import me.javahere.reachyourgoal.util.getMessage
+import me.javahere.reachyourgoal.util.validateAndThrow
 import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.server.*
+import org.springframework.web.reactive.function.server.ServerRequest
+import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.awaitBody
+import org.springframework.web.reactive.function.server.bodyValueAndAwait
+import org.springframework.web.reactive.function.server.buildAndAwait
 
 @Component
 class UserRoutesHandler(
@@ -22,6 +29,10 @@ class UserRoutesHandler(
     suspend fun register(serverRequest: ServerRequest): ServerResponse {
         val user = serverRequest.awaitBody(RequestRegister::class)
 
+        val requestRegisterValidator = RequestRegisterValidator()
+
+        requestRegisterValidator.validateAndThrow(user)
+
         userService.register(user)
 
         return ServerResponse
@@ -31,6 +42,10 @@ class UserRoutesHandler(
 
     suspend fun updateEmail(serverRequest: ServerRequest): ServerResponse {
         val requestUpdateEmail = serverRequest.awaitBody(RequestUpdateEmail::class)
+
+        val requestEmailValidator = RequestUpdateEmailValidator()
+
+        requestEmailValidator.validateAndThrow(requestUpdateEmail)
 
         userService.updateEmail(requestUpdateEmail)
 

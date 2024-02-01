@@ -7,7 +7,7 @@ import me.javahere.reachyourgoal.domain.TaskAttachment
 import me.javahere.reachyourgoal.repository.TaskAttachmentRepository
 import me.javahere.reachyourgoal.repository.TaskRepository
 import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.UUID
 
 @Repository
 class TaskDataSourceImpl(
