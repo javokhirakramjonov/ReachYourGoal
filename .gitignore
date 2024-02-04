@@ -39,3 +39,4 @@ build/
 
 ### Environmental variables ###
 .env
+docker.env

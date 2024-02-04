@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    container_name: reach_your_goal_database_container
+    container_name: db_container
     image: postgres:15.3-alpine
     volumes:
       - "./pg-init.sh:/docker-entrypoint-initdb.d/db_init.sh"
@@ -12,3 +12,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+#  ryg:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    depends_on:
+#      - db
+#    ports:
+#      - "${RYG_PORT}:${RYG_PORT}"
+#    env_file:
+#      - docker.env

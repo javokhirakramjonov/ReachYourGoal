@@ -1,14 +1,11 @@
-FROM gradle:jdk21 as build
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-RUN gradle clean bootJar
-
-FROM openjdk:21 as create_image
+FROM gradle:jdk21-graal-jammy
 
 WORKDIR /app
 
-COPY --from=build /home/gradle/src/build/libs/reachyourgoal-*.jar /app/app.jar
+COPY . .
 
-EXPOSE 8080
+RUN apt update -y
+RUN apt install zlib1g-dev -y
+RUN ./gradlew nativeCompile
 
-CMD ["java", "-jar", "app.jar"]
+CMD ["./gradlew", "nativeRun"]
