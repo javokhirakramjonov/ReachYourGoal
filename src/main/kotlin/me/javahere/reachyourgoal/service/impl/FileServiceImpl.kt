@@ -1,5 +1,7 @@
 package me.javahere.reachyourgoal.service.impl
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.service.FileService
@@ -18,7 +20,9 @@ class FileServiceImpl : FileService {
 
             if (!dir.exists()) dir.mkdirs()
 
-            File(path, fileName).writeBytes(fileBytes)
+            withContext(Dispatchers.IO) {
+                File(path, fileName).writeBytes(fileBytes)
+            }
 
             true
         }.getOrDefault(false)

@@ -1,6 +1,10 @@
 package me.javahere.reachyourgoal.controller.handler
 
+import java.io.FileInputStream
+import java.util.UUID
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.withContext
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
 import me.javahere.reachyourgoal.dto.request.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.exception.RYGException
@@ -9,7 +13,7 @@ import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.util.toUUID
 import me.javahere.reachyourgoal.util.validateAndThrow
-import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -22,7 +26,6 @@ import org.springframework.web.reactive.function.server.awaitMultipartData
 import org.springframework.web.reactive.function.server.bodyAndAwait
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.buildAndAwait
-import java.util.UUID
 
 @Component
 class TaskRoutesHandler(
@@ -96,7 +99,12 @@ class TaskRoutesHandler(
                 attachmentId = attachmentId,
             )
 
-        val toDownload = FileSystemResource(attachment)
+        val toDownload =
+            InputStreamResource(
+                withContext(Dispatchers.IO) {
+                    FileInputStream(attachment)
+                },
+            )
 
         return ServerResponse
             .ok()
@@ -109,11 +117,12 @@ class TaskRoutesHandler(
     suspend fun uploadTaskAttachment(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
         val taskId = serverRequest.pathVariable("taskId").toUUID()
+        
 
         val data = serverRequest.awaitMultipartData()
 
         val attachment =
-            (data["file"]?.firstOrNull() as? FilePart)
+            (data["upFile"]?.firstOrNull() as? FilePart)
                 ?: throw RYGException(RYGExceptionType.NOT_FOUND, "Attachment not found")
 
         val (fileName, content) = with(attachment) { name() to content().awaitSingle() }

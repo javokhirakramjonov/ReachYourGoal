@@ -2,7 +2,9 @@ package me.javahere.reachyourgoal.controller.routers
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.Explode
 import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.enums.ParameterStyle
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -135,7 +137,7 @@ class TaskRoutes(
 
     @Bean
     @RouterOperation(
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
         operation =
             Operation(
                 operationId = "downloadAttachmentByTaskIdAndAttachmentId",
@@ -143,13 +145,6 @@ class TaskRoutes(
                 parameters = [
                     Parameter(name = "taskId", `in` = ParameterIn.PATH),
                     Parameter(name = "attachmentId", `in` = ParameterIn.PATH),
-                ],
-                responses = [
-                    ApiResponse(
-                        description = "task attachment",
-                        responseCode = "200",
-                        content = [Content(schema = Schema(implementation = TaskAttachmentDto::class))],
-                    ),
                 ],
             ),
     )
@@ -160,6 +155,7 @@ class TaskRoutes(
 
     @Bean
     @RouterOperation(
+        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE],
         operation =
             Operation(
@@ -168,14 +164,11 @@ class TaskRoutes(
                 parameters = [
                     Parameter(name = "taskId", `in` = ParameterIn.PATH),
                     Parameter(
-                        name = "files",
-                        `in` = ParameterIn.QUERY,
-                        content = [
-                            Content(
-                                mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
-                                schema = Schema(implementation = MultipartFile::class),
-                            ),
-                        ],
+                        explode = Explode.TRUE,
+                        required = true,
+                        style = ParameterStyle.FORM,
+                        name = "upFile",
+                        schema = Schema(implementation = MultipartFile::class),
                     ),
                 ],
                 responses = [
