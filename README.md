@@ -23,8 +23,8 @@ localhost : [swagger link for port: 8080](http://localhost:8080/swagger-ui.html)
 - Kotest
 - Graalvm
 
-## What you need to run it?
-### env and docker.env files with following variables:
+## What do you need to run it?
+### env and docker.env files with the following variables:
    - POSTGRES_HOST
    - POSTGRES_PORT
    - DATABASE_NAME
@@ -41,32 +41,36 @@ localhost : [swagger link for port: 8080](http://localhost:8080/swagger-ui.html)
    - RYG_PORT
 
 ## Scripts
-1. When you add you local message, you can create useful objects using this command:
+1. When you add your local message, you can create useful objects using this command:
    ```sh
    ./local_keys_parser.sh
    ```
 
 ## Contributions
 Contributions are welcome! Here's how you can contribute to this project:
+## Contributions
 
-1. **Clone the Repository:** Clone the repository to your local machine using the `git clone` command.
+Contributions are welcome! Here's how you can contribute to this project:
+
+1. **Fork the Repository:** Start by forking this repository to your own GitHub account.
+2. **Clone the Repository:** Clone the forked repository to your local machine using the `git clone` command.
    ```sh
    git clone https://github.com/javokhirakramjonov/ReachYourGoal.git
    ```
-2. Create a Branch: Create a new branch to work on your feature, enhancement, or bug fix.
+3. Create a Branch: Create a new branch to work on your feature, enhancement, or bug fix.
    ```sh
    git checkout -b feature/your-feature
    ```
-3. Make Changes: Make your desired changes to the codebase.
-4. Test Your Changes: Ensure that your changes do not introduce any new issues and that existing functionality is not broken.
-5. Commit Your Changes: Commit your changes with a descriptive commit message.
+4. Make Changes: Make your desired changes to the codebase.
+5. Test Your Changes: Please make sure that your changes do not introduce any new issues and that existing functionality is not broken.
+6. Commit Your Changes: Commit your changes with a descriptive commit message.
    ```sh
    git commit -am 'Add: Description of your changes'
    ```
-6. Push Changes: Push your changes to your forked repository on GitHub.
+7. Push Changes: Push your changes to your forked repository on GitHub.
    ```sh
    git push origin feature/your-feature
    ```
-7. Submit a Pull Request: Once you have pushed your changes, submit a pull request to the original repository. Provide a clear and descriptive title for your pull request, and explain the changes you have made in the description.
-8. Review: Participate in the discussion and address any feedback or concerns raised during the review process.
-9. Celebrate: Your contribution has been merged! Thank you for your contribution to this project.
+8. Submit a Pull Request: Once you have pushed your changes, submit a pull request to the original repository. Provide a clear and descriptive title for your pull request, and explain the changes you have made in the description.
+9. Review: Participate in the discussion and address any feedback or concerns raised during the review process.
+10. Celebrate: Your contribution has been merged! Thank you for your contribution to this project.
