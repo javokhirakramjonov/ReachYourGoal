@@ -1,9 +1,6 @@
 package me.javahere.reachyourgoal.controller.handler
 
-import java.io.FileInputStream
-import java.util.UUID
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.withContext
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
 import me.javahere.reachyourgoal.dto.request.validator.RequestTaskCreateValidator
@@ -26,6 +23,8 @@ import org.springframework.web.reactive.function.server.awaitMultipartData
 import org.springframework.web.reactive.function.server.bodyAndAwait
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.buildAndAwait
+import java.io.FileInputStream
+import java.util.UUID
 
 @Component
 class TaskRoutesHandler(
@@ -92,7 +91,7 @@ class TaskRoutesHandler(
         val taskId = serverRequest.pathVariable("taskId").toUUID()
         val attachmentId = serverRequest.pathVariable("attachmentId").toUUID()
 
-        val attachment =
+        val (filename, attachment) =
             taskService.getTaskAttachmentById(
                 userId = userId,
                 taskId = taskId,
@@ -108,7 +107,7 @@ class TaskRoutesHandler(
 
         return ServerResponse
             .ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + attachment.getName())
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .contentLength(attachment.length())
             .bodyValueAndAwait(toDownload)
@@ -117,17 +116,12 @@ class TaskRoutesHandler(
     suspend fun uploadTaskAttachment(serverRequest: ServerRequest): ServerResponse {
         val userId = getUserId(serverRequest)
         val taskId = serverRequest.pathVariable("taskId").toUUID()
-        
 
-        val data = serverRequest.awaitMultipartData()
+        val attachmentNotFoundException = RYGException(RYGExceptionType.NOT_FOUND, "Attachment not found")
 
-        val attachment =
-            (data["upFile"]?.firstOrNull() as? FilePart)
-                ?: throw RYGException(RYGExceptionType.NOT_FOUND, "Attachment not found")
+        val attachment = (serverRequest.awaitMultipartData().toSingleValueMap()["file"] as? FilePart) ?: throw attachmentNotFoundException
 
-        val (fileName, content) = with(attachment) { name() to content().awaitSingle() }
-
-        val attachmentState = taskService.createTaskAttachment(userId, taskId, fileName, content)
+        val attachmentState = taskService.createTaskAttachment(userId, taskId, attachment)
 
         return ServerResponse.ok().bodyValueAndAwait(attachmentState)
     }

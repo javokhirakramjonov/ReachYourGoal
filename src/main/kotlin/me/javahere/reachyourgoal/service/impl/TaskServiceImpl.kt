@@ -16,8 +16,9 @@ import me.javahere.reachyourgoal.util.getMessage
 import me.javahere.reachyourgoal.util.transformCollection
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.support.ResourceBundleMessageSource
-import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.io.File
 import java.util.UUID
 
@@ -63,45 +64,41 @@ class TaskServiceImpl(
         taskDataSource.deleteTaskById(taskId, userId)
     }
 
+    @Transactional
     override suspend fun createTaskAttachment(
         userId: UUID,
         taskId: UUID,
-        attachmentName: String,
-        attachment: DataBuffer,
+        filePart: FilePart,
     ): TaskAttachmentDto {
         validateTaskExistence(userId, taskId)
 
         val taskAttachment =
             TaskAttachment(
-                name = attachmentName,
+                name = filePart.filename(),
                 taskId = taskId,
             )
 
         val createdTaskAttachment = taskDataSource.createTaskAttachment(taskAttachment).transform()
 
-        val newName = createdTaskAttachment.taskId.toString()
+        val newName = createdTaskAttachment.id.toString()
 
-        val newContent = ByteArray(attachment.readableByteCount()).also(attachment::read)
+        val isSaved = fileService.createFile(taskFilePath, newName, filePart)
 
-        val isSaved = fileService.createFile(taskFilePath, newName, newContent)
-
-        if (isSaved) {
-            return createdTaskAttachment
-        } else {
-            taskDataSource.deleteTaskAttachmentById(createdTaskAttachment.id, taskId)
-
-            throw RYGException(RYGExceptionType.INTERNAL_ERROR)
-        }
+        return if (isSaved) createdTaskAttachment else throw RYGException(RYGExceptionType.INTERNAL_ERROR)
     }
 
     override suspend fun getTaskAttachmentById(
         userId: UUID,
         taskId: UUID,
         attachmentId: UUID,
-    ): File {
+    ): Pair<String, File> {
         val attachment = validateTaskAttachmentExistence(userId, taskId, attachmentId).transform()
 
-        return fileService.getFileByName(taskFilePath, attachment.id.toString())
+        val attachmentFile =
+            fileService.getFileByName(taskFilePath, attachment.id.toString())
+                ?: throw RYGException(RYGExceptionType.NOT_FOUND)
+
+        return attachment.fileName to attachmentFile
     }
 
     override suspend fun getAllTaskAttachments(

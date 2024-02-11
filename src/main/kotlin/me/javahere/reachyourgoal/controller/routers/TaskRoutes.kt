@@ -2,12 +2,11 @@ package me.javahere.reachyourgoal.controller.routers
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.enums.Explode
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.enums.ParameterStyle
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.SchemaProperty
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.models.security.SecurityRequirement
@@ -20,7 +19,7 @@ import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
-import org.springframework.web.multipart.MultipartFile
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.reactive.function.server.coRouter
 
 @Configuration
@@ -163,14 +162,25 @@ class TaskRoutes(
                 summary = "upload attachments for task",
                 parameters = [
                     Parameter(name = "taskId", `in` = ParameterIn.PATH),
-                    Parameter(
-                        explode = Explode.TRUE,
-                        required = true,
-                        style = ParameterStyle.FORM,
-                        name = "upFile",
-                        schema = Schema(implementation = MultipartFile::class),
-                    ),
                 ],
+                requestBody =
+                    RequestBody(
+                        content = [
+                            Content(
+                                mediaType = "multipart/form-data",
+                                schemaProperties = [
+                                    SchemaProperty(
+                                        name = "file",
+                                        schema =
+                                            Schema(
+                                                implementation = FilePart::class,
+//                                                contentMediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                                            ),
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
                 responses = [
                     ApiResponse(
                         description = "task attachments",

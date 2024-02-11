@@ -1,43 +1,41 @@
 package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.reactive.collect
 import kotlinx.coroutines.withContext
-import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.service.FileService
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import java.io.File
+import java.nio.file.Paths
 
 @Service
 class FileServiceImpl : FileService {
     override suspend fun createFile(
         path: String,
         fileName: String,
-        fileBytes: ByteArray,
-    ): Boolean {
-        return runCatching {
-            val dir = File(path)
-
-            if (!dir.exists()) dir.mkdirs()
-
-            withContext(Dispatchers.IO) {
-                File(path, fileName).writeBytes(fileBytes)
+        filePart: FilePart,
+    ): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val file = Paths.get(path, fileName).toFile()
+                file.createNewFile()
+                filePart.transferTo(file).collect {}
+                true
+            } catch (e: Exception) {
+                // TODO handle it
+                false
             }
-
-            true
-        }.getOrDefault(false)
-    }
+        }
 
     override suspend fun getFileByName(
         path: String,
         fileName: String,
-    ): File {
-        return try {
-            File(path, fileName)
-        } catch (e: Exception) {
-            throw RYGException(RYGExceptionType.NOT_FOUND)
+    ): File? =
+        withContext(Dispatchers.IO) {
+            val file = File(path, fileName)
+            if (file.exists()) file else null
         }
-    }
 
     override suspend fun deleteFileByName(
         taskFilePath: String,

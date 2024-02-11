@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
-import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.http.codec.multipart.FilePart
 import java.io.File
 import java.util.UUID
 
@@ -31,15 +31,14 @@ interface TaskService {
     suspend fun createTaskAttachment(
         userId: UUID,
         taskId: UUID,
-        attachmentName: String,
-        attachment: DataBuffer,
+        filePart: FilePart,
     ): TaskAttachmentDto
 
     suspend fun getTaskAttachmentById(
         userId: UUID,
         taskId: UUID,
         attachmentId: UUID,
-    ): File
+    ): Pair<String, File>
 
     suspend fun getAllTaskAttachments(
         userId: UUID,
