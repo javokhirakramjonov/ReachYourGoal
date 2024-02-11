@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.SchemaProperty
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.models.security.SecurityRequirement
@@ -18,7 +19,7 @@ import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
-import org.springframework.web.multipart.MultipartFile
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.reactive.function.server.coRouter
 
 @Configuration
@@ -135,7 +136,7 @@ class TaskRoutes(
 
     @Bean
     @RouterOperation(
-        produces = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
         operation =
             Operation(
                 operationId = "downloadAttachmentByTaskIdAndAttachmentId",
@@ -143,13 +144,6 @@ class TaskRoutes(
                 parameters = [
                     Parameter(name = "taskId", `in` = ParameterIn.PATH),
                     Parameter(name = "attachmentId", `in` = ParameterIn.PATH),
-                ],
-                responses = [
-                    ApiResponse(
-                        description = "task attachment",
-                        responseCode = "200",
-                        content = [Content(schema = Schema(implementation = TaskAttachmentDto::class))],
-                    ),
                 ],
             ),
     )
@@ -160,6 +154,7 @@ class TaskRoutes(
 
     @Bean
     @RouterOperation(
+        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE],
         operation =
             Operation(
@@ -167,17 +162,25 @@ class TaskRoutes(
                 summary = "upload attachments for task",
                 parameters = [
                     Parameter(name = "taskId", `in` = ParameterIn.PATH),
-                    Parameter(
-                        name = "files",
-                        `in` = ParameterIn.QUERY,
+                ],
+                requestBody =
+                    RequestBody(
                         content = [
                             Content(
-                                mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
-                                schema = Schema(implementation = MultipartFile::class),
+                                mediaType = "multipart/form-data",
+                                schemaProperties = [
+                                    SchemaProperty(
+                                        name = "file",
+                                        schema =
+                                            Schema(
+                                                implementation = FilePart::class,
+//                                                contentMediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                                            ),
+                                    ),
+                                ],
                             ),
                         ],
                     ),
-                ],
                 responses = [
                     ApiResponse(
                         description = "task attachments",

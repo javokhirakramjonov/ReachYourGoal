@@ -1,6 +1,7 @@
 package me.javahere.reachyourgoal.controller.handler
 
-import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
 import me.javahere.reachyourgoal.dto.request.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.exception.RYGException
@@ -9,7 +10,7 @@ import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.util.toUUID
 import me.javahere.reachyourgoal.util.validateAndThrow
-import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -22,6 +23,7 @@ import org.springframework.web.reactive.function.server.awaitMultipartData
 import org.springframework.web.reactive.function.server.bodyAndAwait
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.buildAndAwait
+import java.io.FileInputStream
 import java.util.UUID
 
 @Component
@@ -89,18 +91,23 @@ class TaskRoutesHandler(
         val taskId = serverRequest.pathVariable("taskId").toUUID()
         val attachmentId = serverRequest.pathVariable("attachmentId").toUUID()
 
-        val attachment =
+        val (filename, attachment) =
             taskService.getTaskAttachmentById(
                 userId = userId,
                 taskId = taskId,
                 attachmentId = attachmentId,
             )
 
-        val toDownload = FileSystemResource(attachment)
+        val toDownload =
+            InputStreamResource(
+                withContext(Dispatchers.IO) {
+                    FileInputStream(attachment)
+                },
+            )
 
         return ServerResponse
             .ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + attachment.getName())
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .contentLength(attachment.length())
             .bodyValueAndAwait(toDownload)
@@ -110,15 +117,11 @@ class TaskRoutesHandler(
         val userId = getUserId(serverRequest)
         val taskId = serverRequest.pathVariable("taskId").toUUID()
 
-        val data = serverRequest.awaitMultipartData()
+        val attachmentNotFoundException = RYGException(RYGExceptionType.NOT_FOUND, "Attachment not found")
 
-        val attachment =
-            (data["file"]?.firstOrNull() as? FilePart)
-                ?: throw RYGException(RYGExceptionType.NOT_FOUND, "Attachment not found")
+        val attachment = (serverRequest.awaitMultipartData().toSingleValueMap()["file"] as? FilePart) ?: throw attachmentNotFoundException
 
-        val (fileName, content) = with(attachment) { name() to content().awaitSingle() }
-
-        val attachmentState = taskService.createTaskAttachment(userId, taskId, fileName, content)
+        val attachmentState = taskService.createTaskAttachment(userId, taskId, attachment)
 
         return ServerResponse.ok().bodyValueAndAwait(attachmentState)
     }
