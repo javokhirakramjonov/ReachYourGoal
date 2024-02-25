@@ -14,6 +14,9 @@ import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
+import me.javahere.reachyourgoal.dto.request.RequestTaskDate
+import me.javahere.reachyourgoal.dto.request.RequestTaskDates
+import me.javahere.reachyourgoal.dto.request.RequestTaskWeekDates
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
@@ -211,5 +214,39 @@ class TaskRoutes(
     fun deleteAttachmentByAttachmentId() =
         coRouter {
             DELETE("/tasks/{taskId}/attachments/{attachmentId}", taskRoutesHandler::deleteTaskAttachmentById)
+        }
+
+    @Bean
+    @RouterOperation(
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "createScheduledTask",
+                summary = "creates scheduled task",
+                parameters = [
+                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
+                ],
+                requestBody =
+                    RequestBody(
+                        content = [
+                            Content(
+                                schema =
+                                    Schema(
+                                        oneOf = [
+                                            RequestTaskDate::class,
+                                            RequestTaskDates::class,
+                                            RequestTaskWeekDates::class,
+                                        ],
+                                    ),
+                            ),
+                        ],
+                    ),
+                responses = [ApiResponse(responseCode = "201")],
+            ),
+    )
+    fun createScheduledTask() =
+        coRouter {
+            POST("/tasks/{taskId}/schedule", taskRoutesHandler::scheduleTask)
         }
 }

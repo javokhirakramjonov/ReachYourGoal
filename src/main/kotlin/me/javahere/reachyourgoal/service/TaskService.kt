@@ -1,8 +1,10 @@
 package me.javahere.reachyourgoal.service
 
 import kotlinx.coroutines.flow.Flow
+import me.javahere.reachyourgoal.domain.ScheduledTask
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
+import me.javahere.reachyourgoal.dto.request.RequestScheduledTask
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
 import org.springframework.http.codec.multipart.FilePart
 import java.io.File
@@ -50,4 +52,10 @@ interface TaskService {
         taskId: UUID,
         attachmentId: UUID,
     )
+
+    suspend fun addScheduledTasks(
+        userId: UUID,
+        taskId: UUID,
+        requestScheduledTask: RequestScheduledTask,
+    ): Flow<ScheduledTask>
 }

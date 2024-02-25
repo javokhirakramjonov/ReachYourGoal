@@ -2,16 +2,19 @@ package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.datasource.TaskDataSource
+import me.javahere.reachyourgoal.domain.ScheduledTask
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
+import me.javahere.reachyourgoal.dto.request.RequestScheduledTask
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.service.FileService
 import me.javahere.reachyourgoal.service.TaskService
+import me.javahere.reachyourgoal.util.createListOfDays
 import me.javahere.reachyourgoal.util.getMessage
 import me.javahere.reachyourgoal.util.transformCollection
 import org.springframework.beans.factory.annotation.Value
@@ -119,6 +122,29 @@ class TaskServiceImpl(
 
         fileService.deleteFileByName(taskFilePath, attachment.id.toString())
         taskDataSource.deleteTaskAttachmentById(attachmentId, taskId)
+    }
+
+    override suspend fun addScheduledTasks(
+        userId: UUID,
+        taskId: UUID,
+        requestScheduledTask: RequestScheduledTask,
+    ): Flow<ScheduledTask> {
+        validateTaskExistence(userId, taskId)
+
+        val scheduledTasks =
+            createListOfDays(
+                requestScheduledTask.fromDate,
+                requestScheduledTask.toDate,
+                requestScheduledTask.frequency,
+            ).map {
+                ScheduledTask(
+                    taskId,
+                    it,
+                    requestScheduledTask.time,
+                )
+            }
+
+        return taskDataSource.addScheduledTask(scheduledTasks)
     }
 
     private suspend fun validateTaskExistence(

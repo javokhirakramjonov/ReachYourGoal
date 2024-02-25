@@ -1,6 +1,7 @@
 package me.javahere.reachyourgoal.datasource
 
 import kotlinx.coroutines.flow.Flow
+import me.javahere.reachyourgoal.domain.ScheduledTask
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
 import java.util.UUID
@@ -35,4 +36,6 @@ interface TaskDataSource {
         taskAttachmentId: UUID,
         taskId: UUID,
     )
+
+    suspend fun addScheduledTask(scheduledTasks: List<ScheduledTask>): Flow<ScheduledTask>
 }

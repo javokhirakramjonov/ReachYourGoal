@@ -135,4 +135,17 @@ class TaskRoutesHandler(
 
         return ServerResponse.noContent().buildAndAwait()
     }
+
+    suspend fun scheduleTask(serverRequest: ServerRequest): ServerResponse {
+        val userId = getUserId(serverRequest)
+        val taskId = serverRequest.pathVariable("taskId").toUUID()
+
+//        val requestBody = serverRequest.awaitBody(RequestTaskDate::class)
+//
+//        val scheduledTask = requestBody.transform()
+//
+//        val scheduledTasks = taskService.addScheduledTasks(userId, taskId, scheduledTask)
+
+        return ServerResponse.ok().bodyValueAndAwait("Data")
+    }
 }

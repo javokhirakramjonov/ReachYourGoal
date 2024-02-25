@@ -2,8 +2,10 @@ package me.javahere.reachyourgoal.datasource.impl
 
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.datasource.TaskDataSource
+import me.javahere.reachyourgoal.domain.ScheduledTask
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
+import me.javahere.reachyourgoal.repository.ScheduledTaskRepository
 import me.javahere.reachyourgoal.repository.TaskAttachmentRepository
 import me.javahere.reachyourgoal.repository.TaskRepository
 import org.springframework.stereotype.Repository
@@ -13,6 +15,7 @@ import java.util.UUID
 class TaskDataSourceImpl(
     private val taskRepository: TaskRepository,
     private val taskAttachmentRepository: TaskAttachmentRepository,
+    private val scheduledTaskRepository: ScheduledTaskRepository,
 ) : TaskDataSource {
     override suspend fun createTask(task: Task): Task {
         return taskRepository.save(task)
@@ -60,5 +63,9 @@ class TaskDataSourceImpl(
         taskId: UUID,
     ) {
         taskAttachmentRepository.deleteByIdAndTaskId(taskAttachmentId, taskId)
+    }
+
+    override suspend fun addScheduledTask(scheduledTasks: List<ScheduledTask>): Flow<ScheduledTask> {
+        return scheduledTaskRepository.saveAll(scheduledTasks)
     }
 }
