@@ -13,10 +13,8 @@ import io.swagger.v3.oas.models.security.SecurityRequirement
 import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler
 import me.javahere.reachyourgoal.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.dto.TaskDto
+import me.javahere.reachyourgoal.dto.request.RequestScheduledTask
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
-import me.javahere.reachyourgoal.dto.request.RequestTaskDate
-import me.javahere.reachyourgoal.dto.request.RequestTaskDates
-import me.javahere.reachyourgoal.dto.request.RequestTaskWeekDates
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
@@ -234,9 +232,9 @@ class TaskRoutes(
                                 schema =
                                     Schema(
                                         oneOf = [
-                                            RequestTaskDate::class,
-                                            RequestTaskDates::class,
-                                            RequestTaskWeekDates::class,
+                                            RequestScheduledTask.RequestTaskDate::class,
+                                            RequestScheduledTask.RequestTaskDates::class,
+                                            RequestScheduledTask.RequestTaskWeekDates::class,
                                         ],
                                     ),
                             ),

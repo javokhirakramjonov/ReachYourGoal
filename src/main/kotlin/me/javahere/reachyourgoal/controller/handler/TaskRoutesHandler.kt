@@ -1,7 +1,10 @@
 package me.javahere.reachyourgoal.controller.handler
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.withContext
+import me.javahere.reachyourgoal.dto.request.RequestScheduledTask
 import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
 import me.javahere.reachyourgoal.dto.request.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.exception.RYGException
@@ -16,6 +19,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.BodyExtractors
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.awaitBody
@@ -30,6 +34,7 @@ import java.util.UUID
 class TaskRoutesHandler(
     private val taskService: TaskService,
     private val jwtService: JwtService,
+    private val objectMapper: ObjectMapper,
 ) {
     private fun getUserId(serverRequest: ServerRequest): UUID {
         val accessToken =
@@ -140,12 +145,35 @@ class TaskRoutesHandler(
         val userId = getUserId(serverRequest)
         val taskId = serverRequest.pathVariable("taskId").toUUID()
 
-//        val requestBody = serverRequest.awaitBody(RequestTaskDate::class)
-//
-//        val scheduledTask = requestBody.transform()
-//
-//        val scheduledTasks = taskService.addScheduledTasks(userId, taskId, scheduledTask)
+        val requestBody =
+            serverRequest
+                .body(BodyExtractors.toMono(String::class.java))
+                .awaitFirst()
 
-        return ServerResponse.ok().bodyValueAndAwait("Data")
+        val requestScheduledTask =
+            listOfNotNull(
+                kotlin.runCatching {
+                    objectMapper.readValue(
+                        requestBody,
+                        RequestScheduledTask.RequestTaskDate::class.java,
+                    )
+                }.getOrNull(),
+                kotlin.runCatching {
+                    objectMapper.readValue(
+                        requestBody,
+                        RequestScheduledTask.RequestTaskDates::class.java,
+                    )
+                }.getOrNull(),
+                kotlin.runCatching {
+                    objectMapper.readValue(
+                        requestBody,
+                        RequestScheduledTask.RequestTaskWeekDates::class.java,
+                    )
+                }.getOrNull(),
+            ).firstOrNull() ?: return ServerResponse.badRequest().buildAndAwait()
+
+        val scheduledTasks = taskService.addScheduledTasks(userId, taskId, requestScheduledTask)
+
+        return ServerResponse.ok().bodyAndAwait(scheduledTasks)
     }
 }

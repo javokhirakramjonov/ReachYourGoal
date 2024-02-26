@@ -13,7 +13,7 @@ class ScheduledTask(
     @Column("task_date")
     val taskDate: LocalDate,
     @Column("task_time")
-    val taskDateTime: LocalTime? = null,
+    val taskTime: LocalTime? = null,
     @Column("task_status")
     val taskStatus: TaskStatus = TaskStatus.NOT_STARTED,
 )
