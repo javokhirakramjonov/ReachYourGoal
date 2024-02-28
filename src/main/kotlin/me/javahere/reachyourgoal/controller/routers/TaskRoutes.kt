@@ -11,10 +11,11 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler
-import me.javahere.reachyourgoal.dto.TaskAttachmentDto
-import me.javahere.reachyourgoal.dto.TaskDto
-import me.javahere.reachyourgoal.dto.request.RequestScheduledTask
-import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
+import me.javahere.reachyourgoal.domain.TaskScheduling
+import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
+import me.javahere.reachyourgoal.domain.dto.TaskDto
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
+import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
@@ -54,7 +55,7 @@ class TaskRoutes(
                 summary = "create task",
                 requestBody =
                     RequestBody(
-                        content = [Content(schema = Schema(implementation = RequestTaskCreate::class))],
+                        content = [Content(schema = Schema(implementation = RequestCreateTask::class))],
                     ),
                 responses = [
                     ApiResponse(
@@ -111,6 +112,23 @@ class TaskRoutes(
     fun getTaskById() =
         coRouter {
             GET("/tasks/{taskId}", taskRoutesHandler::getTaskById)
+        }
+
+    @Bean
+    @RouterOperation(
+        operation =
+            Operation(
+                operationId = "deleteTaskById",
+                summary = "delete task by id",
+                parameters = [Parameter(name = "taskId", `in` = ParameterIn.PATH)],
+                responses = [
+                    ApiResponse(responseCode = "204"),
+                ],
+            ),
+    )
+    fun deleteTaskById() =
+        coRouter {
+            DELETE("/tasks/{taskId}", taskRoutesHandler::deleteTaskById)
         }
 
     @Bean
@@ -220,8 +238,8 @@ class TaskRoutes(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         operation =
             Operation(
-                operationId = "createScheduledTask",
-                summary = "creates scheduled task",
+                operationId = "createTaskScheduling",
+                summary = "creates task scheduling",
                 parameters = [
                     Parameter(name = "taskId", `in` = ParameterIn.PATH),
                 ],
@@ -232,19 +250,92 @@ class TaskRoutes(
                                 schema =
                                     Schema(
                                         oneOf = [
-                                            RequestScheduledTask.RequestTaskDate::class,
-                                            RequestScheduledTask.RequestTaskDates::class,
-                                            RequestScheduledTask.RequestTaskWeekDates::class,
+                                            RequestTaskScheduling.TaskDateScheduling::class,
+                                            RequestTaskScheduling.TaskDatesScheduling::class,
+                                            RequestTaskScheduling.TaskWeekDatesScheduling::class,
                                         ],
                                     ),
                             ),
                         ],
                     ),
-                responses = [ApiResponse(responseCode = "201")],
+                responses = [
+                    ApiResponse(
+                        responseCode = "201",
+                        content = [
+                            Content(
+                                array = ArraySchema(schema = Schema(implementation = TaskScheduling::class)),
+                            ),
+                        ],
+                    ),
+                ],
             ),
     )
-    fun createScheduledTask() =
+    fun createTaskScheduling() =
         coRouter {
             POST("/tasks/{taskId}/schedule", taskRoutesHandler::scheduleTask)
+        }
+
+    @Bean
+    @RouterOperation(
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "getTaskScheduling",
+                summary = "get scheduled dates of task",
+                parameters = [
+                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
+                    Parameter(name = "fromDate", `in` = ParameterIn.QUERY, required = false),
+                    Parameter(name = "toDate", `in` = ParameterIn.QUERY, required = false),
+                ],
+                responses = [
+                    ApiResponse(
+                        responseCode = "200",
+                        content = [
+                            Content(
+                                array = ArraySchema(schema = Schema(implementation = TaskScheduling::class)),
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+    )
+    fun getTaskScheduling() =
+        coRouter {
+            GET("/tasks/{taskId}/scheduled", taskRoutesHandler::getTaskScheduling)
+        }
+
+    @Bean
+    @RouterOperation(
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "deleteTaskScheduling",
+                summary = "delete task scheduling",
+                parameters = [
+                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
+                ],
+                requestBody =
+                    RequestBody(
+                        content = [
+                            Content(
+                                schema =
+                                    Schema(
+                                        oneOf = [
+                                            RequestTaskScheduling.TaskDateScheduling::class,
+                                            RequestTaskScheduling.TaskDatesScheduling::class,
+                                            RequestTaskScheduling.TaskWeekDatesScheduling::class,
+                                        ],
+                                    ),
+                            ),
+                        ],
+                    ),
+                responses = [
+                    ApiResponse(responseCode = "204"),
+                ],
+            ),
+    )
+    fun deleteTaskScheduling() =
+        coRouter {
+            DELETE("/tasks/{taskId}/scheduled", taskRoutesHandler::deleteTaskScheduling)
         }
 }

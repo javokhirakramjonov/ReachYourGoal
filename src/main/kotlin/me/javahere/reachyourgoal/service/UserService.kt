@@ -1,8 +1,8 @@
 package me.javahere.reachyourgoal.service
 
-import me.javahere.reachyourgoal.dto.UserDto
-import me.javahere.reachyourgoal.dto.request.RequestRegister
-import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
+import me.javahere.reachyourgoal.domain.dto.UserDto
+import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateEmail
 import java.util.UUID
 
 interface UserService {

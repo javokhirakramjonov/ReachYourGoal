@@ -15,7 +15,10 @@ class JwtService(
     @Value("\${app.refresh-secret}") private val refreshSecret: String,
 ) {
     companion object {
-        const val JWT_EXTRA_KEY = "key"
+        const val JWT_KEY_PAIR_CONFIRM_REGISTER = "confirmRegister"
+        const val JWT_KEY_PAIR_CONFIRM_NEW_EMAIL = "confirmNewEmail"
+        const val JWT_EXTRA_KEY_1 = "key1"
+        const val JWT_EXTRA_KEY_2 = "key2"
         const val TOKEN_PREFIX = "Bearer "
         const val ROLES_KEY = "roles"
         val EXPIRE_ACCESS_TOKEN = Duration.ofDays(1).toMillis()
@@ -28,16 +31,16 @@ class JwtService(
         username: String,
         expirationInMillis: Long,
         roles: Array<String>,
-        key: String = String.EMPTY,
-    ): String = generate(userId, username, expirationInMillis, roles, accessSecret, key)
+        key1: String = String.EMPTY,
+        key2: String = String.EMPTY,
+    ): String = generate(userId, username, expirationInMillis, roles, accessSecret, key1, key2)
 
     fun generateRefreshToken(
         userId: String,
         username: String,
         expirationInMillis: Long,
         roles: Array<String>,
-        key: String = String.EMPTY,
-    ): String = generate(userId, username, expirationInMillis, roles, refreshSecret, key)
+    ): String = generate(userId, username, expirationInMillis, roles, refreshSecret)
 
     fun decodeAccessToken(accessToken: String): DecodedJWT = decode(accessSecret, accessToken)
 
@@ -72,13 +75,15 @@ class JwtService(
         expirationInMillis: Long,
         roles: Array<String>,
         signature: String,
-        key: String,
+        key1: String = String.EMPTY,
+        key2: String = String.EMPTY,
     ): String =
         JWT
             .create()
             .withIssuer(issuer)
             .withSubject(subject)
-            .withClaim(JWT_EXTRA_KEY, key)
+            .withClaim(JWT_EXTRA_KEY_1, key1)
+            .withClaim(JWT_EXTRA_KEY_2, key2)
             .withExpiresAt(Date(System.currentTimeMillis() + expirationInMillis))
             .withArrayClaim(ROLES_KEY, roles)
             .sign(Algorithm.HMAC512(signature.toByteArray()))

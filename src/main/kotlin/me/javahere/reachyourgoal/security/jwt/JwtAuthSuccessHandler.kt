@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.security.jwt
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.mono
-import me.javahere.reachyourgoal.dto.response.ResponseLogin
+import me.javahere.reachyourgoal.domain.dto.response.ResponseLogin
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType.UN_AUTHENTICATED
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_ACCESS_TOKEN

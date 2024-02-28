@@ -9,10 +9,10 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import me.javahere.reachyourgoal.controller.handler.UserRoutesHandler
-import me.javahere.reachyourgoal.dto.UserDto
-import me.javahere.reachyourgoal.dto.request.RequestLogin
-import me.javahere.reachyourgoal.dto.request.RequestRegister
-import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
+import me.javahere.reachyourgoal.domain.dto.UserDto
+import me.javahere.reachyourgoal.domain.dto.request.RequestLogin
+import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateEmail
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
