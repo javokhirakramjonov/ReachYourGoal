@@ -1,6 +1,6 @@
 package me.javahere.reachyourgoal.domain
 
-import me.javahere.reachyourgoal.dto.TaskAttachmentDto
+import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.util.Transformable
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

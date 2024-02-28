@@ -1,9 +1,9 @@
 package me.javahere.reachyourgoal.controller.handler
 
-import me.javahere.reachyourgoal.dto.request.RequestRegister
-import me.javahere.reachyourgoal.dto.request.RequestUpdateEmail
-import me.javahere.reachyourgoal.dto.request.validator.RequestRegisterValidator
-import me.javahere.reachyourgoal.dto.request.validator.RequestUpdateEmailValidator
+import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateEmail
+import me.javahere.reachyourgoal.domain.dto.request.validator.RequestRegisterValidator
+import me.javahere.reachyourgoal.domain.dto.request.validator.RequestUpdateEmailValidator
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.localize.MessagesEnum

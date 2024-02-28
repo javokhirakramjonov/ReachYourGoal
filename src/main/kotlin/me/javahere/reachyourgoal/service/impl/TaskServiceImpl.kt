@@ -1,17 +1,21 @@
 package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.flow.Flow
-import me.javahere.reachyourgoal.datasource.TaskDataSource
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
-import me.javahere.reachyourgoal.dto.TaskAttachmentDto
-import me.javahere.reachyourgoal.dto.TaskDto
-import me.javahere.reachyourgoal.dto.request.RequestTaskCreate
+import me.javahere.reachyourgoal.domain.TaskScheduling
+import me.javahere.reachyourgoal.domain.TaskSchedulingId
+import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
+import me.javahere.reachyourgoal.domain.dto.TaskDto
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
+import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.localize.MessagesEnum
+import me.javahere.reachyourgoal.repository.TaskRepository
 import me.javahere.reachyourgoal.service.FileService
 import me.javahere.reachyourgoal.service.TaskService
+import me.javahere.reachyourgoal.util.createListOfDays
 import me.javahere.reachyourgoal.util.getMessage
 import me.javahere.reachyourgoal.util.transformCollection
 import org.springframework.beans.factory.annotation.Value
@@ -20,21 +24,22 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
+import java.time.LocalDate
 import java.util.UUID
 
 @Service
 class TaskServiceImpl(
-    private val taskDataSource: TaskDataSource,
+    private val taskRepository: TaskRepository,
     private val messageSource: ResourceBundleMessageSource,
     private val fileService: FileService,
     @Value("\${app.task-file-path}") private val taskFilePath: String,
 ) : TaskService {
     override suspend fun createTask(
-        task: RequestTaskCreate,
+        task: RequestCreateTask,
         userId: UUID,
     ): TaskDto {
-        return taskDataSource
-            .createTask(task.transform(userId))
+        return taskRepository
+            .addTask(task.transform(userId))
             .transform()
     }
 
@@ -46,13 +51,13 @@ class TaskServiceImpl(
     }
 
     override fun getAllTasks(userId: UUID): Flow<TaskDto> {
-        return taskDataSource
-            .retrieveAllTasks(userId)
+        return taskRepository
+            .getAllTasks(userId)
             .transformCollection()
     }
 
     override suspend fun updateTask(task: TaskDto): TaskDto {
-        return taskDataSource
+        return taskRepository
             .updateTask(task.transform())
             .transform()
     }
@@ -61,7 +66,7 @@ class TaskServiceImpl(
         taskId: UUID,
         userId: UUID,
     ) {
-        taskDataSource.deleteTaskById(taskId, userId)
+        taskRepository.deleteTaskById(taskId, userId)
     }
 
     @Transactional
@@ -78,7 +83,7 @@ class TaskServiceImpl(
                 taskId = taskId,
             )
 
-        val createdTaskAttachment = taskDataSource.createTaskAttachment(taskAttachment).transform()
+        val createdTaskAttachment = taskRepository.addTaskAttachment(taskAttachment).transform()
 
         val newName = createdTaskAttachment.id.toString()
 
@@ -107,7 +112,7 @@ class TaskServiceImpl(
     ): Flow<TaskAttachmentDto> {
         validateTaskExistence(userId, taskId)
 
-        return taskDataSource.retrieveAllTaskAttachments(taskId).transformCollection()
+        return taskRepository.getAllTaskAttachments(taskId).transformCollection()
     }
 
     override suspend fun deleteTaskAttachmentById(
@@ -118,7 +123,40 @@ class TaskServiceImpl(
         val attachment = validateTaskAttachmentExistence(userId, taskId, attachmentId).transform()
 
         fileService.deleteFileByName(taskFilePath, attachment.id.toString())
-        taskDataSource.deleteTaskAttachmentById(attachmentId, taskId)
+        taskRepository.deleteTaskAttachmentById(attachmentId, taskId)
+    }
+
+    override suspend fun addTaskScheduling(
+        userId: UUID,
+        taskId: UUID,
+        requestTaskScheduling: RequestTaskScheduling,
+    ): Flow<TaskScheduling> {
+        validateTaskExistence(userId, taskId)
+
+        val taskScheduling =
+            createListOfDays(
+                requestTaskScheduling.fromDate,
+                requestTaskScheduling.toDate,
+                requestTaskScheduling.frequency,
+            ).map {
+                TaskScheduling(
+                    taskId,
+                    it,
+                    requestTaskScheduling.time,
+                )
+            }
+
+        return taskRepository.addTaskScheduling(taskScheduling)
+    }
+
+    override suspend fun getTaskScheduling(
+        userId: UUID,
+        taskId: UUID,
+        fromDate: LocalDate,
+        toDate: LocalDate,
+    ): Flow<TaskScheduling> {
+        validateTaskExistence(userId, taskId)
+        return taskRepository.getTaskScheduling(taskId, fromDate, toDate)
     }
 
     private suspend fun validateTaskExistence(
@@ -132,8 +170,8 @@ class TaskServiceImpl(
                 *errorMessageArguments,
             )
 
-        return taskDataSource
-            .retrieveTaskById(taskId, userId)
+        return taskRepository
+            .getTaskById(taskId, userId)
             ?: throw RYGException(
                 RYGExceptionType.NOT_FOUND,
                 errorMessage,
@@ -154,11 +192,34 @@ class TaskServiceImpl(
 
         validateTaskExistence(userId, taskId)
 
-        return taskDataSource
-            .retrieveTaskAttachmentById(attachmentId, taskId)
+        return taskRepository
+            .getTaskAttachmentById(attachmentId, taskId)
             ?: throw RYGException(
                 RYGExceptionType.NOT_FOUND,
                 errorMessage,
             )
+    }
+
+    override suspend fun deleteTaskScheduling(
+        userId: UUID,
+        taskId: UUID,
+        taskScheduling: RequestTaskScheduling,
+    ) {
+        validateTaskExistence(userId, taskId)
+
+        val taskSchedulingIds =
+            createListOfDays(
+                taskScheduling.fromDate,
+                taskScheduling.toDate,
+                taskScheduling.frequency,
+            ).map {
+                TaskSchedulingId(
+                    taskId = taskId,
+                    taskDate = it,
+                    taskTime = taskScheduling.time,
+                )
+            }
+
+        taskRepository.deleteTaskSchedulingById(taskSchedulingIds)
     }
 }

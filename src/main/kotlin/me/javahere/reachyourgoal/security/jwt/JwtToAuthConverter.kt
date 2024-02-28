@@ -2,8 +2,8 @@ package me.javahere.reachyourgoal.security.jwt
 
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
-import me.javahere.reachyourgoal.dto.request.RequestLogin
-import me.javahere.reachyourgoal.dto.request.validator.RequestLoginValidator
+import me.javahere.reachyourgoal.domain.dto.request.RequestLogin
+import me.javahere.reachyourgoal.domain.dto.request.validator.RequestLoginValidator
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.util.validateAndThrow

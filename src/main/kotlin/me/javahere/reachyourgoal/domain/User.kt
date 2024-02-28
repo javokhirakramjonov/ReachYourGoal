@@ -1,12 +1,13 @@
 package me.javahere.reachyourgoal.domain
 
-import me.javahere.reachyourgoal.dto.UserDto
+import me.javahere.reachyourgoal.domain.dto.UserDto
 import me.javahere.reachyourgoal.util.Transformable
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import java.time.LocalDate
 import java.util.UUID
 
 @Table(name = "users")
@@ -39,6 +40,8 @@ data class User(
     val role: Role,
     @Column("is_confirmed")
     val isConfirmed: Boolean = false,
+    @Column("created_at")
+    val createdAt: LocalDate = LocalDate.now(),
 ) : UserDetails, Transformable<UserDto> {
     override fun getAuthorities() = listOf(SimpleGrantedAuthority(role.name))
 
