@@ -10,16 +10,12 @@ import me.javahere.reachyourgoal.domain.dto.TaskDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
 import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
 import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionType
-import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.repository.TaskRepository
 import me.javahere.reachyourgoal.service.FileService
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.util.createListOfDays
-import me.javahere.reachyourgoal.util.getMessage
 import me.javahere.reachyourgoal.util.transformCollection
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -30,7 +26,6 @@ import java.util.UUID
 @Service
 class TaskServiceImpl(
     private val taskRepository: TaskRepository,
-    private val messageSource: ResourceBundleMessageSource,
     private val fileService: FileService,
     @Value("\${app.task-file-path}") private val taskFilePath: String,
 ) : TaskService {
@@ -89,7 +84,7 @@ class TaskServiceImpl(
 
         val isSaved = fileService.createFile(taskFilePath, newName, filePart)
 
-        return if (isSaved) createdTaskAttachment else throw RYGException(RYGExceptionType.INTERNAL_ERROR)
+        return if (isSaved) createdTaskAttachment else throw RYGException()
     }
 
     override suspend fun getTaskAttachmentById(
@@ -101,7 +96,7 @@ class TaskServiceImpl(
 
         val attachmentFile =
             fileService.getFileByName(taskFilePath, attachment.id.toString())
-                ?: throw RYGException(RYGExceptionType.NOT_FOUND)
+                ?: throw RYGException("File(id = ${attachment.id}) not found for attachment(id = $attachmentId)")
 
         return attachment.fileName to attachmentFile
     }
@@ -163,19 +158,9 @@ class TaskServiceImpl(
         userId: UUID,
         taskId: UUID,
     ): Task {
-        val errorMessageArguments = arrayOf(taskId, userId)
-        val errorMessage =
-            messageSource.getMessage(
-                MessagesEnum.TASK_NOT_FOUND_EXCEPTION.key,
-                *errorMessageArguments,
-            )
-
         return taskRepository
             .getTaskById(taskId, userId)
-            ?: throw RYGException(
-                RYGExceptionType.NOT_FOUND,
-                errorMessage,
-            )
+            ?: throw RYGException("Task not found with such id($taskId) for userId($userId)")
     }
 
     private suspend fun validateTaskAttachmentExistence(
@@ -183,21 +168,11 @@ class TaskServiceImpl(
         taskId: UUID,
         attachmentId: UUID,
     ): TaskAttachment {
-        val errorMessageArguments = arrayOf(attachmentId, taskId)
-        val errorMessage =
-            messageSource.getMessage(
-                MessagesEnum.TASK_ATTACHMENT_NOT_FOUND_EXCEPTION.key,
-                *errorMessageArguments,
-            )
-
         validateTaskExistence(userId, taskId)
 
         return taskRepository
             .getTaskAttachmentById(attachmentId, taskId)
-            ?: throw RYGException(
-                RYGExceptionType.NOT_FOUND,
-                errorMessage,
-            )
+            ?: throw RYGException("Attachment(id = $attachmentId) not found for task(id = $taskId)")
     }
 
     override suspend fun deleteTaskScheduling(

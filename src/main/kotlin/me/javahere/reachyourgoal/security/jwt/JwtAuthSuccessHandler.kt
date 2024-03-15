@@ -5,7 +5,6 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.domain.dto.response.ResponseLogin
 import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionType.UN_AUTHENTICATED
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_ACCESS_TOKEN
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_REFRESH_TOKEN
 import me.javahere.reachyourgoal.service.UserService
@@ -30,7 +29,7 @@ class JwtAuthSuccessHandler(
     ): Mono<Void> =
         mono {
             val principal =
-                authentication.principal ?: throw RYGException(UN_AUTHENTICATED)
+                authentication.principal ?: throw RYGException("Unauthenticated")
 
             when (principal) {
                 is User -> {
@@ -56,7 +55,7 @@ class JwtAuthSuccessHandler(
                     response.writeWith(Mono.just(monoData)).awaitFirst()
                 }
 
-                else -> throw RYGException(UN_AUTHENTICATED)
+                else -> throw RYGException("Unauthorized")
             }
 
             return@mono null

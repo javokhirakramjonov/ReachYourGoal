@@ -2,7 +2,6 @@ package me.javahere.reachyourgoal.component
 
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionGroup
-import me.javahere.reachyourgoal.exception.RYGExceptionType
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -13,7 +12,6 @@ import reactor.core.publisher.Mono
 @RestControllerAdvice
 class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
     private data class ErrorResponse(
-        val type: String,
         val message: String,
     )
 
@@ -23,9 +21,9 @@ class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
             when (ex) {
                 is RYGException -> listOf(ex)
                 is RYGExceptionGroup -> ex.exceptions.toList()
-                else -> listOf(RYGException(RYGExceptionType.UNDEFINED, ex.message))
+                else -> listOf(RYGException(ex.message))
             }
-                .map { ErrorResponse(it.type.name, it.message.toString()) }
+                .map { ErrorResponse(it.message.orEmpty()) }
 
         return Mono.just(
             ResponseEntity

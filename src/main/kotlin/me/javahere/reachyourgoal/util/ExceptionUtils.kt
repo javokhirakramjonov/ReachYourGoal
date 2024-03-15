@@ -2,7 +2,6 @@ package me.javahere.reachyourgoal.util
 
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionGroup
-import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.validator.Validator
 
 fun <T> Validator<T>.validateAndThrow(input: T) {
@@ -14,7 +13,7 @@ fun <T> Validator<T>.validateAndThrow(input: T) {
 fun List<String>.toExceptionGroup(): RYGExceptionGroup {
     return RYGExceptionGroup(
         this.map {
-            RYGException(RYGExceptionType.INVALID, it)
+            RYGException(it)
         },
     )
 }

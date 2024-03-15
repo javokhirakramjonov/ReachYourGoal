@@ -16,10 +16,17 @@ class RequestLoginValidator : Validator<RequestLogin> {
 
         val errors =
             listOf(
-                usernameValidator.validate(input.username),
-                usernameLengthValidator.validate(input.username),
-                passwordLengthValidator.validate(input.password),
-            ).flatten()
+                usernameValidator
+                    .validate(input.username)
+                    .map { "username: $it" },
+                usernameLengthValidator
+                    .validate(input.username)
+                    .map { "username: $it" },
+                passwordLengthValidator
+                    .validate(input.password)
+                    .map { "password: $it" },
+            )
+                .flatten()
 
         return errors
     }

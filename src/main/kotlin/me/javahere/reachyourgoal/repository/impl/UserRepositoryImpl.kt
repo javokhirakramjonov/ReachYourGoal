@@ -4,7 +4,7 @@ import me.javahere.reachyourgoal.dao.UserDao
 import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.repository.UserRepository
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Repository
@@ -20,7 +20,10 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getUserByUsername(username: String): User? {
-        return userDao.findByUsername(username)
+        return kotlin.runCatching { userDao.findByUsername(username) }.getOrElse {
+            println(it)
+            null
+        }
     }
 
     override suspend fun getUserByEmail(email: String): User? {
@@ -35,7 +38,7 @@ class UserRepositoryImpl(
         userDao.deleteById(userId)
     }
 
-    override suspend fun deleteUnconfirmedUsersBefore(date: LocalDate) {
-        userDao.deleteUsersByCreatedAtBefore(date)
+    override suspend fun deleteUnconfirmedUsersBefore(dateTime: LocalDateTime) {
+        userDao.deleteByCreatedAtBefore(dateTime)
     }
 }

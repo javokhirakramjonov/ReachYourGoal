@@ -2,7 +2,7 @@ package me.javahere.reachyourgoal.dao
 
 import me.javahere.reachyourgoal.domain.User
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface UserDao : CoroutineCrudRepository<User, UUID> {
@@ -10,5 +10,5 @@ interface UserDao : CoroutineCrudRepository<User, UUID> {
 
     suspend fun findByEmail(email: String): User?
 
-    suspend fun deleteUsersByCreatedAtBefore(date: LocalDate)
+    suspend fun deleteByCreatedAtBefore(date: LocalDateTime)
 }

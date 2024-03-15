@@ -40,12 +40,6 @@ localhost : [swagger link for port: 8080](http://localhost:8080/swagger-ui.html)
    - TASK_FILE_PATH
    - RYG_PORT
 
-## Scripts
-1. When you add your local message, you can create useful objects using this command:
-   ```sh
-   ./local_keys_parser.sh
-   ```
-
 ## Contributions
 Contributions are welcome! Here's how you can contribute to this project:
 ## Contributions

@@ -11,26 +11,35 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class SwaggerConfig {
+    private companion object {
+        const val INFO_TITLE = "Reach Your Goal API"
+        const val VERSION_API = "1.0"
+        const val CONTACT_NAME = "Javokhir"
+        const val CONTACT_EMAIL = "javokhir.akramjonov@gmail.com"
+        const val CONTACT_URL = "https://www.linkedin.com/in/javokhirakramjonov"
+        const val KEY_BEARER_AUTHENTICATION = "Bearer Authentication"
+    }
+
     @Bean
     fun openAPI(): OpenAPI {
         return OpenAPI()
-            .addSecurityItem(SecurityRequirement().addList("Bearer Authentication"))
+            .addSecurityItem(SecurityRequirement().addList(KEY_BEARER_AUTHENTICATION))
             .components(
                 Components()
                     .addSecuritySchemes(
-                        "Bearer Authentication",
+                        KEY_BEARER_AUTHENTICATION,
                         createAPIKeyScheme(),
                     ),
             )
             .info(
                 Info()
-                    .title("Reach Your Goal API")
-                    .version("1.0")
+                    .title(INFO_TITLE)
+                    .version(VERSION_API)
                     .contact(
                         Contact()
-                            .name("Javokhir")
-                            .email("javokhir.akramjonov@gmail.com")
-                            .url("https://www.linkedin.com/in/javahere"),
+                            .name(CONTACT_NAME)
+                            .email(CONTACT_EMAIL)
+                            .url(CONTACT_URL),
                     ),
             )
     }

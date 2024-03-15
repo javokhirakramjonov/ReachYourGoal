@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.component
 import me.javahere.reachyourgoal.repository.UserRepository
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Component
 class UnconfirmedUserRemover(
@@ -15,7 +15,7 @@ class UnconfirmedUserRemover(
 
     @Scheduled(cron = "0 0 0 * * *")
     suspend fun deleteExpiredTokens() {
-        val today = LocalDate.now()
+        val today = LocalDateTime.now()
         userRepository.deleteUnconfirmedUsersBefore(today.minusDays(VALID_DAYS_TO_CONFIRM))
     }
 }

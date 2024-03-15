@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "me.javahere"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -71,12 +71,4 @@ tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun> {
     jvmArgs("-XX:+EnableDynamicAgentLoading")
 }
 
-tasks.register("preApplication") {
-    doLast {
-        exec {
-            commandLine("./local_keys_parser.sh")
-        }
-    }
-}
-
-tasks.getByName("bootRun").dependsOn("preApplication")
+tasks.getByName("bootRun")

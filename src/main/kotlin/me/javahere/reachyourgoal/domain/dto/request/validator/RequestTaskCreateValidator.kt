@@ -5,7 +5,9 @@ import me.javahere.reachyourgoal.validator.LengthValidator
 import me.javahere.reachyourgoal.validator.VALID_TASK_DESCRIPTION_LENGTH
 import me.javahere.reachyourgoal.validator.VALID_TASK_NAME_LENGTH
 import me.javahere.reachyourgoal.validator.Validator
+import org.springframework.stereotype.Component
 
+@Component
 class RequestTaskCreateValidator : Validator<RequestCreateTask> {
     override fun validate(input: RequestCreateTask): List<String> {
         val nameLengthValidator = LengthValidator(VALID_TASK_NAME_LENGTH)
@@ -13,8 +15,8 @@ class RequestTaskCreateValidator : Validator<RequestCreateTask> {
 
         val errors =
             listOf(
-                nameLengthValidator.validate(input.name),
-                descriptionLengthValidator.validate(input.description.orEmpty()),
+                nameLengthValidator.validate(input.name).map { "task name: $it" },
+                descriptionLengthValidator.validate(input.description.orEmpty()).map { "task description: $it" },
             ).flatten()
 
         return errors

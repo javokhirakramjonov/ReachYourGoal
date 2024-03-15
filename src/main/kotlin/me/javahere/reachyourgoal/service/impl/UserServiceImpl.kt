@@ -7,14 +7,6 @@ import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
 import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateEmail
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.exception.RYGExceptionGroup
-import me.javahere.reachyourgoal.exception.RYGExceptionType.ALREADY_EXISTS
-import me.javahere.reachyourgoal.exception.RYGExceptionType.BAD_CREDENTIALS
-import me.javahere.reachyourgoal.exception.RYGExceptionType.EMAIL_IS_NOT_AVAILABLE
-import me.javahere.reachyourgoal.exception.RYGExceptionType.EMAIL_NOT_CONFIRMED
-import me.javahere.reachyourgoal.exception.RYGExceptionType.INVALID_CONFIRM_TOKEN
-import me.javahere.reachyourgoal.exception.RYGExceptionType.NOT_FOUND
-import me.javahere.reachyourgoal.exception.RYGExceptionType.USERNAME_IS_NOT_AVAILABLE
-import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.repository.UserRepository
 import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_CONFIRMATION_TOKEN
@@ -24,10 +16,8 @@ import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.JWT_KEY_PAIR_
 import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.JWT_KEY_PAIR_CONFIRM_REGISTER
 import me.javahere.reachyourgoal.service.EmailService
 import me.javahere.reachyourgoal.service.UserService
-import me.javahere.reachyourgoal.util.getMessage
 import me.javahere.reachyourgoal.util.toUUID
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -46,9 +36,8 @@ class UserServiceImpl(
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
     private val emailService: EmailService,
-    private val messageSource: ResourceBundleMessageSource,
 ) : UserService, ReactiveUserDetailsService {
-    private val invalidConfirmToken = RYGException(INVALID_CONFIRM_TOKEN)
+    private val invalidConfirmToken = RYGException("Invalid confirmation token")
 
     override suspend fun register(user: RequestRegister) {
         val isUsernameAvailable = userRepository.getUserByUsername(user.username) == null
@@ -56,8 +45,8 @@ class UserServiceImpl(
 
         val exceptions = mutableListOf<RYGException>()
 
-        if (!isUsernameAvailable) exceptions += RYGException(USERNAME_IS_NOT_AVAILABLE)
-        if (!isEmailAvailable) exceptions += RYGException(EMAIL_IS_NOT_AVAILABLE)
+        if (!isUsernameAvailable) exceptions += RYGException("Username is not available")
+        if (!isEmailAvailable) exceptions += RYGException("Email is not available")
 
         if (exceptions.isNotEmpty()) throw RYGExceptionGroup(exceptions)
 
@@ -121,53 +110,26 @@ class UserServiceImpl(
     }
 
     override suspend fun findUserById(userId: UUID): UserDto {
-        val errorMessageArguments = arrayOf(userId)
-        val errorMessage =
-            messageSource.getMessage(
-                MessagesEnum.USER_NOT_FOUND_FOR_ID_EXCEPTION.key,
-                *errorMessageArguments,
-            )
-
-        val userNotFoundException = RYGException(NOT_FOUND, errorMessage)
-
         return userRepository
             .getUserById(userId)
             ?.transform()
-            ?: throw userNotFoundException
+            ?: throw RYGException("User(id = $userId) is not found")
     }
 
     override suspend fun findUserByEmail(email: String): UserDto {
-        val errorMessageArguments = arrayOf(email)
-        val errorMessage =
-            messageSource.getMessage(
-                MessagesEnum.USER_NOT_FOUND_FOR_EMAIL_EXCEPTION.key,
-                *errorMessageArguments,
-            )
-
-        val userNotFoundException = RYGException(NOT_FOUND, errorMessage)
-
-        return userRepository.getUserByEmail(email)?.transform() ?: throw userNotFoundException
+        return userRepository.getUserByEmail(email)?.transform() ?: throw RYGException("Email($email) is not found")
     }
 
     override suspend fun findUserByUsername(username: String): UserDto {
-        val errorMessageArguments = arrayOf(username)
-        val errorMessage =
-            messageSource.getMessage(
-                MessagesEnum.USER_NOT_FOUND_FOR_USERNAME_EXCEPTION.key,
-                *errorMessageArguments,
-            )
-
-        val userNotFoundException = RYGException(NOT_FOUND, errorMessage)
-
-        return userRepository.getUserByUsername(username)?.transform() ?: throw userNotFoundException
+        return userRepository.getUserByUsername(username)?.transform() ?: throw RYGException("Username($username) is not found")
     }
 
     override fun findByUsername(username: String): Mono<UserDetails> =
         mono {
             val user: User =
-                userRepository.getUserByUsername(username) ?: throw RYGException(BAD_CREDENTIALS)
+                userRepository.getUserByUsername(username) ?: throw RYGException("User($username) is not found")
 
-            if (!user.isConfirmed) throw RYGException(EMAIL_NOT_CONFIRMED)
+            if (!user.isConfirmed) throw RYGException("Username($username) is not confirmed")
 
             val authorities: List<GrantedAuthority> = user.authorities
 
@@ -179,17 +141,8 @@ class UserServiceImpl(
         firstName: String?,
         lastName: String?,
     ): UserDto {
-        val userNotFoundErrorMessageArguments = arrayOf(userId.toString())
-        val userNotFoundErrorMessage =
-            messageSource.getMessage(
-                MessagesEnum.USER_NOT_FOUND_FOR_ID_EXCEPTION.key,
-                *userNotFoundErrorMessageArguments,
-            )
-
-        val userNotFoundException = RYGException(NOT_FOUND, userNotFoundErrorMessage)
-
         val foundUser =
-            userRepository.getUserById(userId) ?: throw userNotFoundException
+            userRepository.getUserById(userId) ?: throw RYGException("User(id = $userId) is not found")
 
         val newFirstName = firstName ?: foundUser.firstname
         val newLastName = lastName ?: foundUser.lastname
@@ -209,25 +162,12 @@ class UserServiceImpl(
         val user = findUserById(request.userId)
 
         if (user.email == request.newEmail) {
-            val emailAssignedToCurrentUserErrorMessageArguments = arrayOf(request.newEmail)
-            val emailAssignedToCurrentUserErrorMessage =
-                messageSource.getMessage(
-                    MessagesEnum.EMAIL_ALREADY_ASSIGNED_TO_CURRENT_USER_EXCEPTION.key,
-                    *emailAssignedToCurrentUserErrorMessageArguments,
-                )
-            throw RYGException(ALREADY_EXISTS, emailAssignedToCurrentUserErrorMessage)
+            throw RYGException("Email(${user.email}) is already yours.")
         }
 
         val userWithEmail = userRepository.getUserByEmail(request.newEmail)
         if (userWithEmail != null) {
-            val emailExistsErrorMessageArguments = arrayOf(request.newEmail)
-            val emailExistsErrorMessage =
-                messageSource.getMessage(
-                    MessagesEnum.EMAIL_ALREADY_EXISTS_EXCEPTION.key,
-                    *emailExistsErrorMessageArguments,
-                )
-
-            throw RYGException(ALREADY_EXISTS, emailExistsErrorMessage)
+            throw RYGException("Email(${request.newEmail}) is not available")
         }
 
         val token =
