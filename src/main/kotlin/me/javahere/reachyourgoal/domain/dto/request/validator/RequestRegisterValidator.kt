@@ -11,7 +11,9 @@ import me.javahere.reachyourgoal.validator.VALID_PASSWORD_LENGTH
 import me.javahere.reachyourgoal.validator.VALID_USERNAME_LENGTH
 import me.javahere.reachyourgoal.validator.VALID_USERNAME_PATTERN
 import me.javahere.reachyourgoal.validator.Validator
+import org.springframework.stereotype.Component
 
+@Component
 class RequestRegisterValidator : Validator<RequestRegister> {
     override fun validate(input: RequestRegister): List<String> {
         val usernameValidator = PatternValidator(VALID_USERNAME_PATTERN)
@@ -25,14 +27,14 @@ class RequestRegisterValidator : Validator<RequestRegister> {
 
         val errors =
             listOf(
-                usernameValidator.validate(input.username),
-                usernameLengthValidator.validate(input.username),
-                emailValidator.validate(input.email),
-                firstnameValidator.validate(input.firstname),
-                firstnameLengthValidator.validate(input.firstname),
-                lastnameValidator.validate(input.lastname),
-                lastnameLengthValidator.validate(input.lastname),
-                passwordValidator.validate(input.password),
+                usernameValidator.validate(input.username).map { "username: $it" },
+                usernameLengthValidator.validate(input.username).map { "username: $it" },
+                emailValidator.validate(input.email).map { "email: $it" },
+                firstnameValidator.validate(input.firstname).map { "firstname: $it" },
+                firstnameLengthValidator.validate(input.firstname).map { "firstname: $it" },
+                lastnameValidator.validate(input.lastname).map { "lastname: $it" },
+                lastnameLengthValidator.validate(input.lastname).map { "lastname: $it" },
+                passwordValidator.validate(input.password).map { "password: $it" },
             ).flatten()
 
         return errors

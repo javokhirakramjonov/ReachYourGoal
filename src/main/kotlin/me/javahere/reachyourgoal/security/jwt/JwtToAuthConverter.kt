@@ -5,7 +5,6 @@ import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.domain.dto.request.RequestLogin
 import me.javahere.reachyourgoal.domain.dto.request.validator.RequestLoginValidator
 import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.util.validateAndThrow
 import org.springframework.core.ResolvableType
 import org.springframework.http.MediaType
@@ -23,7 +22,7 @@ class JwtToAuthConverter(
 ) : ServerAuthenticationConverter {
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> =
         mono {
-            val loginRequest: RequestLogin = getUsernameAndPassword(exchange) ?: throw RYGException(RYGExceptionType.BAD_REQUEST)
+            val loginRequest: RequestLogin = getUsernameAndPassword(exchange) ?: throw RYGException("Bad request")
 
             val requestLoginValidator = RequestLoginValidator()
 

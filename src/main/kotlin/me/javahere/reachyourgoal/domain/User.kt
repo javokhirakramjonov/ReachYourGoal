@@ -7,7 +7,7 @@ import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Table(name = "users")
@@ -41,7 +41,7 @@ data class User(
     @Column("is_confirmed")
     val isConfirmed: Boolean = false,
     @Column("created_at")
-    val createdAt: LocalDate = LocalDate.now(),
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 ) : UserDetails, Transformable<UserDto> {
     override fun getAuthorities() = listOf(SimpleGrantedAuthority(role.name))
 

@@ -1,7 +1,7 @@
 package me.javahere.reachyourgoal.repository
 
 import me.javahere.reachyourgoal.domain.User
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface UserRepository {
@@ -17,5 +17,5 @@ interface UserRepository {
 
     suspend fun deleteUserById(userId: UUID)
 
-    suspend fun deleteUnconfirmedUsersBefore(date: LocalDate)
+    suspend fun deleteUnconfirmedUsersBefore(dateTime: LocalDateTime)
 }

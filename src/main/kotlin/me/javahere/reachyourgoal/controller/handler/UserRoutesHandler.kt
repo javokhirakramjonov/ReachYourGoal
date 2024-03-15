@@ -5,13 +5,9 @@ import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateEmail
 import me.javahere.reachyourgoal.domain.dto.request.validator.RequestRegisterValidator
 import me.javahere.reachyourgoal.domain.dto.request.validator.RequestUpdateEmailValidator
 import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionType
-import me.javahere.reachyourgoal.localize.MessagesEnum
 import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.service.UserService
-import me.javahere.reachyourgoal.util.getMessage
 import me.javahere.reachyourgoal.util.validateAndThrow
-import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -24,12 +20,11 @@ import org.springframework.web.reactive.function.server.buildAndAwait
 class UserRoutesHandler(
     private val userService: UserService,
     private val jwtService: JwtService,
-    private val messageSource: ResourceBundleMessageSource,
+    private val requestRegisterValidator: RequestRegisterValidator,
+    private val requestUpdateEmailValidator: RequestUpdateEmailValidator,
 ) {
     suspend fun register(serverRequest: ServerRequest): ServerResponse {
         val user = serverRequest.awaitBody(RequestRegister::class)
-
-        val requestRegisterValidator = RequestRegisterValidator()
 
         requestRegisterValidator.validateAndThrow(user)
 
@@ -37,21 +32,19 @@ class UserRoutesHandler(
 
         return ServerResponse
             .ok()
-            .bodyValueAndAwait(MessagesEnum.REGISTRATION_EMAIL_CONFIRMATION_SENT.key)
+            .buildAndAwait()
     }
 
     suspend fun updateEmail(serverRequest: ServerRequest): ServerResponse {
         val requestUpdateEmail = serverRequest.awaitBody(RequestUpdateEmail::class)
 
-        val requestEmailValidator = RequestUpdateEmailValidator()
-
-        requestEmailValidator.validateAndThrow(requestUpdateEmail)
+        requestUpdateEmailValidator.validateAndThrow(requestUpdateEmail)
 
         userService.updateEmail(requestUpdateEmail)
 
         return ServerResponse
             .ok()
-            .bodyValueAndAwait(messageSource.getMessage(MessagesEnum.NEW_EMAIL_CONFIRMATION_SENT.key))
+            .buildAndAwait()
     }
 
     suspend fun confirmRegister(serverRequest: ServerRequest): ServerResponse {
@@ -76,10 +69,7 @@ class UserRoutesHandler(
 
     suspend fun refreshAccessToken(serverRequest: ServerRequest): ServerResponse {
         val refreshTokenNotFoundException =
-            RYGException(
-                RYGExceptionType.NOT_FOUND,
-                messageSource.getMessage(MessagesEnum.REFRESH_TOKEN_NOT_FOUND_EXCEPTION.key),
-            )
+            RYGException("Refresh token is not found")
 
         val refreshToken =
             serverRequest

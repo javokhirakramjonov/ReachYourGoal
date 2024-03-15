@@ -1,6 +1,5 @@
 package me.javahere.reachyourgoal.exception
 
 class RYGException(
-    val type: RYGExceptionType,
-    override val message: String? = null,
+    override val message: String? = "Something went wrong",
 ) : RuntimeException()

@@ -21,7 +21,7 @@ class EmailServiceImpl(
         val context = Context()
         context.setVariable("confirmationLink", confirmationLink)
         context.setVariable("expireDateTime", expireDateTime)
-        val htmlContent = templateEngine.process("confirmationEmail", context)
+        val htmlContent = templateEngine.process("confirmationRegistrationEmail", context)
 
         sendEmail(
             to = email,
@@ -38,7 +38,7 @@ class EmailServiceImpl(
         val context = Context()
         context.setVariable("confirmationLink", confirmationLink)
         context.setVariable("expireDateTime", expireDateTime)
-        val htmlContent = templateEngine.process("confirmationNewEmail", context)
+        val htmlContent = templateEngine.process("confirmationEmailUpdateEmail", context)
 
         sendEmail(
             to = email,

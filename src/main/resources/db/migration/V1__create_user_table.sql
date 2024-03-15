@@ -11,5 +11,6 @@ CREATE TABLE users
     is_credentials_expired BOOLEAN      NOT NULL,
     is_enabled             BOOLEAN      NOT NULL,
     role                   VARCHAR(255) NOT NULL,
-    is_confirmed           BOOLEAN      NOT NULL
+    is_confirmed           BOOLEAN      NOT NULL,
+    created_at             TIMESTAMP    NOT NULL
 );

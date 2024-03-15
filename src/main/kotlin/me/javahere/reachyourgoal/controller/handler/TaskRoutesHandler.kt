@@ -8,7 +8,6 @@ import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
 import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
 import me.javahere.reachyourgoal.domain.dto.request.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionType
 import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.util.toUUID
@@ -36,6 +35,7 @@ class TaskRoutesHandler(
     private val taskService: TaskService,
     private val jwtService: JwtService,
     private val objectMapper: ObjectMapper,
+    private val requestTaskCreateValidator: RequestTaskCreateValidator,
 ) {
     private fun getUserId(serverRequest: ServerRequest): UUID {
         val accessToken =
@@ -59,26 +59,26 @@ class TaskRoutesHandler(
                 .awaitFirst()
 
         val requestTaskScheduling =
-            listOfNotNull(
-                kotlin.runCatching {
+            sequenceOf(
+                runCatching {
                     objectMapper.readValue(
                         requestBody,
                         RequestTaskScheduling.TaskDateScheduling::class.java,
                     )
-                }.getOrNull(),
-                kotlin.runCatching {
+                },
+                runCatching {
                     objectMapper.readValue(
                         requestBody,
                         RequestTaskScheduling.TaskDatesScheduling::class.java,
                     )
-                }.getOrNull(),
-                kotlin.runCatching {
+                },
+                runCatching {
                     objectMapper.readValue(
                         requestBody,
                         RequestTaskScheduling.TaskWeekDatesScheduling::class.java,
                     )
-                }.getOrNull(),
-            ).firstOrNull() ?: throw RYGException(RYGExceptionType.BAD_REQUEST)
+                },
+            ).firstNotNullOfOrNull { it.getOrNull() } ?: throw RYGException("Invalid scheduling type")
 
         return requestTaskScheduling
     }
@@ -87,8 +87,6 @@ class TaskRoutesHandler(
         val userId = getUserId(serverRequest)
 
         val task = serverRequest.awaitBody(RequestCreateTask::class)
-
-        val requestTaskCreateValidator = RequestTaskCreateValidator()
 
         requestTaskCreateValidator.validateAndThrow(task)
 
@@ -163,7 +161,7 @@ class TaskRoutesHandler(
         val userId = getUserId(serverRequest)
         val taskId = serverRequest.pathVariable("taskId").toUUID()
 
-        val attachmentNotFoundException = RYGException(RYGExceptionType.NOT_FOUND, "Attachment not found")
+        val attachmentNotFoundException = RYGException("Attachment is not found")
 
         val attachment = (serverRequest.awaitMultipartData().toSingleValueMap()["file"] as? FilePart) ?: throw attachmentNotFoundException
 
