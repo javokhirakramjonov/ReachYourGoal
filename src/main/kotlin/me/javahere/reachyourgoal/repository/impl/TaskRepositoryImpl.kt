@@ -1,6 +1,9 @@
 package me.javahere.reachyourgoal.repository.impl
 
+import java.time.LocalDate
+import java.util.UUID
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import me.javahere.reachyourgoal.dao.TaskAttachmentDao
 import me.javahere.reachyourgoal.dao.TaskDao
 import me.javahere.reachyourgoal.dao.TaskSchedulingDao
@@ -10,8 +13,6 @@ import me.javahere.reachyourgoal.domain.TaskScheduling
 import me.javahere.reachyourgoal.domain.TaskSchedulingId
 import me.javahere.reachyourgoal.repository.TaskRepository
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
-import java.util.UUID
 
 @Repository
 class TaskRepositoryImpl(
@@ -31,7 +32,7 @@ class TaskRepositoryImpl(
         taskId: UUID,
         userId: UUID,
     ): Task? {
-        return taskDao.findTaskByIdAndUserId(taskId, userId)
+        return taskDao.findTaskByIdAndUserId(taskId, userId).firstOrNull()
     }
 
     override suspend fun updateTask(task: Task): Task {
@@ -57,7 +58,7 @@ class TaskRepositoryImpl(
         attachmentId: UUID,
         taskId: UUID,
     ): TaskAttachment? {
-        return taskAttachmentDao.findByIdAndTaskId(attachmentId, taskId)
+        return taskAttachmentDao.findByIdAndTaskId(attachmentId, taskId).firstOrNull()
     }
 
     override suspend fun deleteTaskAttachmentById(

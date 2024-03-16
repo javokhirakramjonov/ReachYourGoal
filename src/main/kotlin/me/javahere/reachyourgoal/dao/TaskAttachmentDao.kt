@@ -8,10 +8,10 @@ import java.util.UUID
 interface TaskAttachmentDao : CoroutineCrudRepository<TaskAttachment, UUID> {
     fun findAllByTaskId(taskId: UUID): Flow<TaskAttachment>
 
-    suspend fun findByIdAndTaskId(
+    fun findByIdAndTaskId(
         attachmentId: UUID,
         taskId: UUID,
-    ): TaskAttachment?
+    ): Flow<TaskAttachment?>
 
     suspend fun deleteByIdAndTaskId(
         attachmentId: UUID,
