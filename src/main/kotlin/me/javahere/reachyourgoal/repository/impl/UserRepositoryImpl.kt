@@ -1,5 +1,6 @@
 package me.javahere.reachyourgoal.repository.impl
 
+import kotlinx.coroutines.flow.firstOrNull
 import me.javahere.reachyourgoal.dao.UserDao
 import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.repository.UserRepository
@@ -20,14 +21,11 @@ class UserRepositoryImpl(
     }
 
     override suspend fun getUserByUsername(username: String): User? {
-        return kotlin.runCatching { userDao.findByUsername(username) }.getOrElse {
-            println(it)
-            null
-        }
+        return userDao.findByUsername(username).firstOrNull()
     }
 
     override suspend fun getUserByEmail(email: String): User? {
-        return userDao.findByEmail(email)
+        return userDao.findByEmail(email).firstOrNull()
     }
 
     override suspend fun updateUser(user: User): User {
