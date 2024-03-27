@@ -6,22 +6,22 @@ import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
-import java.util.*
+import java.util.Date
 
 @Service
 class EmailServiceImpl(
     private val mailSender: JavaMailSender,
-    private val templateEngine: TemplateEngine
+    private val templateEngine: TemplateEngine,
 ) : EmailService {
     override fun sendRegisterConfirmEmail(
         email: String,
         confirmationLink: String,
-        expireDateTime: Date
+        expireDateTime: Date,
     ) {
         val context = Context()
         context.setVariable("confirmationLink", confirmationLink)
         context.setVariable("expireDateTime", expireDateTime)
-        val htmlContent = templateEngine.process("confirmationEmail", context)
+        val htmlContent = templateEngine.process("confirmationRegistrationEmail", context)
 
         sendEmail(
             to = email,
@@ -33,12 +33,12 @@ class EmailServiceImpl(
     override fun sendUpdateEmailConfirmEmail(
         email: String,
         confirmationLink: String,
-        expireDateTime: Date
+        expireDateTime: Date,
     ) {
         val context = Context()
         context.setVariable("confirmationLink", confirmationLink)
         context.setVariable("expireDateTime", expireDateTime)
-        val htmlContent = templateEngine.process("confirmationNewEmail", context)
+        val htmlContent = templateEngine.process("confirmationEmailUpdateEmail", context)
 
         sendEmail(
             to = email,
@@ -51,7 +51,7 @@ class EmailServiceImpl(
         to: String,
         subject: String,
         content: String,
-        htmlEnabled: Boolean = true
+        htmlEnabled: Boolean = true,
     ) {
         val message = mailSender.createMimeMessage()
         val helper = MimeMessageHelper(message, true, "UTF-8")
