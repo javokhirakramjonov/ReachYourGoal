@@ -4,11 +4,13 @@ import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
 import me.javahere.reachyourgoal.domain.TaskScheduling
-import me.javahere.reachyourgoal.domain.TaskSchedulingId
 import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.domain.dto.TaskDto
+import me.javahere.reachyourgoal.domain.dto.TaskSchedulingDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
+import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskScheduling
 import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskStatus
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.repository.TaskRepository
 import me.javahere.reachyourgoal.service.FileService
@@ -20,7 +22,6 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
-import java.time.LocalDate
 import java.util.UUID
 
 @Service
@@ -125,7 +126,7 @@ class TaskServiceImpl(
         userId: UUID,
         taskId: UUID,
         requestTaskScheduling: RequestTaskScheduling,
-    ): Flow<TaskScheduling> {
+    ): Flow<TaskSchedulingDto> {
         validateTaskExistence(userId, taskId)
 
         val taskScheduling =
@@ -135,23 +136,25 @@ class TaskServiceImpl(
                 requestTaskScheduling.frequency,
             ).map {
                 TaskScheduling(
-                    taskId,
-                    it,
-                    requestTaskScheduling.time,
+                    taskId = taskId,
+                    taskDateTime = it.atTime(requestTaskScheduling.time),
                 )
             }
 
-        return taskRepository.addTaskScheduling(taskScheduling)
+        return taskRepository.addTaskScheduling(taskScheduling).transformCollection()
     }
 
     override suspend fun getTaskScheduling(
         userId: UUID,
         taskId: UUID,
-        fromDate: LocalDate,
-        toDate: LocalDate,
-    ): Flow<TaskScheduling> {
+        requestTaskScheduling: RequestGetTaskScheduling,
+    ): Flow<TaskSchedulingDto> {
         validateTaskExistence(userId, taskId)
-        return taskRepository.getTaskScheduling(taskId, fromDate, toDate)
+        return taskRepository.getTaskSchedulingForPeriod(
+            taskId,
+            requestTaskScheduling.fromDateTime,
+            requestTaskScheduling.toDateTime,
+        ).transformCollection()
     }
 
     private suspend fun validateTaskExistence(
@@ -182,19 +185,32 @@ class TaskServiceImpl(
     ) {
         validateTaskExistence(userId, taskId)
 
-        val taskSchedulingIds =
+        val taskDateTimes =
             createListOfDays(
                 taskScheduling.fromDate,
                 taskScheduling.toDate,
                 taskScheduling.frequency,
-            ).map {
-                TaskSchedulingId(
-                    taskId = taskId,
-                    taskDate = it,
-                    taskTime = taskScheduling.time,
-                )
-            }
+            )
+                .map {
+                    it.atTime(taskScheduling.time)
+                }
 
-        taskRepository.deleteTaskSchedulingById(taskSchedulingIds)
+        taskRepository.deleteTaskSchedulingForDateTimes(taskId, taskDateTimes)
+    }
+
+    override suspend fun updateTaskStatus(
+        userId: UUID,
+        requestUpdateTaskStatus: RequestUpdateTaskStatus,
+    ): TaskSchedulingDto {
+        validateTaskExistence(userId, requestUpdateTaskStatus.taskId)
+
+        val existedTaskScheduling =
+            taskRepository.getTaskSchedulingById(
+                requestUpdateTaskStatus.taskSchedulingId,
+            ) ?: throw RYGException("There is no such scheduled task")
+
+        val taskScheduling = existedTaskScheduling.copy(taskStatus = requestUpdateTaskStatus.taskStatus)
+
+        return taskRepository.updateTaskScheduling(taskScheduling).transform()
     }
 }

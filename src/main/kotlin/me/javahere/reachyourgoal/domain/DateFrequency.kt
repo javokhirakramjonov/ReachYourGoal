@@ -1,4 +1,4 @@
-package me.javahere.reachyourgoal.domain.dto
+package me.javahere.reachyourgoal.domain
 
 import java.time.DayOfWeek
 

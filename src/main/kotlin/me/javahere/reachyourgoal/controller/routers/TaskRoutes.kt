@@ -11,11 +11,15 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler
-import me.javahere.reachyourgoal.domain.TaskScheduling
+import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler.Companion.ATTACHMENT_ID
+import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler.Companion.TASK_ID
 import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.domain.dto.TaskDto
+import me.javahere.reachyourgoal.domain.dto.TaskSchedulingDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
+import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskScheduling
 import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskStatus
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
@@ -99,7 +103,7 @@ class TaskRoutes(
             Operation(
                 operationId = "getTaskById",
                 summary = "get task by taskId",
-                parameters = [Parameter(name = "taskId", `in` = ParameterIn.PATH)],
+                parameters = [Parameter(name = TASK_ID, `in` = ParameterIn.PATH)],
                 responses = [
                     ApiResponse(
                         description = "task",
@@ -120,7 +124,7 @@ class TaskRoutes(
             Operation(
                 operationId = "deleteTaskById",
                 summary = "delete task by id",
-                parameters = [Parameter(name = "taskId", `in` = ParameterIn.PATH)],
+                parameters = [Parameter(name = TASK_ID, `in` = ParameterIn.PATH)],
                 responses = [
                     ApiResponse(responseCode = "204"),
                 ],
@@ -138,7 +142,7 @@ class TaskRoutes(
             Operation(
                 operationId = "getTaskAttachmentsByTaskId",
                 summary = "get task attachments by taskId",
-                parameters = [Parameter(name = "taskId", `in` = ParameterIn.PATH)],
+                parameters = [Parameter(name = TASK_ID, `in` = ParameterIn.PATH)],
                 responses = [
                     ApiResponse(
                         description = "task attachments",
@@ -161,8 +165,8 @@ class TaskRoutes(
                 operationId = "downloadAttachmentByTaskIdAndAttachmentId",
                 summary = "get task attachment by taskId and attachmentId",
                 parameters = [
-                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
-                    Parameter(name = "attachmentId", `in` = ParameterIn.PATH),
+                    Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
+                    Parameter(name = ATTACHMENT_ID, `in` = ParameterIn.PATH),
                 ],
             ),
     )
@@ -180,7 +184,7 @@ class TaskRoutes(
                 operationId = "uploadTaskAttachments",
                 summary = "upload attachments for task",
                 parameters = [
-                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
+                    Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
                 ],
                 requestBody =
                     RequestBody(
@@ -221,8 +225,8 @@ class TaskRoutes(
                 operationId = "deleteAttachmentByAttachmentId",
                 summary = "delete task attachment by attachmentId",
                 parameters = [
-                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
-                    Parameter(name = "attachmentId", `in` = ParameterIn.PATH),
+                    Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
+                    Parameter(name = ATTACHMENT_ID, `in` = ParameterIn.PATH),
                 ],
                 responses = [ApiResponse(responseCode = "204")],
             ),
@@ -241,7 +245,7 @@ class TaskRoutes(
                 operationId = "createTaskScheduling",
                 summary = "creates task scheduling",
                 parameters = [
-                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
+                    Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
                 ],
                 requestBody =
                     RequestBody(
@@ -263,7 +267,7 @@ class TaskRoutes(
                         responseCode = "201",
                         content = [
                             Content(
-                                array = ArraySchema(schema = Schema(implementation = TaskScheduling::class)),
+                                array = ArraySchema(schema = Schema(implementation = TaskSchedulingDto::class)),
                             ),
                         ],
                     ),
@@ -283,16 +287,25 @@ class TaskRoutes(
                 operationId = "getTaskScheduling",
                 summary = "get scheduled dates of task",
                 parameters = [
-                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
-                    Parameter(name = "fromDate", `in` = ParameterIn.QUERY, required = false),
-                    Parameter(name = "toDate", `in` = ParameterIn.QUERY, required = false),
+                    Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
                 ],
+                requestBody =
+                    RequestBody(
+                        content = [
+                            Content(
+                                schema =
+                                    Schema(
+                                        implementation = RequestGetTaskScheduling::class,
+                                    ),
+                            ),
+                        ],
+                    ),
                 responses = [
                     ApiResponse(
                         responseCode = "200",
                         content = [
                             Content(
-                                array = ArraySchema(schema = Schema(implementation = TaskScheduling::class)),
+                                array = ArraySchema(schema = Schema(implementation = TaskSchedulingDto::class)),
                             ),
                         ],
                     ),
@@ -312,7 +325,7 @@ class TaskRoutes(
                 operationId = "deleteTaskScheduling",
                 summary = "delete task scheduling",
                 parameters = [
-                    Parameter(name = "taskId", `in` = ParameterIn.PATH),
+                    Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
                 ],
                 requestBody =
                     RequestBody(
@@ -337,5 +350,43 @@ class TaskRoutes(
     fun deleteTaskScheduling() =
         coRouter {
             DELETE("/tasks/{taskId}/scheduled", taskRoutesHandler::deleteTaskScheduling)
+        }
+
+    @Bean
+    @RouterOperation(
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "updateTaskStatus",
+                summary = "update task status",
+                requestBody =
+                    RequestBody(
+                        content = [
+                            Content(
+                                schema =
+                                    Schema(
+                                        implementation = RequestUpdateTaskStatus::class,
+                                    ),
+                            ),
+                        ],
+                    ),
+                responses = [
+                    ApiResponse(
+                        content = [
+                            Content(
+                                schema =
+                                    Schema(
+                                        implementation = TaskSchedulingDto::class,
+                                    ),
+                            ),
+                        ],
+                        responseCode = "200",
+                    ),
+                ],
+            ),
+    )
+    fun updateTaskStatus() =
+        coRouter {
+            PUT("/tasks", taskRoutesHandler::updateTaskStatus)
         }
 }

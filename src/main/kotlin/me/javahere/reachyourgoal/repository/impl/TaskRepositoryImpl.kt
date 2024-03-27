@@ -1,7 +1,5 @@
 package me.javahere.reachyourgoal.repository.impl
 
-import java.time.LocalDate
-import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import me.javahere.reachyourgoal.dao.TaskAttachmentDao
@@ -10,9 +8,10 @@ import me.javahere.reachyourgoal.dao.TaskSchedulingDao
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
 import me.javahere.reachyourgoal.domain.TaskScheduling
-import me.javahere.reachyourgoal.domain.TaskSchedulingId
 import me.javahere.reachyourgoal.repository.TaskRepository
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
+import java.util.UUID
 
 @Repository
 class TaskRepositoryImpl(
@@ -72,15 +71,26 @@ class TaskRepositoryImpl(
         return taskSchedulingDao.saveAll(taskScheduling)
     }
 
-    override suspend fun getTaskScheduling(
+    override suspend fun getTaskSchedulingForPeriod(
         taskId: UUID,
-        fromDate: LocalDate,
-        toDate: LocalDate,
+        fromDateTime: LocalDateTime,
+        toDateTime: LocalDateTime,
     ): Flow<TaskScheduling> {
-        return taskSchedulingDao.findByTaskIdAndTaskDateBetween(taskId, fromDate, toDate)
+        return taskSchedulingDao.findByTaskIdAndTaskDateTimeBetween(taskId, fromDateTime, toDateTime)
     }
 
-    override suspend fun deleteTaskSchedulingById(taskSchedulingIds: List<TaskSchedulingId>) {
-        taskSchedulingDao.deleteAllById(taskSchedulingIds)
+    override suspend fun getTaskSchedulingById(schedulingId: Long): TaskScheduling? {
+        return taskSchedulingDao.findById(schedulingId)
+    }
+
+    override suspend fun deleteTaskSchedulingForDateTimes(
+        taskId: UUID,
+        dateTimes: List<LocalDateTime>,
+    ) {
+        taskSchedulingDao.deleteByTaskIdAndTaskDateTimeIn(taskId, dateTimes)
+    }
+
+    override suspend fun updateTaskScheduling(taskScheduling: TaskScheduling): TaskScheduling {
+        return taskSchedulingDao.save(taskScheduling)
     }
 }

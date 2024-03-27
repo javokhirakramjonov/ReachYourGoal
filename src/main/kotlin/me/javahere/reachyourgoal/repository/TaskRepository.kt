@@ -4,8 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
 import me.javahere.reachyourgoal.domain.TaskScheduling
-import me.javahere.reachyourgoal.domain.TaskSchedulingId
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface TaskRepository {
@@ -41,11 +40,18 @@ interface TaskRepository {
 
     fun addTaskScheduling(taskScheduling: List<TaskScheduling>): Flow<TaskScheduling>
 
-    suspend fun getTaskScheduling(
+    suspend fun getTaskSchedulingForPeriod(
         taskId: UUID,
-        fromDate: LocalDate,
-        toDate: LocalDate,
+        fromDateTime: LocalDateTime,
+        toDateTime: LocalDateTime,
     ): Flow<TaskScheduling>
 
-    suspend fun deleteTaskSchedulingById(taskSchedulingIds: List<TaskSchedulingId>)
+    suspend fun getTaskSchedulingById(schedulingId: Long): TaskScheduling?
+
+    suspend fun deleteTaskSchedulingForDateTimes(
+        taskId: UUID,
+        dateTimes: List<LocalDateTime>,
+    )
+
+    suspend fun updateTaskScheduling(taskScheduling: TaskScheduling): TaskScheduling
 }
