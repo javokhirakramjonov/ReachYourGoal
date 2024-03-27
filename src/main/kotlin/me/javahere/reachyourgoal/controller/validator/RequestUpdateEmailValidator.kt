@@ -1,4 +1,4 @@
-package me.javahere.reachyourgoal.domain.dto.request.validator
+package me.javahere.reachyourgoal.controller.validator
 
 import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateEmail
 import me.javahere.reachyourgoal.validator.PatternValidator

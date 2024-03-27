@@ -1,7 +1,7 @@
 package me.javahere.reachyourgoal.domain.dto.request
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import me.javahere.reachyourgoal.domain.dto.DateFrequency
+import me.javahere.reachyourgoal.domain.DateFrequency
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -14,11 +14,11 @@ open class RequestTaskScheduling(
     @JsonIgnore
     val frequency: DateFrequency,
     @JsonIgnore
-    val time: LocalTime?,
+    val time: LocalTime,
 ) {
     class TaskDateScheduling(
         private val taskDate: LocalDate,
-        private val taskTime: LocalTime? = null,
+        private val taskTime: LocalTime = LocalTime.MIDNIGHT,
     ) : RequestTaskScheduling(
             taskDate,
             taskDate,
@@ -30,7 +30,7 @@ open class RequestTaskScheduling(
         private val taskFromDate: LocalDate,
         private val taskToDate: LocalDate,
         private val dayFrequency: Int,
-        private val taskTime: LocalTime? = null,
+        private val taskTime: LocalTime = LocalTime.MIDNIGHT,
     ) : RequestTaskScheduling(
             taskFromDate,
             taskToDate,
@@ -42,7 +42,7 @@ open class RequestTaskScheduling(
         private val taskFromDate: LocalDate,
         private val taskToDate: LocalDate,
         private val taskWeekDays: Set<DayOfWeek>,
-        private val taskTime: LocalTime? = null,
+        private val taskTime: LocalTime = LocalTime.MIDNIGHT,
     ) : RequestTaskScheduling(
             taskFromDate,
             taskToDate,

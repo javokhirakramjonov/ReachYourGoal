@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.withContext
+import me.javahere.reachyourgoal.controller.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
+import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskScheduling
 import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
-import me.javahere.reachyourgoal.domain.dto.request.validator.RequestTaskCreateValidator
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskStatus
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.security.jwt.JwtService
 import me.javahere.reachyourgoal.service.TaskService
@@ -27,7 +29,6 @@ import org.springframework.web.reactive.function.server.bodyAndAwait
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.buildAndAwait
 import java.io.FileInputStream
-import java.time.LocalDate
 import java.util.UUID
 
 @Component
@@ -37,6 +38,11 @@ class TaskRoutesHandler(
     private val objectMapper: ObjectMapper,
     private val requestTaskCreateValidator: RequestTaskCreateValidator,
 ) {
+    companion object {
+        const val TASK_ID = "taskId"
+        const val ATTACHMENT_ID = "attachmentId"
+    }
+
     private fun getUserId(serverRequest: ServerRequest): UUID {
         val accessToken =
             serverRequest
@@ -96,8 +102,11 @@ class TaskRoutesHandler(
     }
 
     suspend fun getTaskById(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
+        val (userId, taskId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+            )
 
         val task = taskService.getTaskById(taskId, userId)
 
@@ -105,8 +114,11 @@ class TaskRoutesHandler(
     }
 
     suspend fun deleteTaskById(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
+        val (userId, taskId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+            )
 
         taskService.deleteTaskById(userId, taskId)
 
@@ -122,8 +134,11 @@ class TaskRoutesHandler(
     }
 
     suspend fun getAllTaskAttachments(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
+        val (userId, taskId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+            )
 
         val attachments = taskService.getAllTaskAttachments(userId, taskId)
 
@@ -131,9 +146,12 @@ class TaskRoutesHandler(
     }
 
     suspend fun downloadTaskAttachmentById(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
-        val attachmentId = serverRequest.pathVariable("attachmentId").toUUID()
+        val (userId, taskId, attachmentId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+                serverRequest.pathVariable(ATTACHMENT_ID).toUUID(),
+            )
 
         val (filename, attachment) =
             taskService.getTaskAttachmentById(
@@ -158,8 +176,11 @@ class TaskRoutesHandler(
     }
 
     suspend fun uploadTaskAttachment(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
+        val (userId, taskId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+            )
 
         val attachmentNotFoundException = RYGException("Attachment is not found")
 
@@ -171,9 +192,12 @@ class TaskRoutesHandler(
     }
 
     suspend fun deleteTaskAttachmentById(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
-        val attachmentId = serverRequest.pathVariable("attachmentId").toUUID()
+        val (userId, taskId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+            )
+        val attachmentId = serverRequest.pathVariable(ATTACHMENT_ID).toUUID()
 
         taskService.deleteTaskAttachmentById(userId, taskId, attachmentId)
 
@@ -181,8 +205,11 @@ class TaskRoutesHandler(
     }
 
     suspend fun scheduleTask(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
+        val (userId, taskId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+            )
 
         val requestTaskScheduling = getTaskSchedulingObject(serverRequest)
 
@@ -192,30 +219,40 @@ class TaskRoutesHandler(
     }
 
     suspend fun getTaskScheduling(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
+        val (userId, taskId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+            )
 
-        val queryParams =
-            serverRequest
-                .queryParams()
-                .toSingleValueMap()
+        val requestTaskScheduling = serverRequest.awaitBody(RequestGetTaskScheduling::class)
 
-        val fromDate = queryParams["fromDate"]?.let(LocalDate::parse) ?: LocalDate.MIN
-        val toDate = queryParams["toDate"]?.let(LocalDate::parse) ?: LocalDate.MAX
-
-        val taskScheduling = taskService.getTaskScheduling(userId, taskId, fromDate, toDate)
+        val taskScheduling = taskService.getTaskScheduling(userId, taskId, requestTaskScheduling)
 
         return ServerResponse.ok().bodyAndAwait(taskScheduling)
     }
 
     suspend fun deleteTaskScheduling(serverRequest: ServerRequest): ServerResponse {
-        val userId = getUserId(serverRequest)
-        val taskId = serverRequest.pathVariable("taskId").toUUID()
+        val (userId, taskId) =
+            listOf(
+                getUserId(serverRequest),
+                serverRequest.pathVariable(TASK_ID).toUUID(),
+            )
 
         val requestTaskScheduling = getTaskSchedulingObject(serverRequest)
 
         taskService.deleteTaskScheduling(userId, taskId, requestTaskScheduling)
 
         return ServerResponse.noContent().buildAndAwait()
+    }
+
+    suspend fun updateTaskStatus(serverRequest: ServerRequest): ServerResponse {
+        val userId = getUserId(serverRequest)
+
+        val requestUpdateTaskStatus = serverRequest.awaitBody(RequestUpdateTaskStatus::class)
+
+        val updatedTaskScheduling = taskService.updateTaskStatus(userId, requestUpdateTaskStatus)
+
+        return ServerResponse.ok().bodyValueAndAwait(updatedTaskScheduling)
     }
 }

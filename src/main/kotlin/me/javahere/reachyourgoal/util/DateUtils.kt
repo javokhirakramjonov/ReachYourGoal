@@ -1,6 +1,6 @@
 package me.javahere.reachyourgoal.util
 
-import me.javahere.reachyourgoal.domain.dto.DateFrequency
+import me.javahere.reachyourgoal.domain.DateFrequency
 import java.time.DayOfWeek
 import java.time.LocalDate
 
