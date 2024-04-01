@@ -54,6 +54,7 @@ class UserServiceImpl(
 
         val userWithNewPassword = user.transform().copy(password = newPassword)
 
+        println(userWithNewPassword)
         val createdUser = userRepository.addUser(userWithNewPassword).transform()
 
         val token =

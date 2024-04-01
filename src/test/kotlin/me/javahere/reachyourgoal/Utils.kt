@@ -42,3 +42,12 @@ fun mockTaskSchedule(
     time = LocalTime.now(),
     frequency = DateFrequency.Days(1),
 ).transform(taskId)
+
+fun mockRequestRegister() =
+    RequestRegister(
+        username = randomString(),
+        email = randomString(),
+        password = randomString(),
+        lastname = randomString(),
+        firstname = randomString(),
+    )
