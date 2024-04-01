@@ -1,4 +1,4 @@
-CREATE TABLE task_scheduling
+CREATE TABLE task_schedules
 (
     id             BIGSERIAL PRIMARY KEY,
     task_id        UUID REFERENCES tasks (id) ON DELETE CASCADE,

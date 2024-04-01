@@ -1,20 +1,22 @@
 package me.javahere.reachyourgoal.dao
 
 import kotlinx.coroutines.flow.Flow
-import me.javahere.reachyourgoal.domain.TaskScheduling
+import me.javahere.reachyourgoal.domain.TaskSchedule
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.time.LocalDateTime
 import java.util.UUID
 
-interface TaskSchedulingDao : CoroutineCrudRepository<TaskScheduling, Long> {
+interface TaskScheduleDao : CoroutineCrudRepository<TaskSchedule, Long> {
     fun findByTaskIdAndTaskDateTimeBetween(
         taskId: UUID,
         fromDateTime: LocalDateTime,
         toDateTime: LocalDateTime,
-    ): Flow<TaskScheduling>
+    ): Flow<TaskSchedule>
 
-    suspend fun deleteByTaskIdAndTaskDateTimeIn(
+    suspend fun deleteAllByTaskIdAndTaskDateTimeIn(
         taskId: UUID,
-        dateTimes: List<LocalDateTime>,
+        taskDateTimes: List<LocalDateTime>,
     )
+
+    fun findAllByTaskId(taskId: UUID): Flow<TaskSchedule>
 }

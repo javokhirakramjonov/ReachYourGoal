@@ -8,7 +8,7 @@ import org.springframework.data.relational.core.mapping.Table
 import java.util.UUID
 
 @Table(name = "tasks")
-class Task(
+data class Task(
     @Id
     @Column("id")
     val id: UUID? = null,

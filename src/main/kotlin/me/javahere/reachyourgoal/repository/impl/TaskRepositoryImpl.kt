@@ -4,10 +4,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import me.javahere.reachyourgoal.dao.TaskAttachmentDao
 import me.javahere.reachyourgoal.dao.TaskDao
-import me.javahere.reachyourgoal.dao.TaskSchedulingDao
+import me.javahere.reachyourgoal.dao.TaskScheduleDao
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
-import me.javahere.reachyourgoal.domain.TaskScheduling
+import me.javahere.reachyourgoal.domain.TaskSchedule
 import me.javahere.reachyourgoal.repository.TaskRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -17,7 +17,7 @@ import java.util.UUID
 class TaskRepositoryImpl(
     private val taskDao: TaskDao,
     private val taskAttachmentDao: TaskAttachmentDao,
-    private val taskSchedulingDao: TaskSchedulingDao,
+    private val taskScheduleDao: TaskScheduleDao,
 ) : TaskRepository {
     override suspend fun addTask(task: Task): Task {
         return taskDao.save(task)
@@ -67,30 +67,30 @@ class TaskRepositoryImpl(
         taskAttachmentDao.deleteByIdAndTaskId(taskAttachmentId, taskId)
     }
 
-    override fun addTaskScheduling(taskScheduling: List<TaskScheduling>): Flow<TaskScheduling> {
-        return taskSchedulingDao.saveAll(taskScheduling)
+    override fun addTaskSchedule(taskSchedule: List<TaskSchedule>): Flow<TaskSchedule> {
+        return taskScheduleDao.saveAll(taskSchedule)
     }
 
-    override suspend fun getTaskSchedulingForPeriod(
+    override suspend fun getTaskScheduleForPeriod(
         taskId: UUID,
         fromDateTime: LocalDateTime,
         toDateTime: LocalDateTime,
-    ): Flow<TaskScheduling> {
-        return taskSchedulingDao.findByTaskIdAndTaskDateTimeBetween(taskId, fromDateTime, toDateTime)
+    ): Flow<TaskSchedule> {
+        return taskScheduleDao.findByTaskIdAndTaskDateTimeBetween(taskId, fromDateTime, toDateTime)
     }
 
-    override suspend fun getTaskSchedulingById(schedulingId: Long): TaskScheduling? {
-        return taskSchedulingDao.findById(schedulingId)
+    override suspend fun getTaskScheduleById(scheduleId: Long): TaskSchedule? {
+        return taskScheduleDao.findById(scheduleId)
     }
 
-    override suspend fun deleteTaskSchedulingForDateTimes(
+    override suspend fun deleteTaskScheduleForDateTimes(
         taskId: UUID,
         dateTimes: List<LocalDateTime>,
     ) {
-        taskSchedulingDao.deleteByTaskIdAndTaskDateTimeIn(taskId, dateTimes)
+        taskScheduleDao.deleteAllByTaskIdAndTaskDateTimeIn(taskId, dateTimes)
     }
 
-    override suspend fun updateTaskScheduling(taskScheduling: TaskScheduling): TaskScheduling {
-        return taskSchedulingDao.save(taskScheduling)
+    override suspend fun updateTaskSchedule(taskSchedule: TaskSchedule): TaskSchedule {
+        return taskScheduleDao.save(taskSchedule)
     }
 }

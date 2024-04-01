@@ -1,20 +1,19 @@
 package me.javahere.reachyourgoal
 
-import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 
 @Testcontainers
-class PostgresExtension : BeforeAllCallback, AfterAllCallback {
-    private var database = PostgreSQLContainer("postgres:15.3-alpine")
-
-    override fun afterAll(context: ExtensionContext) {
-        database.stop()
+class PostgresExtension : BeforeAllCallback {
+    companion object {
+        private var database = PostgreSQLContainer("postgres:16-alpine")
     }
 
     override fun beforeAll(context: ExtensionContext) {
+        if (database.isRunning) return
+
         database.start()
 
         System.setProperty("POSTGRES_HOST", database.host)

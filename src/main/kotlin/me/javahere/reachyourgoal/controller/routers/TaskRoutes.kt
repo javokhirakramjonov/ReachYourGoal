@@ -15,10 +15,10 @@ import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler.Companion.
 import me.javahere.reachyourgoal.controller.handler.TaskRoutesHandler.Companion.TASK_ID
 import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.domain.dto.TaskDto
-import me.javahere.reachyourgoal.domain.dto.TaskSchedulingDto
+import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
-import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskScheduling
-import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
+import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
 import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskStatus
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
@@ -242,8 +242,8 @@ class TaskRoutes(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         operation =
             Operation(
-                operationId = "createTaskScheduling",
-                summary = "creates task scheduling",
+                operationId = "createTaskSchedule",
+                summary = "creates task schedule",
                 parameters = [
                     Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
                 ],
@@ -254,9 +254,9 @@ class TaskRoutes(
                                 schema =
                                     Schema(
                                         oneOf = [
-                                            RequestTaskScheduling.TaskDateScheduling::class,
-                                            RequestTaskScheduling.TaskDatesScheduling::class,
-                                            RequestTaskScheduling.TaskWeekDatesScheduling::class,
+                                            RequestCreateTaskSchedule.CreateTaskDateSchedule::class,
+                                            RequestCreateTaskSchedule.CreateTaskDatesSchedule::class,
+                                            RequestCreateTaskSchedule.CreateTaskWeekDatesSchedule::class,
                                         ],
                                     ),
                             ),
@@ -267,14 +267,14 @@ class TaskRoutes(
                         responseCode = "201",
                         content = [
                             Content(
-                                array = ArraySchema(schema = Schema(implementation = TaskSchedulingDto::class)),
+                                array = ArraySchema(schema = Schema(implementation = TaskScheduleDto::class)),
                             ),
                         ],
                     ),
                 ],
             ),
     )
-    fun createTaskScheduling() =
+    fun createTaskSchedule() =
         coRouter {
             POST("/tasks/{taskId}/schedule", taskRoutesHandler::scheduleTask)
         }
@@ -284,7 +284,7 @@ class TaskRoutes(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         operation =
             Operation(
-                operationId = "getTaskScheduling",
+                operationId = "getTaskSchedule",
                 summary = "get scheduled dates of task",
                 parameters = [
                     Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
@@ -295,7 +295,7 @@ class TaskRoutes(
                             Content(
                                 schema =
                                     Schema(
-                                        implementation = RequestGetTaskScheduling::class,
+                                        implementation = RequestGetTaskSchedule::class,
                                     ),
                             ),
                         ],
@@ -305,16 +305,16 @@ class TaskRoutes(
                         responseCode = "200",
                         content = [
                             Content(
-                                array = ArraySchema(schema = Schema(implementation = TaskSchedulingDto::class)),
+                                array = ArraySchema(schema = Schema(implementation = TaskScheduleDto::class)),
                             ),
                         ],
                     ),
                 ],
             ),
     )
-    fun getTaskScheduling() =
+    fun getTaskSchedule() =
         coRouter {
-            GET("/tasks/{taskId}/scheduled", taskRoutesHandler::getTaskScheduling)
+            GET("/tasks/{taskId}/scheduled", taskRoutesHandler::getTaskSchedule)
         }
 
     @Bean
@@ -322,8 +322,8 @@ class TaskRoutes(
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         operation =
             Operation(
-                operationId = "deleteTaskScheduling",
-                summary = "delete task scheduling",
+                operationId = "deleteTaskSchedule",
+                summary = "delete task schedule",
                 parameters = [
                     Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
                 ],
@@ -334,9 +334,9 @@ class TaskRoutes(
                                 schema =
                                     Schema(
                                         oneOf = [
-                                            RequestTaskScheduling.TaskDateScheduling::class,
-                                            RequestTaskScheduling.TaskDatesScheduling::class,
-                                            RequestTaskScheduling.TaskWeekDatesScheduling::class,
+                                            RequestCreateTaskSchedule.CreateTaskDateSchedule::class,
+                                            RequestCreateTaskSchedule.CreateTaskDatesSchedule::class,
+                                            RequestCreateTaskSchedule.CreateTaskWeekDatesSchedule::class,
                                         ],
                                     ),
                             ),
@@ -347,9 +347,9 @@ class TaskRoutes(
                 ],
             ),
     )
-    fun deleteTaskScheduling() =
+    fun deleteTaskSchedule() =
         coRouter {
-            DELETE("/tasks/{taskId}/scheduled", taskRoutesHandler::deleteTaskScheduling)
+            DELETE("/tasks/{taskId}/scheduled", taskRoutesHandler::deleteTaskSchedule)
         }
 
     @Bean
@@ -376,7 +376,7 @@ class TaskRoutes(
                             Content(
                                 schema =
                                     Schema(
-                                        implementation = TaskSchedulingDto::class,
+                                        implementation = TaskScheduleDto::class,
                                     ),
                             ),
                         ],

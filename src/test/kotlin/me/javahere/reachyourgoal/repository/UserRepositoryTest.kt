@@ -2,7 +2,7 @@ package me.javahere.reachyourgoal.repository
 
 import kotlinx.coroutines.runBlocking
 import me.javahere.reachyourgoal.PostgresExtension
-import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
+import me.javahere.reachyourgoal.mockUser
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -15,17 +15,6 @@ import java.time.LocalDateTime
 class UserRepositoryTest(
     @Autowired private val userRepository: UserRepository,
 ) {
-    private fun randomString() = (1..10).map { ('a'..'z').random() }.joinToString("")
-
-    private fun mockUser() =
-        RequestRegister(
-            username = randomString(),
-            email = randomString(),
-            password = randomString(),
-            lastname = randomString(),
-            firstname = randomString(),
-        ).transform()
-
     @Test
     fun `add user`() =
         runBlocking {

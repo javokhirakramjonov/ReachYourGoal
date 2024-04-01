@@ -3,13 +3,12 @@ package me.javahere.reachyourgoal.service.impl
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.Task
 import me.javahere.reachyourgoal.domain.TaskAttachment
-import me.javahere.reachyourgoal.domain.TaskScheduling
 import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.domain.dto.TaskDto
-import me.javahere.reachyourgoal.domain.dto.TaskSchedulingDto
+import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
-import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskScheduling
-import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
+import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
 import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskStatus
 import me.javahere.reachyourgoal.exception.RYGException
 import me.javahere.reachyourgoal.repository.TaskRepository
@@ -122,38 +121,28 @@ class TaskServiceImpl(
         taskRepository.deleteTaskAttachmentById(attachmentId, taskId)
     }
 
-    override suspend fun addTaskScheduling(
+    override suspend fun addTaskSchedule(
         userId: UUID,
         taskId: UUID,
-        requestTaskScheduling: RequestTaskScheduling,
-    ): Flow<TaskSchedulingDto> {
+        requestCreateTaskSchedule: RequestCreateTaskSchedule,
+    ): Flow<TaskScheduleDto> {
         validateTaskExistence(userId, taskId)
 
-        val taskScheduling =
-            createListOfDays(
-                requestTaskScheduling.fromDate,
-                requestTaskScheduling.toDate,
-                requestTaskScheduling.frequency,
-            ).map {
-                TaskScheduling(
-                    taskId = taskId,
-                    taskDateTime = it.atTime(requestTaskScheduling.time),
-                )
-            }
+        val taskSchedule = requestCreateTaskSchedule.transform(taskId)
 
-        return taskRepository.addTaskScheduling(taskScheduling).transformCollection()
+        return taskRepository.addTaskSchedule(taskSchedule).transformCollection()
     }
 
-    override suspend fun getTaskScheduling(
+    override suspend fun getTaskSchedule(
         userId: UUID,
         taskId: UUID,
-        requestTaskScheduling: RequestGetTaskScheduling,
-    ): Flow<TaskSchedulingDto> {
+        requestTaskSchedule: RequestGetTaskSchedule,
+    ): Flow<TaskScheduleDto> {
         validateTaskExistence(userId, taskId)
-        return taskRepository.getTaskSchedulingForPeriod(
+        return taskRepository.getTaskScheduleForPeriod(
             taskId,
-            requestTaskScheduling.fromDateTime,
-            requestTaskScheduling.toDateTime,
+            requestTaskSchedule.fromDateTime,
+            requestTaskSchedule.toDateTime,
         ).transformCollection()
     }
 
@@ -178,39 +167,39 @@ class TaskServiceImpl(
             ?: throw RYGException("Attachment(id = $attachmentId) not found for task(id = $taskId)")
     }
 
-    override suspend fun deleteTaskScheduling(
+    override suspend fun deleteTaskSchedule(
         userId: UUID,
         taskId: UUID,
-        taskScheduling: RequestTaskScheduling,
+        taskSchedule: RequestCreateTaskSchedule,
     ) {
         validateTaskExistence(userId, taskId)
 
         val taskDateTimes =
             createListOfDays(
-                taskScheduling.fromDate,
-                taskScheduling.toDate,
-                taskScheduling.frequency,
+                taskSchedule.fromDate,
+                taskSchedule.toDate,
+                taskSchedule.frequency,
             )
                 .map {
-                    it.atTime(taskScheduling.time)
+                    it.atTime(taskSchedule.time)
                 }
 
-        taskRepository.deleteTaskSchedulingForDateTimes(taskId, taskDateTimes)
+        taskRepository.deleteTaskScheduleForDateTimes(taskId, taskDateTimes)
     }
 
     override suspend fun updateTaskStatus(
         userId: UUID,
         requestUpdateTaskStatus: RequestUpdateTaskStatus,
-    ): TaskSchedulingDto {
+    ): TaskScheduleDto {
         validateTaskExistence(userId, requestUpdateTaskStatus.taskId)
 
-        val existedTaskScheduling =
-            taskRepository.getTaskSchedulingById(
-                requestUpdateTaskStatus.taskSchedulingId,
+        val existedTaskSchedule =
+            taskRepository.getTaskScheduleById(
+                requestUpdateTaskStatus.taskScheduleId,
             ) ?: throw RYGException("There is no such scheduled task")
 
-        val taskScheduling = existedTaskScheduling.copy(taskStatus = requestUpdateTaskStatus.taskStatus)
+        val taskSchedule = existedTaskSchedule.copy(taskStatus = requestUpdateTaskStatus.taskStatus)
 
-        return taskRepository.updateTaskScheduling(taskScheduling).transform()
+        return taskRepository.updateTaskSchedule(taskSchedule).transform()
     }
 }
