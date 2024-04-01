@@ -2,11 +2,14 @@ package me.javahere.reachyourgoal.domain.dto.request
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import me.javahere.reachyourgoal.domain.DateFrequency
+import me.javahere.reachyourgoal.domain.TaskSchedule
+import me.javahere.reachyourgoal.util.createListOfDays
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.UUID
 
-open class RequestTaskScheduling(
+open class RequestCreateTaskSchedule(
     @JsonIgnore
     val fromDate: LocalDate,
     @JsonIgnore
@@ -16,37 +19,46 @@ open class RequestTaskScheduling(
     @JsonIgnore
     val time: LocalTime,
 ) {
-    class TaskDateScheduling(
+    class CreateTaskDateSchedule(
         private val taskDate: LocalDate,
         private val taskTime: LocalTime = LocalTime.MIDNIGHT,
-    ) : RequestTaskScheduling(
+    ) : RequestCreateTaskSchedule(
             taskDate,
             taskDate,
             DateFrequency.Days(1),
             taskTime,
         )
 
-    class TaskDatesScheduling(
+    class CreateTaskDatesSchedule(
         private val taskFromDate: LocalDate,
         private val taskToDate: LocalDate,
         private val dayFrequency: Int,
         private val taskTime: LocalTime = LocalTime.MIDNIGHT,
-    ) : RequestTaskScheduling(
+    ) : RequestCreateTaskSchedule(
             taskFromDate,
             taskToDate,
             DateFrequency.Days(dayFrequency),
             taskTime,
         )
 
-    class TaskWeekDatesScheduling(
+    class CreateTaskWeekDatesSchedule(
         private val taskFromDate: LocalDate,
         private val taskToDate: LocalDate,
         private val taskWeekDays: Set<DayOfWeek>,
         private val taskTime: LocalTime = LocalTime.MIDNIGHT,
-    ) : RequestTaskScheduling(
+    ) : RequestCreateTaskSchedule(
             taskFromDate,
             taskToDate,
             DateFrequency.WeekDays(taskWeekDays),
             taskTime,
         )
+
+    fun transform(taskId: UUID): List<TaskSchedule> {
+        return createListOfDays(fromDate, toDate, frequency).map {
+            TaskSchedule(
+                taskId = taskId,
+                taskDateTime = it.atTime(time),
+            )
+        }
+    }
 }

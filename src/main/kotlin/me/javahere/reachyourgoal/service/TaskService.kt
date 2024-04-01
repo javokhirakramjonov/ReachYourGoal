@@ -3,10 +3,10 @@ package me.javahere.reachyourgoal.service
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.domain.dto.TaskDto
-import me.javahere.reachyourgoal.domain.dto.TaskSchedulingDto
+import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
-import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskScheduling
-import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
+import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
 import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskStatus
 import org.springframework.http.codec.multipart.FilePart
 import java.io.File
@@ -55,26 +55,26 @@ interface TaskService {
         attachmentId: UUID,
     )
 
-    suspend fun addTaskScheduling(
+    suspend fun addTaskSchedule(
         userId: UUID,
         taskId: UUID,
-        requestTaskScheduling: RequestTaskScheduling,
-    ): Flow<TaskSchedulingDto>
+        requestCreateTaskSchedule: RequestCreateTaskSchedule,
+    ): Flow<TaskScheduleDto>
 
-    suspend fun getTaskScheduling(
+    suspend fun getTaskSchedule(
         userId: UUID,
         taskId: UUID,
-        requestTaskScheduling: RequestGetTaskScheduling,
-    ): Flow<TaskSchedulingDto>
+        requestTaskSchedule: RequestGetTaskSchedule,
+    ): Flow<TaskScheduleDto>
 
-    suspend fun deleteTaskScheduling(
+    suspend fun deleteTaskSchedule(
         userId: UUID,
         taskId: UUID,
-        taskScheduling: RequestTaskScheduling,
+        taskSchedule: RequestCreateTaskSchedule,
     )
 
     suspend fun updateTaskStatus(
         userId: UUID,
         requestUpdateTaskStatus: RequestUpdateTaskStatus,
-    ): TaskSchedulingDto
+    ): TaskScheduleDto
 }

@@ -5,6 +5,6 @@ import java.util.UUID
 
 class RequestUpdateTaskStatus(
     val taskId: UUID,
-    val taskSchedulingId: Long,
+    val taskScheduleId: Long,
     val taskStatus: TaskStatus,
 )
