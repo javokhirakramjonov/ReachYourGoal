@@ -1,7 +1,7 @@
 package me.javahere.reachyourgoal.component
 
-import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionGroup
+import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.exception.RYGExceptionGroup
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -17,6 +17,8 @@ class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler
     fun handleExceptions(ex: Exception): Mono<ResponseEntity<*>> {
+        println(ex.stackTrace.joinToString("\n"))
+
         val errors =
             when (ex) {
                 is RYGException -> listOf(ex)

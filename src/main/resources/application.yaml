@@ -20,11 +20,15 @@ spring:
           auth: true
           starttls:
             enable: true
+  profiles:
+    active: dev
 app:
   access-secret: ${JWT_ACCESS_SECRET}
   refresh-secret: ${JWT_REFRESH_SECRET}
   base-url: ${BASE_URL}
-  task-file-path: ${TASK_FILE_PATH}
+  task:
+    attachment:
+      path: ${TASK_ATTACHMENT_PATH}
 springdoc:
   api-docs:
     path: /api-docs
