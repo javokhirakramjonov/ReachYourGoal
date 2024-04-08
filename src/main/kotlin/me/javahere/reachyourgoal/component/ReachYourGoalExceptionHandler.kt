@@ -17,8 +17,6 @@ class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler
     fun handleExceptions(ex: Exception): Mono<ResponseEntity<*>> {
-        println(ex.stackTrace.joinToString("\n"))
-
         val errors =
             when (ex) {
                 is RYGException -> listOf(ex)

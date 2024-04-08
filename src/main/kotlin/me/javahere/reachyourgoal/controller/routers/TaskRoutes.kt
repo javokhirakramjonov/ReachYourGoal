@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import me.javahere.reachyourgoal.controller.handler.task.TaskRoutesHandler
+import me.javahere.reachyourgoal.controller.routers.TaskCategoryRoutes.Companion.TASK_CATEGORY_ID
 import me.javahere.reachyourgoal.domain.dto.TaskDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
 import org.springdoc.core.annotations.RouterOperation
@@ -69,7 +70,7 @@ class TaskRoutes(
             Operation(
                 operationId = "getAllTasks",
                 summary = "get all tasks",
-                parameters = [Parameter(name = TaskCategoryRoutes.TASK_CATEGORY_ID, `in` = ParameterIn.PATH)],
+                parameters = [Parameter(name = TASK_CATEGORY_ID, `in` = ParameterIn.PATH)],
                 responses = [
                     ApiResponse(
                         description = "tasks",
@@ -81,7 +82,7 @@ class TaskRoutes(
     )
     fun getAllTasks() =
         coRouter {
-            GET("/tasks/{$TASK_ID}", taskRoutesHandler::getAllTasks)
+            GET("/tasks/{$TASK_CATEGORY_ID}", taskRoutesHandler::getAllTasks)
         }
 
     @Bean

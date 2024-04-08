@@ -1,20 +1,14 @@
 package me.javahere.reachyourgoal.controller.handler.task
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.coroutines.reactive.awaitFirst
 import me.javahere.reachyourgoal.controller.routers.TaskCategoryRoutes.Companion.TASK_CATEGORY_ID
 import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
 import me.javahere.reachyourgoal.controller.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
-import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
-import me.javahere.reachyourgoal.domain.exception.RYGException
-import me.javahere.reachyourgoal.service.TaskScheduleService
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import me.javahere.reachyourgoal.util.extensions.validateAndThrow
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyExtractors
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.awaitBody
@@ -25,42 +19,9 @@ import org.springframework.web.reactive.function.server.buildAndAwait
 @Component
 class TaskRoutesHandler(
     private val taskService: TaskService,
-    private val taskScheduleService: TaskScheduleService,
-    private val objectMapper: ObjectMapper,
     private val requestTaskCreateValidator: RequestTaskCreateValidator,
     private val routeHandlerUtils: RouteHandlerUtils,
 ) {
-    private suspend fun getTaskScheduleObject(serverRequest: ServerRequest): RequestCreateTaskSchedule {
-        val requestBody =
-            serverRequest
-                .body(BodyExtractors.toMono(String::class.java))
-                .awaitFirst()
-
-        val requestCreateTaskSchedule =
-            sequenceOf(
-                runCatching {
-                    objectMapper.readValue(
-                        requestBody,
-                        RequestCreateTaskSchedule.CreateTaskDateSchedule::class.java,
-                    )
-                },
-                runCatching {
-                    objectMapper.readValue(
-                        requestBody,
-                        RequestCreateTaskSchedule.CreateTaskDatesSchedule::class.java,
-                    )
-                },
-                runCatching {
-                    objectMapper.readValue(
-                        requestBody,
-                        RequestCreateTaskSchedule.CreateTaskWeekDatesSchedule::class.java,
-                    )
-                },
-            ).firstNotNullOfOrNull { it.getOrNull() } ?: throw RYGException("Invalid schedule type")
-
-        return requestCreateTaskSchedule
-    }
-
     suspend fun createTask(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
