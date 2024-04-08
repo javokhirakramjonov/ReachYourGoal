@@ -66,7 +66,7 @@ class TaskScheduleRoutesHandler(
 
         val createdTaskSchedule = taskScheduleService.createTaskSchedule(userId, taskId, taskSchedule)
 
-        return ServerResponse.ok().bodyValueAndAwait(createdTaskSchedule)
+        return ServerResponse.ok().bodyAndAwait(createdTaskSchedule)
     }
 
     suspend fun getTaskScheduleForPeriod(serverRequest: ServerRequest): ServerResponse {
