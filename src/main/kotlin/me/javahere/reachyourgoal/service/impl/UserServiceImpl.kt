@@ -1,22 +1,23 @@
 package me.javahere.reachyourgoal.service.impl
 
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.reactor.mono
-import me.javahere.reachyourgoal.domain.User
 import me.javahere.reachyourgoal.domain.dto.UserDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
 import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateEmail
-import me.javahere.reachyourgoal.exception.RYGException
-import me.javahere.reachyourgoal.exception.RYGExceptionGroup
+import me.javahere.reachyourgoal.domain.entity.User
+import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.exception.RYGExceptionGroup
 import me.javahere.reachyourgoal.repository.UserRepository
-import me.javahere.reachyourgoal.security.jwt.JwtService
-import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.EXPIRE_CONFIRMATION_TOKEN
-import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.JWT_EXTRA_KEY_1
-import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.JWT_EXTRA_KEY_2
-import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.JWT_KEY_PAIR_CONFIRM_NEW_EMAIL
-import me.javahere.reachyourgoal.security.jwt.JwtService.Companion.JWT_KEY_PAIR_CONFIRM_REGISTER
 import me.javahere.reachyourgoal.service.EmailService
+import me.javahere.reachyourgoal.service.TaskCategoryService
 import me.javahere.reachyourgoal.service.UserService
-import me.javahere.reachyourgoal.util.toUUID
+import me.javahere.reachyourgoal.util.security.jwt.JwtService
+import me.javahere.reachyourgoal.util.security.jwt.JwtService.Companion.EXPIRE_CONFIRMATION_TOKEN
+import me.javahere.reachyourgoal.util.security.jwt.JwtService.Companion.JWT_EXTRA_KEY_1
+import me.javahere.reachyourgoal.util.security.jwt.JwtService.Companion.JWT_EXTRA_KEY_2
+import me.javahere.reachyourgoal.util.security.jwt.JwtService.Companion.JWT_KEY_PAIR_CONFIRM_NEW_EMAIL
+import me.javahere.reachyourgoal.util.security.jwt.JwtService.Companion.JWT_KEY_PAIR_CONFIRM_REGISTER
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
@@ -25,7 +26,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.util.Date
-import java.util.UUID
 
 typealias UserForSecurity = org.springframework.security.core.userdetails.User
 
@@ -33,6 +33,7 @@ typealias UserForSecurity = org.springframework.security.core.userdetails.User
 class UserServiceImpl(
     @Value("\${app.base-url}") private val baseUrl: String,
     private val userRepository: UserRepository,
+    private val taskCategoryService: TaskCategoryService,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
     private val emailService: EmailService,
@@ -40,8 +41,8 @@ class UserServiceImpl(
     private val invalidConfirmToken = RYGException("Invalid confirmation token")
 
     override suspend fun register(user: RequestRegister) {
-        val isUsernameAvailable = userRepository.getUserByUsername(user.username) == null
-        val isEmailAvailable = userRepository.getUserByEmail(user.email) == null
+        val isUsernameAvailable = userRepository.findByUsername(user.username).firstOrNull() == null
+        val isEmailAvailable = userRepository.findByEmail(user.email).firstOrNull() == null
 
         val exceptions = mutableListOf<RYGException>()
 
@@ -54,7 +55,8 @@ class UserServiceImpl(
 
         val userWithNewPassword = user.transform().copy(password = newPassword)
 
-        val createdUser = userRepository.addUser(userWithNewPassword).transform()
+        println(userWithNewPassword)
+        val createdUser = userRepository.save(userWithNewPassword).transform()
 
         val token =
             jwtService.generateAccessToken(
@@ -65,7 +67,7 @@ class UserServiceImpl(
                 JWT_KEY_PAIR_CONFIRM_REGISTER,
             )
 
-        val expireDate = Date(System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN)
+        val expireDate = Date(System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN.inWholeMilliseconds)
 
         val confirmationLink = "$baseUrl/auth/confirm?token=$token"
 
@@ -83,11 +85,13 @@ class UserServiceImpl(
 
         if (key != JWT_KEY_PAIR_CONFIRM_REGISTER) throw invalidConfirmToken
 
-        val userId = decodedToken.issuer.toUUID()
+        val userId = decodedToken.issuer.toInt()
 
-        val user = userRepository.getUserById(userId) ?: throw invalidConfirmToken
+        val user = userRepository.findById(userId) ?: throw invalidConfirmToken
 
-        val confirmedUser = userRepository.updateUser(user.copy(isConfirmed = true))
+        val confirmedUser = userRepository.save(user.copy(isConfirmed = true))
+
+        taskCategoryService.createDefaultCategoryForUser(user.id)
 
         return confirmedUser.transform()
     }
@@ -99,35 +103,38 @@ class UserServiceImpl(
 
         if (key != JWT_KEY_PAIR_CONFIRM_NEW_EMAIL) throw invalidConfirmToken
 
-        val userId = decodedToken.issuer.toUUID()
+        val userId = decodedToken.issuer.toInt()
         val newEmail = decodedToken.getClaim(JWT_EXTRA_KEY_1).asString()
 
-        val user = userRepository.getUserById(userId) ?: throw invalidConfirmToken
+        val user = userRepository.findById(userId) ?: throw invalidConfirmToken
 
-        val confirmedUser = userRepository.updateUser(user.copy(email = newEmail))
+        val confirmedUser = userRepository.save(user.copy(email = newEmail))
 
         return confirmedUser.transform()
     }
 
-    override suspend fun findUserById(userId: UUID): UserDto {
+    override suspend fun findUserById(userId: Int): UserDto {
         return userRepository
-            .getUserById(userId)
+            .findById(userId)
             ?.transform()
             ?: throw RYGException("User(id = $userId) is not found")
     }
 
     override suspend fun findUserByEmail(email: String): UserDto {
-        return userRepository.getUserByEmail(email)?.transform() ?: throw RYGException("Email($email) is not found")
+        return userRepository.findByEmail(email).firstOrNull()?.transform()
+            ?: throw RYGException("Email($email) is not found")
     }
 
     override suspend fun findUserByUsername(username: String): UserDto {
-        return userRepository.getUserByUsername(username)?.transform() ?: throw RYGException("Username($username) is not found")
+        return userRepository.findByUsername(username).firstOrNull()?.transform()
+            ?: throw RYGException("Username($username) is not found")
     }
 
     override fun findByUsername(username: String): Mono<UserDetails> =
         mono {
             val user: User =
-                userRepository.getUserByUsername(username) ?: throw RYGException("User($username) is not found")
+                userRepository.findByUsername(username).firstOrNull()
+                    ?: throw RYGException("User($username) is not found")
 
             if (!user.isConfirmed) throw RYGException("Username($username) is not confirmed")
 
@@ -137,18 +144,18 @@ class UserServiceImpl(
         }
 
     override suspend fun updateUser(
-        userId: UUID,
+        userId: Int,
         firstName: String?,
         lastName: String?,
     ): UserDto {
         val foundUser =
-            userRepository.getUserById(userId) ?: throw RYGException("User(id = $userId) is not found")
+            userRepository.findById(userId) ?: throw RYGException("User(id = $userId) is not found")
 
         val newFirstName = firstName ?: foundUser.firstname
         val newLastName = lastName ?: foundUser.lastname
 
         val updatedUser =
-            userRepository.updateUser(
+            userRepository.save(
                 foundUser.copy(
                     firstname = newFirstName,
                     lastname = newLastName,
@@ -165,7 +172,7 @@ class UserServiceImpl(
             throw RYGException("Email(${user.email}) is already yours.")
         }
 
-        val userWithEmail = userRepository.getUserByEmail(request.newEmail)
+        val userWithEmail = userRepository.findByEmail(request.newEmail).firstOrNull()
         if (userWithEmail != null) {
             throw RYGException("Email(${request.newEmail}) is not available")
         }
@@ -180,7 +187,7 @@ class UserServiceImpl(
                 JWT_KEY_PAIR_CONFIRM_NEW_EMAIL,
             )
 
-        val expireDate = Date(System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN)
+        val expireDate = Date(System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN.inWholeMilliseconds)
 
         val confirmationLink = "$baseUrl/auth/confirmNewEmail?token=$token"
 
@@ -191,7 +198,7 @@ class UserServiceImpl(
         )
     }
 
-    override suspend fun deleteUserById(userId: UUID) {
-        userRepository.deleteUserById(userId)
+    override suspend fun deleteUserById(userId: Int) {
+        userRepository.deleteById(userId)
     }
 }

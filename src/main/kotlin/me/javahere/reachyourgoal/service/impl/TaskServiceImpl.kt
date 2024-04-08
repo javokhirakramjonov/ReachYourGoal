@@ -1,216 +1,88 @@
 package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.flow.Flow
-import me.javahere.reachyourgoal.domain.Task
-import me.javahere.reachyourgoal.domain.TaskAttachment
-import me.javahere.reachyourgoal.domain.TaskScheduling
-import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.domain.dto.TaskDto
-import me.javahere.reachyourgoal.domain.dto.TaskSchedulingDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
-import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskScheduling
-import me.javahere.reachyourgoal.domain.dto.request.RequestTaskScheduling
-import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskStatus
-import me.javahere.reachyourgoal.exception.RYGException
+import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.transformCollection
 import me.javahere.reachyourgoal.repository.TaskRepository
-import me.javahere.reachyourgoal.service.FileService
+import me.javahere.reachyourgoal.service.TaskAttachmentService
+import me.javahere.reachyourgoal.service.TaskCategoryService
 import me.javahere.reachyourgoal.service.TaskService
-import me.javahere.reachyourgoal.util.createListOfDays
-import me.javahere.reachyourgoal.util.transformCollection
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.codec.multipart.FilePart
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.io.File
-import java.util.UUID
 
 @Service
 class TaskServiceImpl(
+    private val taskCategoryService: TaskCategoryService,
     private val taskRepository: TaskRepository,
-    private val fileService: FileService,
-    @Value("\${app.task-file-path}") private val taskFilePath: String,
+    @Lazy
+    private val taskAttachmentService: TaskAttachmentService,
 ) : TaskService {
     override suspend fun createTask(
-        task: RequestCreateTask,
-        userId: UUID,
+        requestCreateTask: RequestCreateTask,
+        userId: Int,
     ): TaskDto {
+        taskCategoryService.validateTaskCategoryExistence(requestCreateTask.categoryId, userId)
+
         return taskRepository
-            .addTask(task.transform(userId))
+            .save(requestCreateTask.transform())
             .transform()
     }
 
     override suspend fun getTaskById(
-        taskId: UUID,
-        userId: UUID,
+        taskId: Int,
+        userId: Int,
     ): TaskDto {
-        return validateTaskExistence(userId, taskId).transform()
+        return validateTaskExistence(taskId, userId)
     }
 
-    override fun getAllTasks(userId: UUID): Flow<TaskDto> {
+    override suspend fun getAllTasksByCategoryId(
+        categoryId: Int,
+        userId: Int,
+    ): Flow<TaskDto> {
+        taskCategoryService.validateTaskCategoryExistence(categoryId, userId)
+
         return taskRepository
-            .getAllTasks(userId)
+            .findAllByCategoryId(categoryId)
             .transformCollection()
     }
 
-    override suspend fun updateTask(task: TaskDto): TaskDto {
+    override suspend fun updateTask(
+        task: TaskDto,
+        userId: Int,
+    ): TaskDto {
+        validateTaskExistence(task.id, userId)
+
         return taskRepository
-            .updateTask(task.transform())
+            .save(task.transform())
             .transform()
     }
 
+    @Transactional(rollbackFor = [RYGException::class])
     override suspend fun deleteTaskById(
-        taskId: UUID,
-        userId: UUID,
+        taskId: Int,
+        userId: Int,
     ) {
-        taskRepository.deleteTaskById(taskId, userId)
+        validateTaskExistence(taskId, userId)
+
+        taskRepository.deleteById(taskId)
+
+        taskAttachmentService.deleteAllTaskAttachmentsByTaskId(taskId, userId)
     }
 
-    @Transactional
-    override suspend fun createTaskAttachment(
-        userId: UUID,
-        taskId: UUID,
-        filePart: FilePart,
-    ): TaskAttachmentDto {
-        validateTaskExistence(userId, taskId)
+    override suspend fun validateTaskExistence(
+        taskId: Int,
+        userId: Int,
+    ): TaskDto {
+        val task =
+            taskRepository
+                .findById(taskId)
+                ?: throw RYGException("Task(id = $taskId) not found for user(userId = $userId)")
 
-        val taskAttachment =
-            TaskAttachment(
-                name = filePart.filename(),
-                taskId = taskId,
-            )
+        taskCategoryService.validateTaskCategoryExistence(task.categoryId, userId)
 
-        val createdTaskAttachment = taskRepository.addTaskAttachment(taskAttachment).transform()
-
-        val newName = createdTaskAttachment.id.toString()
-
-        val isSaved = fileService.createFile(taskFilePath, newName, filePart)
-
-        return if (isSaved) createdTaskAttachment else throw RYGException()
-    }
-
-    override suspend fun getTaskAttachmentById(
-        userId: UUID,
-        taskId: UUID,
-        attachmentId: UUID,
-    ): Pair<String, File> {
-        val attachment = validateTaskAttachmentExistence(userId, taskId, attachmentId).transform()
-
-        val attachmentFile =
-            fileService.getFileByName(taskFilePath, attachment.id.toString())
-                ?: throw RYGException("File(id = ${attachment.id}) not found for attachment(id = $attachmentId)")
-
-        return attachment.fileName to attachmentFile
-    }
-
-    override suspend fun getAllTaskAttachments(
-        userId: UUID,
-        taskId: UUID,
-    ): Flow<TaskAttachmentDto> {
-        validateTaskExistence(userId, taskId)
-
-        return taskRepository.getAllTaskAttachments(taskId).transformCollection()
-    }
-
-    override suspend fun deleteTaskAttachmentById(
-        userId: UUID,
-        taskId: UUID,
-        attachmentId: UUID,
-    ) {
-        val attachment = validateTaskAttachmentExistence(userId, taskId, attachmentId).transform()
-
-        fileService.deleteFileByName(taskFilePath, attachment.id.toString())
-        taskRepository.deleteTaskAttachmentById(attachmentId, taskId)
-    }
-
-    override suspend fun addTaskScheduling(
-        userId: UUID,
-        taskId: UUID,
-        requestTaskScheduling: RequestTaskScheduling,
-    ): Flow<TaskSchedulingDto> {
-        validateTaskExistence(userId, taskId)
-
-        val taskScheduling =
-            createListOfDays(
-                requestTaskScheduling.fromDate,
-                requestTaskScheduling.toDate,
-                requestTaskScheduling.frequency,
-            ).map {
-                TaskScheduling(
-                    taskId = taskId,
-                    taskDateTime = it.atTime(requestTaskScheduling.time),
-                )
-            }
-
-        return taskRepository.addTaskScheduling(taskScheduling).transformCollection()
-    }
-
-    override suspend fun getTaskScheduling(
-        userId: UUID,
-        taskId: UUID,
-        requestTaskScheduling: RequestGetTaskScheduling,
-    ): Flow<TaskSchedulingDto> {
-        validateTaskExistence(userId, taskId)
-        return taskRepository.getTaskSchedulingForPeriod(
-            taskId,
-            requestTaskScheduling.fromDateTime,
-            requestTaskScheduling.toDateTime,
-        ).transformCollection()
-    }
-
-    private suspend fun validateTaskExistence(
-        userId: UUID,
-        taskId: UUID,
-    ): Task {
-        return taskRepository
-            .getTaskById(taskId, userId)
-            ?: throw RYGException("Task not found with such id($taskId) for userId($userId)")
-    }
-
-    private suspend fun validateTaskAttachmentExistence(
-        userId: UUID,
-        taskId: UUID,
-        attachmentId: UUID,
-    ): TaskAttachment {
-        validateTaskExistence(userId, taskId)
-
-        return taskRepository
-            .getTaskAttachmentById(attachmentId, taskId)
-            ?: throw RYGException("Attachment(id = $attachmentId) not found for task(id = $taskId)")
-    }
-
-    override suspend fun deleteTaskScheduling(
-        userId: UUID,
-        taskId: UUID,
-        taskScheduling: RequestTaskScheduling,
-    ) {
-        validateTaskExistence(userId, taskId)
-
-        val taskDateTimes =
-            createListOfDays(
-                taskScheduling.fromDate,
-                taskScheduling.toDate,
-                taskScheduling.frequency,
-            )
-                .map {
-                    it.atTime(taskScheduling.time)
-                }
-
-        taskRepository.deleteTaskSchedulingForDateTimes(taskId, taskDateTimes)
-    }
-
-    override suspend fun updateTaskStatus(
-        userId: UUID,
-        requestUpdateTaskStatus: RequestUpdateTaskStatus,
-    ): TaskSchedulingDto {
-        validateTaskExistence(userId, requestUpdateTaskStatus.taskId)
-
-        val existedTaskScheduling =
-            taskRepository.getTaskSchedulingById(
-                requestUpdateTaskStatus.taskSchedulingId,
-            ) ?: throw RYGException("There is no such scheduled task")
-
-        val taskScheduling = existedTaskScheduling.copy(taskStatus = requestUpdateTaskStatus.taskStatus)
-
-        return taskRepository.updateTaskScheduling(taskScheduling).transform()
+        return task.transform()
     }
 }

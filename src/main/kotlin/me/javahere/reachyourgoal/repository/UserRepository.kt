@@ -1,21 +1,14 @@
 package me.javahere.reachyourgoal.repository
 
-import me.javahere.reachyourgoal.domain.User
+import kotlinx.coroutines.flow.Flow
+import me.javahere.reachyourgoal.domain.entity.User
+import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.time.LocalDateTime
-import java.util.UUID
 
-interface UserRepository {
-    suspend fun addUser(user: User): User
+interface UserRepository : CoroutineCrudRepository<User, Int> {
+    fun findByUsername(username: String): Flow<User>
 
-    suspend fun getUserById(userId: UUID): User?
+    fun findByEmail(email: String): Flow<User>
 
-    suspend fun getUserByUsername(username: String): User?
-
-    suspend fun getUserByEmail(email: String): User?
-
-    suspend fun updateUser(user: User): User
-
-    suspend fun deleteUserById(userId: UUID)
-
-    suspend fun deleteUnconfirmedUsersBefore(dateTime: LocalDateTime)
+    suspend fun deleteByCreatedAtBefore(date: LocalDateTime)
 }
