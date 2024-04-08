@@ -3,7 +3,7 @@ package me.javahere.reachyourgoal.service.impl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.javahere.reachyourgoal.service.FileService
-import me.javahere.reachyourgoal.util.collect
+import me.javahere.reachyourgoal.util.extensions.collect
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import java.io.File

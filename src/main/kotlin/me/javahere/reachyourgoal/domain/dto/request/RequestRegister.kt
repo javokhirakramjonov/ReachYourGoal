@@ -1,8 +1,8 @@
 package me.javahere.reachyourgoal.domain.dto.request
 
 import me.javahere.reachyourgoal.domain.Role
-import me.javahere.reachyourgoal.domain.User
-import me.javahere.reachyourgoal.util.Transformable
+import me.javahere.reachyourgoal.domain.Transformable
+import me.javahere.reachyourgoal.domain.entity.User
 
 class RequestRegister(
     val firstname: String,
@@ -13,7 +13,6 @@ class RequestRegister(
 ) : Transformable<User> {
     override fun transform(): User =
         User(
-            id = null,
             firstname = firstname,
             lastname = lastname,
             username = username,

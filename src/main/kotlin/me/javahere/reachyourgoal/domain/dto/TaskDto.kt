@@ -1,15 +1,15 @@
 package me.javahere.reachyourgoal.domain.dto
 
-import me.javahere.reachyourgoal.domain.Task
-import me.javahere.reachyourgoal.util.Transformable
-import java.util.UUID
+import me.javahere.reachyourgoal.domain.Transformable
+import me.javahere.reachyourgoal.domain.entity.Task
+import kotlin.time.Duration
 
 class TaskDto(
-    val id: UUID,
+    val id: Int,
     val name: String,
     val description: String?,
-    val spentTime: Long,
-    val userId: UUID,
+    val spentTime: Duration,
+    val categoryId: Int,
 ) : Transformable<Task> {
     override fun transform(): Task {
         return Task(
@@ -17,7 +17,7 @@ class TaskDto(
             name = name,
             description = description,
             spentTime = spentTime,
-            userId = userId,
+            categoryId = categoryId,
         )
     }
 }

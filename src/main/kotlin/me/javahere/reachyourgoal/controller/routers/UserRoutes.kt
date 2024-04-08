@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import me.javahere.reachyourgoal.controller.handler.UserRoutesHandler
+import me.javahere.reachyourgoal.controller.handler.user.UserRoutesHandler
 import me.javahere.reachyourgoal.domain.dto.UserDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestLogin
 import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
