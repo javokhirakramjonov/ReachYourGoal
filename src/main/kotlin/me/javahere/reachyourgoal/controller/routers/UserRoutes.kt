@@ -73,7 +73,7 @@ class UserRoutes(
     )
     fun confirmRegister() =
         coRouter {
-            GET("/auth/confirmRegister", userRoutesHandler::confirmRegister)
+            PUT("/auth/confirmRegister", userRoutesHandler::confirmRegister)
         }
 
     @Bean
@@ -113,7 +113,7 @@ class UserRoutes(
     )
     fun confirmNewEmail() =
         coRouter {
-            GET("/auth/confirmNewEmail", userRoutesHandler::confirmNewEmail)
+            PUT("/auth/confirmNewEmail", userRoutesHandler::confirmNewEmail)
         }
 
     @Bean
