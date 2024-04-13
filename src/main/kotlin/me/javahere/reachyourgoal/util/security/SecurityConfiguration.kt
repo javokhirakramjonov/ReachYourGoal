@@ -35,6 +35,7 @@ class SecurityConfiguration {
         jwtAuthenticationFilter: AuthenticationWebFilter,
     ): SecurityWebFilterChain =
         http {
+            cors { }
             csrf { disable() }
             formLogin { disable() }
             logout { disable() }
