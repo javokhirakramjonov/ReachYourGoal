@@ -1,7 +1,6 @@
 package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
 import me.javahere.reachyourgoal.domain.TaskAndTagId
 import me.javahere.reachyourgoal.domain.dto.TaskTagDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskTag
@@ -30,7 +29,6 @@ class TaskTagServiceImpl(
                 tagId,
                 userId,
             )
-            .firstOrNull()
             ?: throw RYGException("Task tag(id = $tagId) not found for user(userId = $userId)")
     }
 

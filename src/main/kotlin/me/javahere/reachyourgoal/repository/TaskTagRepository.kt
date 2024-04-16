@@ -5,10 +5,10 @@ import me.javahere.reachyourgoal.domain.entity.TaskTag
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 
 interface TaskTagRepository : CoroutineCrudRepository<TaskTag, Int> {
-    fun findByIdAndUserId(
+    suspend fun findByIdAndUserId(
         id: Int,
         userId: Int,
-    ): Flow<TaskTag>
+    ): TaskTag?
 
     fun findAllByUserId(userId: Int): Flow<TaskTag>
 

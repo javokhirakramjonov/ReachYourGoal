@@ -1,6 +1,5 @@
 package me.javahere.reachyourgoal.service.impl
 
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.reactor.mono
 import me.javahere.reachyourgoal.domain.dto.UserDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
@@ -10,7 +9,6 @@ import me.javahere.reachyourgoal.domain.exception.RYGException
 import me.javahere.reachyourgoal.domain.exception.RYGExceptionGroup
 import me.javahere.reachyourgoal.repository.UserRepository
 import me.javahere.reachyourgoal.service.EmailService
-import me.javahere.reachyourgoal.service.TaskCategoryService
 import me.javahere.reachyourgoal.service.UserService
 import me.javahere.reachyourgoal.util.security.jwt.JwtService
 import me.javahere.reachyourgoal.util.security.jwt.JwtService.Companion.EXPIRE_CONFIRMATION_TOKEN
@@ -33,16 +31,15 @@ typealias UserForSecurity = org.springframework.security.core.userdetails.User
 class UserServiceImpl(
     @Value("\${app.base-url}") private val baseUrl: String,
     private val userRepository: UserRepository,
-    private val taskCategoryService: TaskCategoryService,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
     private val emailService: EmailService,
 ) : UserService, ReactiveUserDetailsService {
     private val invalidConfirmToken = RYGException("Invalid confirmation token")
 
-    override suspend fun register(user: RequestRegister) {
-        val isUsernameAvailable = userRepository.findByUsername(user.username).firstOrNull() == null
-        val isEmailAvailable = userRepository.findByEmail(user.email).firstOrNull() == null
+    private suspend fun createUserAndGetConfirmationLink(user: RequestRegister): String {
+        val isUsernameAvailable = userRepository.findByUsername(user.username) == null
+        val isEmailAvailable = userRepository.findByEmail(user.email) == null
 
         val exceptions = mutableListOf<RYGException>()
 
@@ -55,7 +52,6 @@ class UserServiceImpl(
 
         val userWithNewPassword = user.transform().copy(password = newPassword)
 
-        println(userWithNewPassword)
         val createdUser = userRepository.save(userWithNewPassword).transform()
 
         val token =
@@ -67,6 +63,12 @@ class UserServiceImpl(
                 JWT_KEY_PAIR_CONFIRM_REGISTER,
             )
 
+        return token
+    }
+
+    override suspend fun registerProductionMode(user: RequestRegister) {
+        val token = createUserAndGetConfirmationLink(user)
+
         val expireDate = Date(System.currentTimeMillis() + EXPIRE_CONFIRMATION_TOKEN.inWholeMilliseconds)
 
         val confirmationLink = "$baseUrl/auth/confirm?token=$token"
@@ -76,6 +78,10 @@ class UserServiceImpl(
             confirmationLink,
             expireDate,
         )
+    }
+
+    override suspend fun registerDevelopMode(user: RequestRegister): String {
+        return createUserAndGetConfirmationLink(user)
     }
 
     override suspend fun confirmRegister(token: String): UserDto {
@@ -90,8 +96,6 @@ class UserServiceImpl(
         val user = userRepository.findById(userId) ?: throw invalidConfirmToken
 
         val confirmedUser = userRepository.save(user.copy(isConfirmed = true))
-
-        taskCategoryService.createDefaultCategoryForUser(user.id)
 
         return confirmedUser.transform()
     }
@@ -121,19 +125,19 @@ class UserServiceImpl(
     }
 
     override suspend fun findUserByEmail(email: String): UserDto {
-        return userRepository.findByEmail(email).firstOrNull()?.transform()
+        return userRepository.findByEmail(email)?.transform()
             ?: throw RYGException("Email($email) is not found")
     }
 
     override suspend fun findUserByUsername(username: String): UserDto {
-        return userRepository.findByUsername(username).firstOrNull()?.transform()
+        return userRepository.findByUsername(username)?.transform()
             ?: throw RYGException("Username($username) is not found")
     }
 
     override fun findByUsername(username: String): Mono<UserDetails> =
         mono {
             val user: User =
-                userRepository.findByUsername(username).firstOrNull()
+                userRepository.findByUsername(username)
                     ?: throw RYGException("User($username) is not found")
 
             if (!user.isConfirmed) throw RYGException("Username($username) is not confirmed")
@@ -172,7 +176,8 @@ class UserServiceImpl(
             throw RYGException("Email(${user.email}) is already yours.")
         }
 
-        val userWithEmail = userRepository.findByEmail(request.newEmail).firstOrNull()
+        val userWithEmail = userRepository.findByEmail(request.newEmail)
+
         if (userWithEmail != null) {
             throw RYGException("Email(${request.newEmail}) is not available")
         }

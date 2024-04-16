@@ -9,7 +9,7 @@ class TaskDto(
     val name: String,
     val description: String?,
     val spentTime: Duration,
-    val categoryId: Int,
+    val userId: Int,
 ) : Transformable<Task> {
     override fun transform(): Task {
         return Task(
@@ -17,7 +17,7 @@ class TaskDto(
             name = name,
             description = description,
             spentTime = spentTime,
-            categoryId = categoryId,
+            userId = userId,
         )
     }
 }
