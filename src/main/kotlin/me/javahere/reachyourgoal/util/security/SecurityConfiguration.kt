@@ -24,6 +24,7 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
+import org.springframework.web.cors.reactive.CorsWebFilter
 
 @Configuration
 @EnableWebFluxSecurity
@@ -33,9 +34,9 @@ class SecurityConfiguration {
         http: ServerHttpSecurity,
         jwtService: JwtService,
         jwtAuthenticationFilter: AuthenticationWebFilter,
+        corsWebFilter: CorsWebFilter,
     ): SecurityWebFilterChain =
         http {
-            cors { }
             csrf { disable() }
             formLogin { disable() }
             logout { disable() }
@@ -61,6 +62,7 @@ class SecurityConfiguration {
                 authorize(anyExchange, authenticated)
             }
 
+            addFilterAt(corsWebFilter, SecurityWebFiltersOrder.CORS)
             addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
             addFilterAt(JwtTokenReactFilter(jwtService), SecurityWebFiltersOrder.AUTHORIZATION)
         }
