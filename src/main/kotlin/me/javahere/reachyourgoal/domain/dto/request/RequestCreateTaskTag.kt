@@ -9,7 +9,7 @@ class RequestCreateTaskTag(
     fun transform(userId: UserId): TaskTag {
         return TaskTag(
             name = name,
-            userId = userId,
+            userId = userId.value,
         )
     }
 }

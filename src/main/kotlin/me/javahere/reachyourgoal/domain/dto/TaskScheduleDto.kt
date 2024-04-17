@@ -17,8 +17,8 @@ class TaskScheduleDto(
 ) : Transformable<TaskSchedule> {
     override fun transform(): TaskSchedule {
         return TaskSchedule(
-            scheduleId = scheduleId,
-            taskId = taskId,
+            scheduleId = scheduleId.value,
+            taskId = taskId.value,
             taskPlanId = taskPlanId,
             taskDate = taskDate,
             taskStatus = taskStatus,

@@ -11,7 +11,7 @@ class RequestCreateTaskPlan(
         return TaskPlan(
             name = name,
             description = description,
-            userId = userId,
+            userId = userId.value,
         )
     }
 }
