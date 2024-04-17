@@ -3,11 +3,12 @@ package me.javahere.reachyourgoal.domain.entity
 import me.javahere.reachyourgoal.domain.Transformable
 import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
 import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.TaskPlanId
 import me.javahere.reachyourgoal.domain.id.TaskScheduleId
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 @Table(name = "task_schedules")
 data class TaskSchedule(
@@ -16,8 +17,10 @@ data class TaskSchedule(
     val scheduleId: TaskScheduleId = TaskScheduleId(),
     @Column("task_id")
     val taskId: TaskId,
+    @Column("task_plan_id")
+    val taskPlanId: TaskPlanId,
     @Column("task_date_time")
-    val taskDateTime: LocalDateTime,
+    val taskDate: LocalDate,
     @Column("task_status")
     val taskStatus: TaskStatus = TaskStatus.NOT_STARTED,
 ) : Transformable<TaskScheduleDto> {
@@ -25,7 +28,8 @@ data class TaskSchedule(
         return TaskScheduleDto(
             scheduleId = scheduleId,
             taskId = taskId,
-            taskDateTime = taskDateTime,
+            taskPlanId = taskPlanId,
+            taskDate = taskDate,
             taskStatus = taskStatus,
         )
     }

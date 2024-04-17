@@ -2,38 +2,38 @@ package me.javahere.reachyourgoal.service
 
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
-import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
-import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedules
+import me.javahere.reachyourgoal.domain.dto.request.RequestDeleteTaskSchedules
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskSchedules
 import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.TaskPlanId
 import me.javahere.reachyourgoal.domain.id.TaskScheduleId
 import me.javahere.reachyourgoal.domain.id.UserId
 
 interface TaskScheduleService {
-    suspend fun createTaskSchedule(
+    suspend fun createTaskSchedules(
         userId: UserId,
-        taskId: TaskId,
-        requestCreateTaskSchedule: RequestCreateTaskSchedule,
+        requestCreateTaskSchedules: RequestCreateTaskSchedules,
     ): Flow<TaskScheduleDto>
 
-    suspend fun getTaskScheduleForTaskAndPeriod(
+    suspend fun getTaskSchedules(
         userId: UserId,
         taskId: TaskId,
-        taskSchedule: RequestGetTaskSchedule,
+        planId: TaskPlanId,
     ): Flow<TaskScheduleDto>
 
-    suspend fun updateTaskSchedule(
+    suspend fun updateTaskSchedules(
         userId: UserId,
-        taskScheduleDto: TaskScheduleDto,
-    ): TaskScheduleDto
+        requestUpdateTaskSchedules: RequestUpdateTaskSchedules,
+    ): Flow<TaskScheduleDto>
 
-    suspend fun deleteTaskScheduleByTaskIdAndPeriod(
+    suspend fun deleteTaskSchedules(
         userId: UserId,
-        taskId: TaskId,
-        taskSchedule: RequestCreateTaskSchedule,
+        requestDeleteTaskSchedules: RequestDeleteTaskSchedules,
     )
 
     suspend fun validateTaskScheduleExistence(
-        taskScheduleId: TaskScheduleId,
         userId: UserId,
+        taskScheduleId: TaskScheduleId,
     ): TaskScheduleDto
 }
