@@ -29,8 +29,8 @@ class TaskTagServiceImpl(
     ): TaskTag {
         return taskTagRepository
             .findByIdAndUserId(
-                tagId.value,
-                userId.value,
+                tagId,
+                userId,
             )
             ?: throw RYGException("Task tag(id = $tagId) not found for user(userId = $userId)")
     }
@@ -58,19 +58,19 @@ class TaskTagServiceImpl(
         validateTaskTagExistence(tagId, userId)
         taskService.validateTaskExistence(taskId, userId)
 
-        val taskAndTag = TaskAndTag(taskId.value, tagId.value)
+        val taskAndTag = TaskAndTag(taskId, tagId)
 
         taskAndTagRepository.save(taskAndTag)
     }
 
     override suspend fun getAllTagsByUserId(userId: UserId): Flow<TaskTagDto> {
         return taskTagRepository
-            .findAllByUserId(userId.value)
+            .findAllByUserId(userId)
             .transformCollection()
     }
 
     override suspend fun deleteAllTagsByUserId(userId: UserId) {
-        taskTagRepository.deleteAllByUserId(userId.value)
+        taskTagRepository.deleteAllByUserId(userId)
     }
 
     override suspend fun deleteTagById(
@@ -79,7 +79,7 @@ class TaskTagServiceImpl(
     ) {
         validateTaskTagExistence(tagId, userId)
 
-        taskTagRepository.deleteByIdAndUserId(tagId.value, userId.value)
+        taskTagRepository.deleteByIdAndUserId(tagId, userId)
     }
 
     override suspend fun updateTag(

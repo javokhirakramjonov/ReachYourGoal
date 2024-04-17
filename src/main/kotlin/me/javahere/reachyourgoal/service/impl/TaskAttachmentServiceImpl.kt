@@ -37,7 +37,7 @@ class TaskAttachmentServiceImpl(
         val taskAttachment =
             TaskAttachment(
                 name = filePart.filename(),
-                taskId = taskId.value,
+                taskId = taskId,
             )
 
         val createdTaskAttachment = taskAttachmentRepository.save(taskAttachment).transform()
@@ -71,7 +71,7 @@ class TaskAttachmentServiceImpl(
         taskService.validateTaskExistence(taskId, userId)
 
         return taskAttachmentRepository
-            .findAllByTaskId(taskId.value)
+            .findAllByTaskId(taskId)
             .transformCollection()
     }
 
@@ -86,7 +86,7 @@ class TaskAttachmentServiceImpl(
 
         fileService.deleteFileByName(taskAttachmentPath, internalFileName)
 
-        taskAttachmentRepository.deleteById(attachmentId.value)
+        taskAttachmentRepository.deleteById(attachmentId)
     }
 
     @Transactional(rollbackFor = [RYGException::class])
@@ -107,7 +107,7 @@ class TaskAttachmentServiceImpl(
             fileService.deleteFileByName(taskAttachmentPath, internalFileName)
         }
 
-        taskAttachmentRepository.deleteAllByTaskId(taskId.value)
+        taskAttachmentRepository.deleteAllByTaskId(taskId)
     }
 
     override suspend fun validateTaskAttachmentExistence(
@@ -116,10 +116,10 @@ class TaskAttachmentServiceImpl(
     ): TaskAttachmentDto {
         val taskAttachment =
             taskAttachmentRepository
-                .findById(attachmentId.value)
+                .findById(attachmentId)
                 ?: throw RYGException("Task attachment(id = $attachmentId) not found for user(userId = $userId)")
 
-        taskService.validateTaskExistence(TaskId(taskAttachment.taskId), userId)
+        taskService.validateTaskExistence(taskAttachment.taskId, userId)
 
         return taskAttachment.transform()
     }
