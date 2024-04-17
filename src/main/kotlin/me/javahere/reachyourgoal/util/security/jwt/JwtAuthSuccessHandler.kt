@@ -39,7 +39,7 @@ class JwtAuthSuccessHandler(
                             .map(GrantedAuthority::getAuthority)
                             .toTypedArray()
 
-                    val userId = userService.findUserByUsername(principal.username).id.toString()
+                    val userId = userService.findUserByUsername(principal.username).id.value.toString()
 
                     val accessToken =
                         jwtService.generateAccessToken(userId, principal.username, EXPIRE_ACCESS_TOKEN, roles)
