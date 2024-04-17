@@ -6,7 +6,7 @@ import org.springframework.data.r2dbc.convert.R2dbcCustomConversions
 import org.springframework.data.r2dbc.dialect.PostgresDialect
 
 @Configuration
-class R2dbcConverters {
+class IdConverters {
     @Bean
     fun registerCustomIdsConversions(): R2dbcCustomConversions {
         val customConverters =
