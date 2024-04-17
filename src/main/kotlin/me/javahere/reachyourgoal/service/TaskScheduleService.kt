@@ -4,33 +4,36 @@ import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
 import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
+import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.TaskScheduleId
+import me.javahere.reachyourgoal.domain.id.UserId
 
 interface TaskScheduleService {
     suspend fun createTaskSchedule(
-        userId: Int,
-        taskId: Int,
+        userId: UserId,
+        taskId: TaskId,
         requestCreateTaskSchedule: RequestCreateTaskSchedule,
     ): Flow<TaskScheduleDto>
 
     suspend fun getTaskScheduleForTaskAndPeriod(
-        userId: Int,
-        taskId: Int,
+        userId: UserId,
+        taskId: TaskId,
         taskSchedule: RequestGetTaskSchedule,
     ): Flow<TaskScheduleDto>
 
     suspend fun updateTaskSchedule(
-        userId: Int,
+        userId: UserId,
         taskScheduleDto: TaskScheduleDto,
     ): TaskScheduleDto
 
     suspend fun deleteTaskScheduleByTaskIdAndPeriod(
-        userId: Int,
-        taskId: Int,
+        userId: UserId,
+        taskId: TaskId,
         taskSchedule: RequestCreateTaskSchedule,
     )
 
     suspend fun validateTaskScheduleExistence(
-        taskScheduleId: Int,
-        userId: Int,
+        taskScheduleId: TaskScheduleId,
+        userId: UserId,
     ): TaskScheduleDto
 }

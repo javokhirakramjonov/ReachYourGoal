@@ -4,6 +4,9 @@ import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
 import me.javahere.reachyourgoal.domain.entity.TaskAttachment
 import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.id.TaskAttachmentId
+import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.UserId
 import me.javahere.reachyourgoal.domain.transformCollection
 import me.javahere.reachyourgoal.repository.TaskAttachmentRepository
 import me.javahere.reachyourgoal.service.FileService
@@ -27,9 +30,9 @@ class TaskAttachmentServiceImpl(
 ) : TaskAttachmentService {
     @Transactional(rollbackFor = [RYGException::class])
     override suspend fun createTaskAttachment(
-        taskId: Int,
+        taskId: TaskId,
         filePart: FilePart,
-        userId: Int,
+        userId: UserId,
     ): TaskAttachmentDto {
         val taskAttachment =
             TaskAttachment(
@@ -47,8 +50,8 @@ class TaskAttachmentServiceImpl(
     }
 
     override suspend fun getTaskAttachmentById(
-        attachmentId: Int,
-        userId: Int,
+        attachmentId: TaskAttachmentId,
+        userId: UserId,
     ): Pair<TaskAttachmentName, File> {
         val taskAttachment = validateTaskAttachmentExistence(attachmentId, userId)
 
@@ -62,8 +65,8 @@ class TaskAttachmentServiceImpl(
     }
 
     override suspend fun getAllTaskAttachmentsByTaskId(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     ): Flow<TaskAttachmentDto> {
         taskService.validateTaskExistence(taskId, userId)
 
@@ -74,8 +77,8 @@ class TaskAttachmentServiceImpl(
 
     @Transactional(rollbackFor = [RYGException::class])
     override suspend fun deleteTaskAttachmentById(
-        attachmentId: Int,
-        userId: Int,
+        attachmentId: TaskAttachmentId,
+        userId: UserId,
     ) {
         val taskAttachment = validateTaskAttachmentExistence(attachmentId, userId)
 
@@ -88,8 +91,8 @@ class TaskAttachmentServiceImpl(
 
     @Transactional(rollbackFor = [RYGException::class])
     override suspend fun deleteAllTaskAttachmentsByTaskId(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     ) {
         taskService.validateTaskExistence(taskId, userId)
 
@@ -108,8 +111,8 @@ class TaskAttachmentServiceImpl(
     }
 
     override suspend fun validateTaskAttachmentExistence(
-        attachmentId: Int,
-        userId: Int,
+        attachmentId: TaskAttachmentId,
+        userId: UserId,
     ): TaskAttachmentDto {
         val taskAttachment =
             taskAttachmentRepository

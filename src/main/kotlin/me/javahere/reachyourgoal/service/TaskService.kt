@@ -3,34 +3,36 @@ package me.javahere.reachyourgoal.service
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.dto.TaskDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
+import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.UserId
 
 typealias TaskAttachmentName = String
 
 interface TaskService {
     suspend fun createTask(
         requestCreateTask: RequestCreateTask,
-        userId: Int,
+        userId: UserId,
     ): TaskDto
 
     suspend fun getTaskById(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     ): TaskDto
 
-    suspend fun getAllTasksByUserId(userId: Int): Flow<TaskDto>
+    suspend fun getAllTasksByUserId(userId: UserId): Flow<TaskDto>
 
     suspend fun updateTask(
         task: TaskDto,
-        userId: Int,
+        userId: UserId,
     ): TaskDto
 
     suspend fun deleteTaskById(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     )
 
     suspend fun validateTaskExistence(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     ): TaskDto
 }

@@ -7,6 +7,9 @@ import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskTag
 import me.javahere.reachyourgoal.domain.entity.TaskAndTag
 import me.javahere.reachyourgoal.domain.entity.TaskTag
 import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.TaskTagId
+import me.javahere.reachyourgoal.domain.id.UserId
 import me.javahere.reachyourgoal.domain.transformCollection
 import me.javahere.reachyourgoal.repository.TaskAndTagRepository
 import me.javahere.reachyourgoal.repository.TaskTagRepository
@@ -21,8 +24,8 @@ class TaskTagServiceImpl(
     private val taskService: TaskService,
 ) : TaskTagService {
     private suspend fun validateTaskTagExistence(
-        tagId: Int,
-        userId: Int,
+        tagId: TaskTagId,
+        userId: UserId,
     ): TaskTag {
         return taskTagRepository
             .findByIdAndUserId(
@@ -40,7 +43,7 @@ class TaskTagServiceImpl(
 
     override suspend fun createTaskTag(
         requestCreateTaskTag: RequestCreateTaskTag,
-        userId: Int,
+        userId: UserId,
     ): TaskTagDto {
         val taskTag = requestCreateTaskTag.transform(userId)
 
@@ -48,9 +51,9 @@ class TaskTagServiceImpl(
     }
 
     override suspend fun attachTagToTask(
-        taskId: Int,
-        tagId: Int,
-        userId: Int,
+        taskId: TaskId,
+        tagId: TaskTagId,
+        userId: UserId,
     ) {
         validateTaskTagExistence(tagId, userId)
         taskService.validateTaskExistence(taskId, userId)
@@ -60,19 +63,19 @@ class TaskTagServiceImpl(
         taskAndTagRepository.save(taskAndTag)
     }
 
-    override suspend fun getAllTagsByUserId(userId: Int): Flow<TaskTagDto> {
+    override suspend fun getAllTagsByUserId(userId: UserId): Flow<TaskTagDto> {
         return taskTagRepository
             .findAllByUserId(userId)
             .transformCollection()
     }
 
-    override suspend fun deleteAllTagsByUserId(userId: Int) {
+    override suspend fun deleteAllTagsByUserId(userId: UserId) {
         taskTagRepository.deleteAllByUserId(userId)
     }
 
     override suspend fun deleteTagById(
-        tagId: Int,
-        userId: Int,
+        tagId: TaskTagId,
+        userId: UserId,
     ) {
         validateTaskTagExistence(tagId, userId)
 
@@ -81,7 +84,7 @@ class TaskTagServiceImpl(
 
     override suspend fun updateTag(
         taskTagDto: TaskTagDto,
-        userId: Int,
+        userId: UserId,
     ): TaskTagDto {
         validateTaskTagExistence(taskTagDto.id, userId)
 
@@ -91,9 +94,9 @@ class TaskTagServiceImpl(
     }
 
     override suspend fun detachTagFromTask(
-        taskId: Int,
-        tagId: Int,
-        userId: Int,
+        taskId: TaskId,
+        tagId: TaskTagId,
+        userId: UserId,
     ) {
         validateTaskTagExistence(tagId, userId)
         taskService.validateTaskExistence(taskId, userId)

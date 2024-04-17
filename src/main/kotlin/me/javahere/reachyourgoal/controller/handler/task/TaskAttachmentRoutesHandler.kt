@@ -6,6 +6,8 @@ import me.javahere.reachyourgoal.controller.routers.TaskAttachmentRoutes.Compani
 import me.javahere.reachyourgoal.controller.routers.TaskAttachmentRoutes.Companion.TASK_ATTACHMENT_ID
 import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
 import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.id.TaskAttachmentId
+import me.javahere.reachyourgoal.domain.id.TaskId
 import me.javahere.reachyourgoal.service.TaskAttachmentService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import org.springframework.core.io.InputStreamResource
@@ -27,11 +29,12 @@ class TaskAttachmentRoutesHandler(
     private val routeHandlerUtils: RouteHandlerUtils,
 ) {
     suspend fun getAllTaskAttachments(serverRequest: ServerRequest): ServerResponse {
-        val (userId, taskId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val taskId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_ID)
+                .toInt()
+                .let(::TaskId)
 
         val attachments = taskAttachmentService.getAllTaskAttachmentsByTaskId(taskId, userId)
 
@@ -39,11 +42,12 @@ class TaskAttachmentRoutesHandler(
     }
 
     suspend fun downloadTaskAttachmentById(serverRequest: ServerRequest): ServerResponse {
-        val (userId, attachmentId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                serverRequest.pathVariable(TASK_ATTACHMENT_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val attachmentId =
+            serverRequest
+                .pathVariable(TASK_ATTACHMENT_ID)
+                .toInt()
+                .let(::TaskAttachmentId)
 
         val (filename, attachment) =
             taskAttachmentService.getTaskAttachmentById(
@@ -67,11 +71,12 @@ class TaskAttachmentRoutesHandler(
     }
 
     suspend fun uploadTaskAttachment(serverRequest: ServerRequest): ServerResponse {
-        val (userId, taskId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val taskId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_ID)
+                .toInt()
+                .let(::TaskId)
 
         val attachmentNotFoundException = RYGException("Attachment is not found")
 
@@ -89,7 +94,11 @@ class TaskAttachmentRoutesHandler(
 
     suspend fun deleteTaskAttachmentById(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
-        val attachmentId = serverRequest.pathVariable(TASK_ATTACHMENT_ID).toInt()
+        val attachmentId =
+            serverRequest
+                .pathVariable(TASK_ATTACHMENT_ID)
+                .toInt()
+                .let(::TaskAttachmentId)
 
         taskAttachmentService.deleteTaskAttachmentById(attachmentId, userId)
 

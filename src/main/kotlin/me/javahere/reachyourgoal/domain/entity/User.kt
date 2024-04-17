@@ -3,6 +3,7 @@ package me.javahere.reachyourgoal.domain.entity
 import me.javahere.reachyourgoal.domain.Role
 import me.javahere.reachyourgoal.domain.Transformable
 import me.javahere.reachyourgoal.domain.dto.UserDto
+import me.javahere.reachyourgoal.domain.id.UserId
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -14,7 +15,7 @@ import java.time.LocalDateTime
 data class User(
     @Id
     @Column("id")
-    val id: Int = 0,
+    val id: UserId = UserId(),
     @Column("first_name")
     val firstname: String,
     @Column("last_name")

@@ -4,6 +4,8 @@ import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
 import me.javahere.reachyourgoal.controller.routers.TaskTagRoutes.Companion.TASK_TAG_ID
 import me.javahere.reachyourgoal.domain.dto.TaskTagDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskTag
+import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.TaskTagId
 import me.javahere.reachyourgoal.service.TaskTagService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import org.springframework.stereotype.Component
@@ -50,7 +52,11 @@ class TaskTagRoutesHandler(
     suspend fun deleteTagById(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val tagId = serverRequest.pathVariable(TASK_TAG_ID).toInt()
+        val tagId =
+            serverRequest
+                .pathVariable(TASK_TAG_ID)
+                .toInt()
+                .let(::TaskTagId)
 
         taskTagService.deleteTagById(tagId, userId)
 
@@ -68,8 +74,16 @@ class TaskTagRoutesHandler(
     suspend fun attachTagToTask(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val taskId = routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_ID).toInt()
-        val tagId = routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_TAG_ID).toInt()
+        val taskId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_ID)
+                .toInt()
+                .let(::TaskId)
+        val tagId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_TAG_ID)
+                .toInt()
+                .let(::TaskTagId)
 
         taskTagService.attachTagToTask(taskId, tagId, userId)
 
@@ -79,8 +93,17 @@ class TaskTagRoutesHandler(
     suspend fun detachTagFromTask(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val taskId = routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_ID).toInt()
-        val tagId = routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_TAG_ID).toInt()
+        val taskId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_ID)
+                .toInt()
+                .let(::TaskId)
+
+        val tagId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_TAG_ID)
+                .toInt()
+                .let(::TaskTagId)
 
         taskTagService.detachTagFromTask(taskId, tagId, userId)
 

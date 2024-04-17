@@ -7,6 +7,7 @@ import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
 import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
 import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.id.TaskId
 import me.javahere.reachyourgoal.service.TaskScheduleService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import org.springframework.stereotype.Component
@@ -56,11 +57,12 @@ class TaskScheduleRoutesHandler(
     }
 
     suspend fun createTaskSchedule(serverRequest: ServerRequest): ServerResponse {
-        val (userId, taskId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val taskId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_ID)
+                .toInt()
+                .let(::TaskId)
 
         val taskSchedule = getTaskScheduleObject(serverRequest)
 
@@ -70,11 +72,12 @@ class TaskScheduleRoutesHandler(
     }
 
     suspend fun getTaskScheduleForPeriod(serverRequest: ServerRequest): ServerResponse {
-        val (userId, taskId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val taskId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_ID)
+                .toInt()
+                .let(::TaskId)
 
         val period = serverRequest.awaitBody(RequestGetTaskSchedule::class)
 
@@ -84,11 +87,12 @@ class TaskScheduleRoutesHandler(
     }
 
     suspend fun deleteTaskSchedule(serverRequest: ServerRequest): ServerResponse {
-        val (userId, taskId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                routeHandlerUtils.getQueryParamOrThrow(serverRequest, TASK_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val taskId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_ID)
+                .toInt()
+                .let(::TaskId)
 
         val period = serverRequest.awaitBody(RequestCreateTaskSchedule::class)
 
