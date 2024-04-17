@@ -1,83 +1,136 @@
 package me.javahere.reachyourgoal.service.impl
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
 import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
-import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
-import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedules
+import me.javahere.reachyourgoal.domain.dto.request.RequestDeleteTaskSchedules
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskSchedules
+import me.javahere.reachyourgoal.domain.entity.TaskSchedule
 import me.javahere.reachyourgoal.domain.exception.RYGException
 import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.TaskPlanId
 import me.javahere.reachyourgoal.domain.id.TaskScheduleId
 import me.javahere.reachyourgoal.domain.id.UserId
-import me.javahere.reachyourgoal.domain.transformCollection
 import me.javahere.reachyourgoal.repository.TaskScheduleRepository
+import me.javahere.reachyourgoal.service.TaskPlanService
 import me.javahere.reachyourgoal.service.TaskScheduleService
 import me.javahere.reachyourgoal.service.TaskService
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class TaskScheduleServiceImpl(
     private val taskService: TaskService,
     private val taskScheduleRepository: TaskScheduleRepository,
+    private val taskPlanService: TaskPlanService,
 ) : TaskScheduleService {
-    override suspend fun createTaskSchedule(
+    @Transactional
+    override suspend fun createTaskSchedules(
+        userId: UserId,
+        requestCreateTaskSchedules: RequestCreateTaskSchedules,
+    ): Flow<TaskScheduleDto> {
+        taskService.validateTaskExistence(requestCreateTaskSchedules.taskId, userId)
+        taskPlanService.validateTaskPlanExistence(requestCreateTaskSchedules.planId, userId)
+
+        val taskSchedules =
+            requestCreateTaskSchedules
+                .taskDates
+                .map {
+                    TaskSchedule(
+                        taskId = requestCreateTaskSchedules.taskId,
+                        taskPlanId = requestCreateTaskSchedules.planId,
+                        taskDate = it,
+                    )
+                }
+
+        return taskScheduleRepository
+            .saveAll(taskSchedules)
+            .map(TaskSchedule::transform)
+    }
+
+    override suspend fun getTaskSchedules(
         userId: UserId,
         taskId: TaskId,
-        requestCreateTaskSchedule: RequestCreateTaskSchedule,
+        planId: TaskPlanId,
     ): Flow<TaskScheduleDto> {
         taskService.validateTaskExistence(taskId, userId)
+        taskPlanService.validateTaskPlanExistence(planId, userId)
 
-        val taskSchedule = requestCreateTaskSchedule.transform(taskId)
-
-        return taskScheduleRepository.saveAll(taskSchedule).transformCollection()
+        return taskScheduleRepository
+            .findAllByTaskIdAndTaskPlanId(taskId, planId)
+            .map(TaskSchedule::transform)
     }
 
-    override suspend fun getTaskScheduleForTaskAndPeriod(
+    @Transactional
+    override suspend fun updateTaskSchedules(
         userId: UserId,
-        taskId: TaskId,
-        taskSchedule: RequestGetTaskSchedule,
+        requestUpdateTaskSchedules: RequestUpdateTaskSchedules,
     ): Flow<TaskScheduleDto> {
-        taskService.validateTaskExistence(taskId, userId)
+        return coroutineScope {
+            requestUpdateTaskSchedules
+                .taskSchedules
+                .asFlow()
+                .map { taskSchedule ->
+                    async {
+                        val taskScheduleEntity =
+                            validateTaskScheduleExistence(
+                                userId,
+                                taskSchedule.scheduleId,
+                            )
+                                .transform()
+                                .copy(
+                                    taskStatus = taskSchedule.taskStatus,
+                                )
 
-        return taskScheduleRepository.findAllByTaskIdAndTaskDateTimeBetween(
-            taskId,
-            taskSchedule.fromDateTime,
-            taskSchedule.toDateTime,
-        ).transformCollection()
+                        taskScheduleRepository
+                            .save(taskScheduleEntity)
+                            .transform()
+                    }
+                }
+                .map { it.await() }
+        }
     }
 
-    override suspend fun updateTaskSchedule(
+    @Transactional
+    override suspend fun deleteTaskSchedules(
         userId: UserId,
-        taskScheduleDto: TaskScheduleDto,
-    ): TaskScheduleDto {
-        validateTaskScheduleExistence(taskScheduleDto.scheduleId, userId)
-
-        val newTaskSchedule = taskScheduleDto.transform()
-
-        return taskScheduleRepository.save(newTaskSchedule).transform()
-    }
-
-    override suspend fun deleteTaskScheduleByTaskIdAndPeriod(
-        userId: UserId,
-        taskId: TaskId,
-        taskSchedule: RequestCreateTaskSchedule,
+        requestDeleteTaskSchedules: RequestDeleteTaskSchedules,
     ) {
-        taskService.validateTaskExistence(taskId, userId)
+        coroutineScope {
+            requestDeleteTaskSchedules
+                .taskScheduleIds
+                .map { taskSchedule ->
+                    async {
+                        val taskScheduleEntity =
+                            validateTaskScheduleExistence(
+                                userId,
+                                taskSchedule,
+                            )
 
-        val dateTimes = taskSchedule.transform(taskId).map { it.taskDateTime }
-
-        taskScheduleRepository.deleteAllByTaskIdAndTaskDateTimeIn(taskId, dateTimes)
+                        taskScheduleRepository.deleteById(taskScheduleEntity.scheduleId)
+                    }
+                }
+                .awaitAll()
+        }
     }
 
     override suspend fun validateTaskScheduleExistence(
-        taskScheduleId: TaskScheduleId,
         userId: UserId,
+        taskScheduleId: TaskScheduleId,
     ): TaskScheduleDto {
-        val taskSchedule =
-            taskScheduleRepository.findById(taskScheduleId)
-                ?: throw RYGException("TaskSchedule(id = $taskScheduleId) not found for user(id = $userId)")
-
-        taskService.validateTaskExistence(taskSchedule.taskId, userId)
-
-        return taskSchedule.transform()
+        return taskScheduleRepository
+            .findById(taskScheduleId)
+            ?.takeIf { foundTaskSchedule ->
+                taskService.validateTaskExistence(foundTaskSchedule.taskId, userId)
+                taskPlanService.validateTaskPlanExistence(foundTaskSchedule.taskPlanId, userId)
+                true
+            }
+            ?.transform()
+            ?: throw RYGException("Task schedule(id = $taskScheduleId) not found for user(id = $userId)")
     }
 }

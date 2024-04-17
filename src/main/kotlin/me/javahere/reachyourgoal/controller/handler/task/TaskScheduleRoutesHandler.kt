@@ -1,17 +1,15 @@
 package me.javahere.reachyourgoal.controller.handler.task
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.coroutines.reactive.awaitFirst
+import me.javahere.reachyourgoal.controller.routers.TaskPlanRoutes.Companion.TASK_PLAN_ID
 import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
-import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
-import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
-import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
-import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedules
+import me.javahere.reachyourgoal.domain.dto.request.RequestDeleteTaskSchedules
+import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskSchedules
 import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.TaskPlanId
 import me.javahere.reachyourgoal.service.TaskScheduleService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyExtractors
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.awaitBody
@@ -21,93 +19,54 @@ import org.springframework.web.reactive.function.server.buildAndAwait
 
 @Component
 class TaskScheduleRoutesHandler(
-    private val objectMapper: ObjectMapper,
     private val taskScheduleService: TaskScheduleService,
     private val routeHandlerUtils: RouteHandlerUtils,
 ) {
-    private suspend fun getTaskScheduleObject(serverRequest: ServerRequest): RequestCreateTaskSchedule {
-        val requestBody =
-            serverRequest
-                .body(BodyExtractors.toMono(String::class.java))
-                .awaitFirst()
+    suspend fun createTaskSchedules(serverRequest: ServerRequest): ServerResponse {
+        val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val requestCreateTaskSchedule =
-            sequenceOf(
-                runCatching {
-                    objectMapper.readValue(
-                        requestBody,
-                        RequestCreateTaskSchedule.CreateTaskDateSchedule::class.java,
-                    )
-                },
-                runCatching {
-                    objectMapper.readValue(
-                        requestBody,
-                        RequestCreateTaskSchedule.CreateTaskDatesSchedule::class.java,
-                    )
-                },
-                runCatching {
-                    objectMapper.readValue(
-                        requestBody,
-                        RequestCreateTaskSchedule.CreateTaskWeekDatesSchedule::class.java,
-                    )
-                },
-            ).firstNotNullOfOrNull { it.getOrNull() } ?: throw RYGException("Invalid schedule type")
+        val taskSchedules = serverRequest.awaitBody(RequestCreateTaskSchedules::class)
 
-        return requestCreateTaskSchedule
+        val createdTaskSchedules = taskScheduleService.createTaskSchedules(userId, taskSchedules)
+
+        return ServerResponse.ok().bodyAndAwait(createdTaskSchedules)
     }
 
-    suspend fun createTaskSchedule(serverRequest: ServerRequest): ServerResponse {
+    suspend fun getTaskSchedules(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
         val taskId =
             routeHandlerUtils
                 .getQueryParamOrThrow(serverRequest, TASK_ID)
                 .toInt()
                 .let(::TaskId)
+        val taskPlanId =
+            routeHandlerUtils
+                .getQueryParamOrThrow(serverRequest, TASK_PLAN_ID)
+                .toInt()
+                .let(::TaskPlanId)
 
-        val taskSchedule = getTaskScheduleObject(serverRequest)
+        val taskSchedules = taskScheduleService.getTaskSchedules(userId, taskId, taskPlanId)
 
-        val createdTaskSchedule = taskScheduleService.createTaskSchedule(userId, taskId, taskSchedule)
-
-        return ServerResponse.ok().bodyAndAwait(createdTaskSchedule)
+        return ServerResponse.ok().bodyAndAwait(taskSchedules)
     }
 
-    suspend fun getTaskScheduleForPeriod(serverRequest: ServerRequest): ServerResponse {
+    suspend fun deleteTaskSchedules(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
-        val taskId =
-            routeHandlerUtils
-                .getQueryParamOrThrow(serverRequest, TASK_ID)
-                .toInt()
-                .let(::TaskId)
 
-        val period = serverRequest.awaitBody(RequestGetTaskSchedule::class)
+        val requestDeleteTaskSchedules = serverRequest.awaitBody(RequestDeleteTaskSchedules::class)
 
-        val taskSchedule = taskScheduleService.getTaskScheduleForTaskAndPeriod(userId, taskId, period)
-
-        return ServerResponse.ok().bodyAndAwait(taskSchedule)
-    }
-
-    suspend fun deleteTaskSchedule(serverRequest: ServerRequest): ServerResponse {
-        val userId = routeHandlerUtils.getUserId(serverRequest)
-        val taskId =
-            routeHandlerUtils
-                .getQueryParamOrThrow(serverRequest, TASK_ID)
-                .toInt()
-                .let(::TaskId)
-
-        val period = serverRequest.awaitBody(RequestCreateTaskSchedule::class)
-
-        taskScheduleService.deleteTaskScheduleByTaskIdAndPeriod(userId, taskId, period)
+        taskScheduleService.deleteTaskSchedules(userId, requestDeleteTaskSchedules)
 
         return ServerResponse.noContent().buildAndAwait()
     }
 
-    suspend fun updateTaskSchedule(serverRequest: ServerRequest): ServerResponse {
+    suspend fun updateTaskSchedules(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val requestUpdateTaskSchedule = serverRequest.awaitBody(TaskScheduleDto::class)
+        val requestUpdateTaskSchedules = serverRequest.awaitBody(RequestUpdateTaskSchedules::class)
 
-        val updatedTaskSchedule = taskScheduleService.updateTaskSchedule(userId, requestUpdateTaskSchedule)
+        val updatedTaskSchedules = taskScheduleService.updateTaskSchedules(userId, requestUpdateTaskSchedules)
 
-        return ServerResponse.ok().bodyValueAndAwait(updatedTaskSchedule)
+        return ServerResponse.ok().bodyValueAndAwait(updatedTaskSchedules)
     }
 }

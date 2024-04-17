@@ -14,3 +14,6 @@ value class TaskTagId(val value: Int = 0)
 
 @JvmInline
 value class TaskScheduleId(val value: Int = 0)
+
+@JvmInline
+value class TaskPlanId(val value: Int = 0)
