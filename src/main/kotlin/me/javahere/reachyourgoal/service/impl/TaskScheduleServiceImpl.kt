@@ -42,7 +42,7 @@ class TaskScheduleServiceImpl(
                 .taskDates
                 .map {
                     TaskSchedule(
-                        taskId = requestCreateTaskSchedules.taskId,
+                        taskId = requestCreateTaskSchedules.taskId.value,
                         taskPlanId = requestCreateTaskSchedules.planId,
                         taskDate = it,
                     )
@@ -62,7 +62,7 @@ class TaskScheduleServiceImpl(
         taskPlanService.validateTaskPlanExistence(planId, userId)
 
         return taskScheduleRepository
-            .findAllByTaskIdAndTaskPlanId(taskId, planId)
+            .findAllByTaskIdAndTaskPlanId(taskId.value, planId.value)
             .map(TaskSchedule::transform)
     }
 
@@ -112,7 +112,7 @@ class TaskScheduleServiceImpl(
                                 taskSchedule,
                             )
 
-                        taskScheduleRepository.deleteById(taskScheduleEntity.scheduleId)
+                        taskScheduleRepository.deleteById(taskScheduleEntity.scheduleId.value)
                     }
                 }
                 .awaitAll()
@@ -124,9 +124,9 @@ class TaskScheduleServiceImpl(
         taskScheduleId: TaskScheduleId,
     ): TaskScheduleDto {
         return taskScheduleRepository
-            .findById(taskScheduleId)
+            .findById(taskScheduleId.value)
             ?.takeIf { foundTaskSchedule ->
-                taskService.validateTaskExistence(foundTaskSchedule.taskId, userId)
+                taskService.validateTaskExistence(TaskId(foundTaskSchedule.taskId), userId)
                 taskPlanService.validateTaskPlanExistence(foundTaskSchedule.taskPlanId, userId)
                 true
             }

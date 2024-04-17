@@ -2,22 +2,20 @@ package me.javahere.reachyourgoal.repository
 
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.entity.TaskTag
-import me.javahere.reachyourgoal.domain.id.TaskTagId
-import me.javahere.reachyourgoal.domain.id.UserId
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 
-interface TaskTagRepository : CoroutineCrudRepository<TaskTag, TaskTagId> {
+interface TaskTagRepository : CoroutineCrudRepository<TaskTag, Int> {
     suspend fun findByIdAndUserId(
-        id: TaskTagId,
-        userId: UserId,
+        id: Int,
+        userId: Int,
     ): TaskTag?
 
-    fun findAllByUserId(userId: UserId): Flow<TaskTag>
+    fun findAllByUserId(userId: Int): Flow<TaskTag>
 
-    suspend fun deleteAllByUserId(userId: UserId)
+    suspend fun deleteAllByUserId(userId: Int)
 
     suspend fun deleteByIdAndUserId(
-        id: TaskTagId,
-        userId: UserId,
+        id: Int,
+        userId: Int,
     )
 }

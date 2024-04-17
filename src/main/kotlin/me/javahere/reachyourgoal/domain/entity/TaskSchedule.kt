@@ -14,9 +14,9 @@ import java.time.LocalDate
 data class TaskSchedule(
     @Id
     @Column("id")
-    val scheduleId: TaskScheduleId = TaskScheduleId(),
+    val scheduleId: Int = 0,
     @Column("task_id")
-    val taskId: TaskId,
+    val taskId: Int,
     @Column("task_plan_id")
     val taskPlanId: TaskPlanId,
     @Column("task_date_time")
@@ -26,8 +26,8 @@ data class TaskSchedule(
 ) : Transformable<TaskScheduleDto> {
     override fun transform(): TaskScheduleDto {
         return TaskScheduleDto(
-            scheduleId = scheduleId,
-            taskId = taskId,
+            scheduleId = TaskScheduleId(scheduleId),
+            taskId = TaskId(taskId),
             taskPlanId = taskPlanId,
             taskDate = taskDate,
             taskStatus = taskStatus,
