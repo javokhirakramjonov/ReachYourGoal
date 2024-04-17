@@ -1,15 +1,13 @@
 package me.javahere.reachyourgoal.domain.dto
 
 import me.javahere.reachyourgoal.domain.entity.TaskPlan
-import me.javahere.reachyourgoal.domain.id.TaskPlanId
-import me.javahere.reachyourgoal.domain.id.UserId
 
 class TaskPlanDto(
-    val id: TaskPlanId,
+    val id: Int,
     val name: String,
     val description: String? = null,
 ) {
-    fun transform(userId: UserId): TaskPlan {
+    fun transform(userId: Int): TaskPlan {
         return TaskPlan(
             id = id,
             userId = userId,

@@ -29,20 +29,20 @@ class JwtService(
     }
 
     fun generateAccessToken(
-        userId: String,
+        userId: Int,
         username: String,
         expiryDuration: Duration,
         roles: Array<String>,
         key1: String = String.EMPTY,
         key2: String = String.EMPTY,
-    ): String = generate(userId, username, expiryDuration, roles, accessSecret, key1, key2)
+    ): String = generate(userId.toString(), username, expiryDuration, roles, accessSecret, key1, key2)
 
     fun generateRefreshToken(
-        userId: String,
+        userId: Int,
         username: String,
         expiryDuration: Duration,
         roles: Array<String>,
-    ): String = generate(userId, username, expiryDuration, roles, refreshSecret)
+    ): String = generate(userId.toString(), username, expiryDuration, roles, refreshSecret)
 
     fun decodeAccessToken(accessToken: String): DecodedJWT = decode(accessSecret, accessToken)
 
@@ -55,7 +55,7 @@ class JwtService(
 
         val accessToken =
             generateAccessToken(
-                decodedJWT.issuer,
+                decodedJWT.issuer.toInt(),
                 decodedJWT.subject,
                 EXPIRE_ACCESS_TOKEN,
                 roles,

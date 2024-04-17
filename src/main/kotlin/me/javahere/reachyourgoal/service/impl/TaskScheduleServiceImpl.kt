@@ -12,10 +12,6 @@ import me.javahere.reachyourgoal.domain.dto.request.RequestDeleteTaskSchedules
 import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskSchedules
 import me.javahere.reachyourgoal.domain.entity.TaskSchedule
 import me.javahere.reachyourgoal.domain.exception.RYGException
-import me.javahere.reachyourgoal.domain.id.TaskId
-import me.javahere.reachyourgoal.domain.id.TaskPlanId
-import me.javahere.reachyourgoal.domain.id.TaskScheduleId
-import me.javahere.reachyourgoal.domain.id.UserId
 import me.javahere.reachyourgoal.repository.TaskScheduleRepository
 import me.javahere.reachyourgoal.service.TaskPlanService
 import me.javahere.reachyourgoal.service.TaskScheduleService
@@ -31,7 +27,7 @@ class TaskScheduleServiceImpl(
 ) : TaskScheduleService {
     @Transactional
     override suspend fun createTaskSchedules(
-        userId: UserId,
+        userId: Int,
         requestCreateTaskSchedules: RequestCreateTaskSchedules,
     ): Flow<TaskScheduleDto> {
         taskService.validateTaskExistence(requestCreateTaskSchedules.taskId, userId)
@@ -54,9 +50,9 @@ class TaskScheduleServiceImpl(
     }
 
     override suspend fun getTaskSchedules(
-        userId: UserId,
-        taskId: TaskId,
-        planId: TaskPlanId,
+        userId: Int,
+        taskId: Int,
+        planId: Int,
     ): Flow<TaskScheduleDto> {
         taskService.validateTaskExistence(taskId, userId)
         taskPlanService.validateTaskPlanExistence(planId, userId)
@@ -68,7 +64,7 @@ class TaskScheduleServiceImpl(
 
     @Transactional
     override suspend fun updateTaskSchedules(
-        userId: UserId,
+        userId: Int,
         requestUpdateTaskSchedules: RequestUpdateTaskSchedules,
     ): Flow<TaskScheduleDto> {
         return coroutineScope {
@@ -98,7 +94,7 @@ class TaskScheduleServiceImpl(
 
     @Transactional
     override suspend fun deleteTaskSchedules(
-        userId: UserId,
+        userId: Int,
         requestDeleteTaskSchedules: RequestDeleteTaskSchedules,
     ) {
         coroutineScope {
@@ -120,8 +116,8 @@ class TaskScheduleServiceImpl(
     }
 
     override suspend fun validateTaskScheduleExistence(
-        userId: UserId,
-        taskScheduleId: TaskScheduleId,
+        userId: Int,
+        taskScheduleId: Int,
     ): TaskScheduleDto {
         return taskScheduleRepository
             .findById(taskScheduleId)

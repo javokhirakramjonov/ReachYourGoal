@@ -3,39 +3,36 @@ package me.javahere.reachyourgoal.service
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.dto.TaskTagDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskTag
-import me.javahere.reachyourgoal.domain.id.TaskId
-import me.javahere.reachyourgoal.domain.id.TaskTagId
-import me.javahere.reachyourgoal.domain.id.UserId
 
 interface TaskTagService {
     suspend fun createTaskTag(
         requestCreateTaskTag: RequestCreateTaskTag,
-        userId: UserId,
+        userId: Int,
     ): TaskTagDto
 
     suspend fun attachTagToTask(
-        taskId: TaskId,
-        tagId: TaskTagId,
-        userId: UserId,
+        taskId: Int,
+        tagId: Int,
+        userId: Int,
     )
 
-    suspend fun getAllTagsByUserId(userId: UserId): Flow<TaskTagDto>
+    suspend fun getAllTagsByUserId(userId: Int): Flow<TaskTagDto>
 
-    suspend fun deleteAllTagsByUserId(userId: UserId)
+    suspend fun deleteAllTagsByUserId(userId: Int)
 
     suspend fun deleteTagById(
-        tagId: TaskTagId,
-        userId: UserId,
+        tagId: Int,
+        userId: Int,
     )
 
     suspend fun updateTag(
         taskTagDto: TaskTagDto,
-        userId: UserId,
+        userId: Int,
     ): TaskTagDto
 
     suspend fun detachTagFromTask(
-        taskId: TaskId,
-        tagId: TaskTagId,
-        userId: UserId,
+        taskId: Int,
+        tagId: Int,
+        userId: Int,
     )
 }

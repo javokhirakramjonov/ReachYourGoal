@@ -3,7 +3,6 @@ package me.javahere.reachyourgoal.controller.handler.task
 import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
 import me.javahere.reachyourgoal.controller.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
-import me.javahere.reachyourgoal.domain.id.TaskId
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import me.javahere.reachyourgoal.util.extensions.validateAndThrow
@@ -40,7 +39,6 @@ class TaskRoutesHandler(
             serverRequest
                 .pathVariable(TASK_ID)
                 .toInt()
-                .let(::TaskId)
 
         val task = taskService.getTaskById(taskId, userId)
 
@@ -53,7 +51,6 @@ class TaskRoutesHandler(
             serverRequest
                 .pathVariable(TASK_ID)
                 .toInt()
-                .let(::TaskId)
 
         taskService.deleteTaskById(taskId, userId)
 

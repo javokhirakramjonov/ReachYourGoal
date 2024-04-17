@@ -1,9 +1,7 @@
 package me.javahere.reachyourgoal.domain.dto
 
-import me.javahere.reachyourgoal.domain.id.UserId
-
 class UserDto(
-    val id: UserId,
+    val id: Int,
     val firstName: String,
     val lastName: String,
     val username: String,

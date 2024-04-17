@@ -1,10 +1,9 @@
 package me.javahere.reachyourgoal.domain.dto.request
 
 import me.javahere.reachyourgoal.domain.entity.TaskStatus
-import me.javahere.reachyourgoal.domain.id.TaskScheduleId
 
 class RequestUpdateTaskSchedule(
-    val scheduleId: TaskScheduleId,
+    val scheduleId: Int,
     val taskStatus: TaskStatus,
 )
 

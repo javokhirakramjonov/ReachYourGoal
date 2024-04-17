@@ -6,8 +6,6 @@ import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 import me.javahere.reachyourgoal.domain.entity.TaskPlan
 import me.javahere.reachyourgoal.domain.exception.RYGException
-import me.javahere.reachyourgoal.domain.id.TaskPlanId
-import me.javahere.reachyourgoal.domain.id.UserId
 import me.javahere.reachyourgoal.repository.TaskPlanRepository
 import me.javahere.reachyourgoal.service.TaskPlanService
 import org.springframework.stereotype.Service
@@ -17,7 +15,7 @@ class TaskPlanServiceImpl(
     private val taskPlanRepository: TaskPlanRepository,
 ) : TaskPlanService {
     override suspend fun createTaskPlan(
-        userId: UserId,
+        userId: Int,
         requestCreateTaskPlan: RequestCreateTaskPlan,
     ): TaskPlanDto {
         val taskPlan = requestCreateTaskPlan.transform(userId)
@@ -25,14 +23,14 @@ class TaskPlanServiceImpl(
         return taskPlanRepository.save(taskPlan).transform()
     }
 
-    override suspend fun getTaskPlans(userId: UserId): Flow<TaskPlanDto> {
+    override suspend fun getTaskPlans(userId: Int): Flow<TaskPlanDto> {
         return taskPlanRepository
             .findAllByUserId(userId)
             .map(TaskPlan::transform)
     }
 
     override suspend fun updateTaskPlan(
-        userId: UserId,
+        userId: Int,
         taskPlanDto: TaskPlanDto,
     ): TaskPlanDto {
         val taskPlan = validateTaskPlanExistence(taskPlanDto.id, userId)
@@ -50,8 +48,8 @@ class TaskPlanServiceImpl(
     }
 
     override suspend fun deleteTaskPlan(
-        userId: UserId,
-        taskPlanId: TaskPlanId,
+        userId: Int,
+        taskPlanId: Int,
     ) {
         val taskPlan = validateTaskPlanExistence(taskPlanId, userId)
 
@@ -59,8 +57,8 @@ class TaskPlanServiceImpl(
     }
 
     override suspend fun validateTaskPlanExistence(
-        taskPlanId: TaskPlanId,
-        userId: UserId,
+        taskPlanId: Int,
+        userId: Int,
     ): TaskPlanDto {
         return taskPlanRepository
             .findById(taskPlanId)

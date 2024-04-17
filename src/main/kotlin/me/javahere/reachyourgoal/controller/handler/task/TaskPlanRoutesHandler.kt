@@ -3,7 +3,6 @@ package me.javahere.reachyourgoal.controller.handler.task
 import me.javahere.reachyourgoal.controller.routers.TaskPlanRoutes.Companion.TASK_PLAN_ID
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
-import me.javahere.reachyourgoal.domain.id.TaskPlanId
 import me.javahere.reachyourgoal.service.TaskPlanService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import org.springframework.http.HttpStatus
@@ -53,7 +52,7 @@ class TaskPlanRoutesHandler(
     suspend fun deleteTaskPlan(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val taskPlanId = TaskPlanId(serverRequest.pathVariable(TASK_PLAN_ID).toInt())
+        val taskPlanId = serverRequest.pathVariable(TASK_PLAN_ID).toInt()
 
         taskPlanService.deleteTaskPlan(userId, taskPlanId)
 

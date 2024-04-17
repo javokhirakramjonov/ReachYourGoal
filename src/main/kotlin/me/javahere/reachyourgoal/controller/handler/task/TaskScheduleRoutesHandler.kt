@@ -5,8 +5,6 @@ import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedules
 import me.javahere.reachyourgoal.domain.dto.request.RequestDeleteTaskSchedules
 import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateTaskSchedules
-import me.javahere.reachyourgoal.domain.id.TaskId
-import me.javahere.reachyourgoal.domain.id.TaskPlanId
 import me.javahere.reachyourgoal.service.TaskScheduleService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import org.springframework.stereotype.Component
@@ -38,12 +36,11 @@ class TaskScheduleRoutesHandler(
             routeHandlerUtils
                 .getQueryParamOrThrow(serverRequest, TASK_ID)
                 .toInt()
-                .let(::TaskId)
+
         val taskPlanId =
             routeHandlerUtils
                 .getQueryParamOrThrow(serverRequest, TASK_PLAN_ID)
                 .toInt()
-                .let(::TaskPlanId)
 
         val taskSchedules = taskScheduleService.getTaskSchedules(userId, taskId, taskPlanId)
 
