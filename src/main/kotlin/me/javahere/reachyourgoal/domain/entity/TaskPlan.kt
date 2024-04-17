@@ -2,17 +2,17 @@ package me.javahere.reachyourgoal.domain.entity
 
 import me.javahere.reachyourgoal.domain.Transformable
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
-import me.javahere.reachyourgoal.domain.id.TaskPlanId
-import me.javahere.reachyourgoal.domain.id.UserId
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
+import org.springframework.data.relational.core.mapping.Table
 
+@Table(name = "task_plans")
 data class TaskPlan(
     @Id
     @Column("id")
-    val id: TaskPlanId = TaskPlanId(),
+    val id: Int = 0,
     @Column("user_id")
-    val userId: UserId,
+    val userId: Int,
     @Column("name")
     val name: String,
     @Column("description")

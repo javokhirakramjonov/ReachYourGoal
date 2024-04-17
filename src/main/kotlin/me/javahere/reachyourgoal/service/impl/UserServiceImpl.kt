@@ -7,7 +7,6 @@ import me.javahere.reachyourgoal.domain.dto.request.RequestUpdateEmail
 import me.javahere.reachyourgoal.domain.entity.User
 import me.javahere.reachyourgoal.domain.exception.RYGException
 import me.javahere.reachyourgoal.domain.exception.RYGExceptionGroup
-import me.javahere.reachyourgoal.domain.id.UserId
 import me.javahere.reachyourgoal.repository.UserRepository
 import me.javahere.reachyourgoal.service.EmailService
 import me.javahere.reachyourgoal.service.UserService
@@ -57,7 +56,7 @@ class UserServiceImpl(
 
         val token =
             jwtService.generateAccessToken(
-                createdUser.id.value.toString(),
+                createdUser.id,
                 user.username,
                 EXPIRE_CONFIRMATION_TOKEN,
                 emptyArray(),
@@ -92,7 +91,7 @@ class UserServiceImpl(
 
         if (key != JWT_KEY_PAIR_CONFIRM_REGISTER) throw invalidConfirmToken
 
-        val userId = UserId(decodedToken.issuer.toInt())
+        val userId = decodedToken.issuer.toInt()
 
         val user = userRepository.findById(userId) ?: throw RYGException("User(id = $userId) is not found")
 
@@ -108,7 +107,7 @@ class UserServiceImpl(
 
         if (key != JWT_KEY_PAIR_CONFIRM_NEW_EMAIL) throw invalidConfirmToken
 
-        val userId = UserId(decodedToken.issuer.toInt())
+        val userId = decodedToken.issuer.toInt()
         val newEmail = decodedToken.getClaim(JWT_EXTRA_KEY_1).asString()
 
         val user = userRepository.findById(userId) ?: throw invalidConfirmToken
@@ -118,7 +117,7 @@ class UserServiceImpl(
         return confirmedUser.transform()
     }
 
-    override suspend fun findUserById(userId: UserId): UserDto {
+    override suspend fun findUserById(userId: Int): UserDto {
         return userRepository
             .findById(userId)
             ?.transform()
@@ -149,7 +148,7 @@ class UserServiceImpl(
         }
 
     override suspend fun updateUser(
-        userId: UserId,
+        userId: Int,
         firstName: String?,
         lastName: String?,
     ): UserDto {
@@ -185,7 +184,7 @@ class UserServiceImpl(
 
         val token =
             jwtService.generateAccessToken(
-                user.id.toString(),
+                user.id,
                 user.username,
                 EXPIRE_CONFIRMATION_TOKEN,
                 emptyArray(),
@@ -204,7 +203,7 @@ class UserServiceImpl(
         )
     }
 
-    override suspend fun deleteUserById(userId: UserId) {
+    override suspend fun deleteUserById(userId: Int) {
         userRepository.deleteById(userId)
     }
 }
