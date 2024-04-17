@@ -27,6 +27,10 @@ import org.springframework.web.reactive.function.server.coRouter
 class UserRoutes(
     private val userRoutesHandler: UserRoutesHandler,
 ) {
+    companion object {
+        const val TOKEN_PARAMETER = "token"
+    }
+
     @Bean
     fun authOpenApi(): GroupedOpenApi {
         val paths = arrayOf("/auth/**")
@@ -89,7 +93,7 @@ class UserRoutes(
             Operation(
                 operationId = "confirmRegister",
                 summary = "confirm registration",
-                parameters = [Parameter(name = "token", description = "token provided in email")],
+                parameters = [Parameter(name = TOKEN_PARAMETER, description = "token provided in email")],
                 responses = [
                     ApiResponse(
                         responseCode = "200",
@@ -129,7 +133,7 @@ class UserRoutes(
             Operation(
                 operationId = "confirmNewEmail",
                 summary = "confirm new email",
-                parameters = [Parameter(name = "token", description = "token provided in new email")],
+                parameters = [Parameter(name = TOKEN_PARAMETER, description = "token provided in new email")],
                 responses = [
                     ApiResponse(
                         responseCode = "200",

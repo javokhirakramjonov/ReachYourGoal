@@ -57,7 +57,7 @@ class UserServiceImpl(
 
         val token =
             jwtService.generateAccessToken(
-                createdUser.id.toString(),
+                createdUser.id.value.toString(),
                 user.username,
                 EXPIRE_CONFIRMATION_TOKEN,
                 emptyArray(),
@@ -94,7 +94,7 @@ class UserServiceImpl(
 
         val userId = UserId(decodedToken.issuer.toInt())
 
-        val user = userRepository.findById(userId) ?: throw invalidConfirmToken
+        val user = userRepository.findById(userId) ?: throw RYGException("User(id = $userId) is not found")
 
         val confirmedUser = userRepository.save(user.copy(isConfirmed = true))
 
