@@ -3,6 +3,7 @@ package me.javahere.reachyourgoal.controller.handler.task
 import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
 import me.javahere.reachyourgoal.controller.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
+import me.javahere.reachyourgoal.domain.id.TaskId
 import me.javahere.reachyourgoal.service.TaskService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
 import me.javahere.reachyourgoal.util.extensions.validateAndThrow
@@ -34,11 +35,12 @@ class TaskRoutesHandler(
     }
 
     suspend fun getTaskById(serverRequest: ServerRequest): ServerResponse {
-        val (userId, taskId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                serverRequest.pathVariable(TASK_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val taskId =
+            serverRequest
+                .pathVariable(TASK_ID)
+                .toInt()
+                .let(::TaskId)
 
         val task = taskService.getTaskById(taskId, userId)
 
@@ -46,13 +48,14 @@ class TaskRoutesHandler(
     }
 
     suspend fun deleteTaskById(serverRequest: ServerRequest): ServerResponse {
-        val (userId, taskId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                serverRequest.pathVariable(TASK_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val taskId =
+            serverRequest
+                .pathVariable(TASK_ID)
+                .toInt()
+                .let(::TaskId)
 
-        taskService.deleteTaskById(userId, taskId)
+        taskService.deleteTaskById(taskId, userId)
 
         return ServerResponse.noContent().buildAndAwait()
     }

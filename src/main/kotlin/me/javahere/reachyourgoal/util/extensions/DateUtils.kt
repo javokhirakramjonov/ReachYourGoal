@@ -1,9 +1,8 @@
 package me.javahere.reachyourgoal.util.extensions
 
-import me.javahere.reachyourgoal.domain.entity.DateFrequency
+import me.javahere.reachyourgoal.domain.DateFrequency
 import java.time.DayOfWeek
 import java.time.LocalDate
-import kotlin.time.Duration.Companion.milliseconds
 
 const val WEEK_DAYS_COUNT = 7
 
@@ -54,12 +53,4 @@ fun createListOfDays(
             WEEK_DAYS_COUNT,
         )
     }.flatten()
-}
-
-fun kotlin.time.Duration.toJavaDuration(): java.time.Duration {
-    return java.time.Duration.ofMillis(this.inWholeMilliseconds)
-}
-
-fun java.time.Duration.toKotlinDuration(): kotlin.time.Duration {
-    return this.toMillis().milliseconds
 }

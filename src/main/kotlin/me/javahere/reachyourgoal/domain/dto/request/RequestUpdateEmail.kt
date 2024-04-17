@@ -1,6 +1,8 @@
 package me.javahere.reachyourgoal.domain.dto.request
 
+import me.javahere.reachyourgoal.domain.id.UserId
+
 class RequestUpdateEmail(
-    val userId: Int,
+    val userId: UserId,
     val newEmail: String,
 )

@@ -2,38 +2,41 @@ package me.javahere.reachyourgoal.service
 
 import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.dto.TaskAttachmentDto
+import me.javahere.reachyourgoal.domain.id.TaskAttachmentId
+import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.UserId
 import org.springframework.http.codec.multipart.FilePart
 import java.io.File
 
 interface TaskAttachmentService {
     suspend fun createTaskAttachment(
-        taskId: Int,
+        taskId: TaskId,
         filePart: FilePart,
-        userId: Int,
+        userId: UserId,
     ): TaskAttachmentDto
 
     suspend fun getTaskAttachmentById(
-        attachmentId: Int,
-        userId: Int,
+        attachmentId: TaskAttachmentId,
+        userId: UserId,
     ): Pair<TaskAttachmentName, File>
 
     suspend fun getAllTaskAttachmentsByTaskId(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     ): Flow<TaskAttachmentDto>
 
     suspend fun deleteTaskAttachmentById(
-        attachmentId: Int,
-        userId: Int,
+        attachmentId: TaskAttachmentId,
+        userId: UserId,
     )
 
     suspend fun deleteAllTaskAttachmentsByTaskId(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     )
 
     suspend fun validateTaskAttachmentExistence(
-        attachmentId: Int,
-        userId: Int,
+        attachmentId: TaskAttachmentId,
+        userId: UserId,
     ): TaskAttachmentDto
 }

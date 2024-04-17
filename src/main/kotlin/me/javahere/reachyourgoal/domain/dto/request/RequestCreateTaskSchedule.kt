@@ -1,8 +1,9 @@
 package me.javahere.reachyourgoal.domain.dto.request
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import me.javahere.reachyourgoal.domain.entity.DateFrequency
+import me.javahere.reachyourgoal.domain.DateFrequency
 import me.javahere.reachyourgoal.domain.entity.TaskSchedule
+import me.javahere.reachyourgoal.domain.id.TaskId
 import me.javahere.reachyourgoal.util.extensions.createListOfDays
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -52,7 +53,7 @@ open class RequestCreateTaskSchedule(
             taskTime,
         )
 
-    fun transform(taskId: Int): List<TaskSchedule> {
+    fun transform(taskId: TaskId): List<TaskSchedule> {
         return createListOfDays(fromDate, toDate, frequency).map {
             TaskSchedule(
                 taskId = taskId,

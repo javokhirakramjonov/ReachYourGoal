@@ -4,6 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import me.javahere.reachyourgoal.domain.dto.TaskDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
 import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.UserId
 import me.javahere.reachyourgoal.domain.transformCollection
 import me.javahere.reachyourgoal.repository.TaskRepository
 import me.javahere.reachyourgoal.service.TaskAttachmentService
@@ -20,7 +22,7 @@ class TaskServiceImpl(
 ) : TaskService {
     override suspend fun createTask(
         requestCreateTask: RequestCreateTask,
-        userId: Int,
+        userId: UserId,
     ): TaskDto {
         return taskRepository
             .save(requestCreateTask.transform(userId))
@@ -28,13 +30,13 @@ class TaskServiceImpl(
     }
 
     override suspend fun getTaskById(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     ): TaskDto {
         return validateTaskExistence(taskId, userId)
     }
 
-    override suspend fun getAllTasksByUserId(userId: Int): Flow<TaskDto> {
+    override suspend fun getAllTasksByUserId(userId: UserId): Flow<TaskDto> {
         return taskRepository
             .findAllByUserId(userId)
             .transformCollection()
@@ -42,7 +44,7 @@ class TaskServiceImpl(
 
     override suspend fun updateTask(
         task: TaskDto,
-        userId: Int,
+        userId: UserId,
     ): TaskDto {
         validateTaskExistence(task.id, userId)
 
@@ -53,8 +55,8 @@ class TaskServiceImpl(
 
     @Transactional(rollbackFor = [RYGException::class])
     override suspend fun deleteTaskById(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     ) {
         validateTaskExistence(taskId, userId)
 
@@ -64,8 +66,8 @@ class TaskServiceImpl(
     }
 
     override suspend fun validateTaskExistence(
-        taskId: Int,
-        userId: Int,
+        taskId: TaskId,
+        userId: UserId,
     ): TaskDto {
         val task =
             taskRepository

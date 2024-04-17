@@ -5,6 +5,9 @@ import me.javahere.reachyourgoal.domain.dto.TaskScheduleDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskSchedule
 import me.javahere.reachyourgoal.domain.dto.request.RequestGetTaskSchedule
 import me.javahere.reachyourgoal.domain.exception.RYGException
+import me.javahere.reachyourgoal.domain.id.TaskId
+import me.javahere.reachyourgoal.domain.id.TaskScheduleId
+import me.javahere.reachyourgoal.domain.id.UserId
 import me.javahere.reachyourgoal.domain.transformCollection
 import me.javahere.reachyourgoal.repository.TaskScheduleRepository
 import me.javahere.reachyourgoal.service.TaskScheduleService
@@ -17,8 +20,8 @@ class TaskScheduleServiceImpl(
     private val taskScheduleRepository: TaskScheduleRepository,
 ) : TaskScheduleService {
     override suspend fun createTaskSchedule(
-        userId: Int,
-        taskId: Int,
+        userId: UserId,
+        taskId: TaskId,
         requestCreateTaskSchedule: RequestCreateTaskSchedule,
     ): Flow<TaskScheduleDto> {
         taskService.validateTaskExistence(taskId, userId)
@@ -29,8 +32,8 @@ class TaskScheduleServiceImpl(
     }
 
     override suspend fun getTaskScheduleForTaskAndPeriod(
-        userId: Int,
-        taskId: Int,
+        userId: UserId,
+        taskId: TaskId,
         taskSchedule: RequestGetTaskSchedule,
     ): Flow<TaskScheduleDto> {
         taskService.validateTaskExistence(taskId, userId)
@@ -43,7 +46,7 @@ class TaskScheduleServiceImpl(
     }
 
     override suspend fun updateTaskSchedule(
-        userId: Int,
+        userId: UserId,
         taskScheduleDto: TaskScheduleDto,
     ): TaskScheduleDto {
         validateTaskScheduleExistence(taskScheduleDto.scheduleId, userId)
@@ -54,8 +57,8 @@ class TaskScheduleServiceImpl(
     }
 
     override suspend fun deleteTaskScheduleByTaskIdAndPeriod(
-        userId: Int,
-        taskId: Int,
+        userId: UserId,
+        taskId: TaskId,
         taskSchedule: RequestCreateTaskSchedule,
     ) {
         taskService.validateTaskExistence(taskId, userId)
@@ -66,8 +69,8 @@ class TaskScheduleServiceImpl(
     }
 
     override suspend fun validateTaskScheduleExistence(
-        taskScheduleId: Int,
-        userId: Int,
+        taskScheduleId: TaskScheduleId,
+        userId: UserId,
     ): TaskScheduleDto {
         val taskSchedule =
             taskScheduleRepository.findById(taskScheduleId)
