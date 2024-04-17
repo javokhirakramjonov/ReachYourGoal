@@ -27,7 +27,6 @@ data class Task(
             name = name,
             description = description,
             spentTime = spentTime,
-            userId = userId,
         )
     }
 }

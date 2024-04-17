@@ -47,7 +47,7 @@ class TaskServiceImpl(
         validateTaskExistence(task.id, userId)
 
         return taskRepository
-            .save(task.transform())
+            .save(task.transform(userId))
             .transform()
     }
 
