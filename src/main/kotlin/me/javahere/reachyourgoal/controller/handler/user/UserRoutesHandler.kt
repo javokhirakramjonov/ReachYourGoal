@@ -1,5 +1,6 @@
 package me.javahere.reachyourgoal.controller.handler.user
 
+import me.javahere.reachyourgoal.controller.routers.UserRoutes.Companion.TOKEN_PARAMETER
 import me.javahere.reachyourgoal.controller.validator.RequestRegisterValidator
 import me.javahere.reachyourgoal.controller.validator.RequestUpdateEmailValidator
 import me.javahere.reachyourgoal.domain.dto.request.RequestRegister
@@ -64,7 +65,7 @@ class UserRoutesHandler(
     }
 
     suspend fun confirmRegister(serverRequest: ServerRequest): ServerResponse {
-        val token = serverRequest.queryParam("token").get()
+        val token = serverRequest.queryParam(TOKEN_PARAMETER).get()
 
         val confirmedUser = userService.confirmRegister(token)
 
@@ -74,7 +75,7 @@ class UserRoutesHandler(
     }
 
     suspend fun confirmNewEmail(serverRequest: ServerRequest): ServerResponse {
-        val token = serverRequest.queryParam("token").get()
+        val token = serverRequest.queryParam(TOKEN_PARAMETER).get()
 
         val confirmedUser = userService.confirmNewEmail(token)
 

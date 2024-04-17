@@ -19,9 +19,24 @@ class ReachYourGoalExceptionHandler : ResponseEntityExceptionHandler() {
     fun handleExceptions(ex: Exception): Mono<ResponseEntity<*>> {
         val errors =
             when (ex) {
-                is RYGException -> listOf(ex)
-                is RYGExceptionGroup -> ex.exceptions.toList()
-                else -> listOf(RYGException(ex.message))
+                is RYGException ->
+                    listOf(ex)
+                        .also {
+                            println("RYGException: ${ex.message}")
+                        }
+                is RYGExceptionGroup ->
+                    ex
+                        .exceptions
+                        .toList()
+                        .also {
+                            ex.exceptions.forEach {
+                                println("RYGException: ${it.message}")
+                            }
+                        }
+                else ->
+                    listOf(RYGException(ex.message)).also {
+                        println("Unknown exception: ${ex.stackTrace.joinToString(separator = "\n")}")
+                    }
             }
                 .map { ErrorResponse(it.message.orEmpty()) }
 
