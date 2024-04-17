@@ -94,7 +94,7 @@ class UserServiceImpl(
 
         val userId = UserId(decodedToken.issuer.toInt())
 
-        val user = userRepository.findById(userId.value) ?: throw RYGException("User(id = $userId) is not found")
+        val user = userRepository.findById(userId) ?: throw RYGException("User(id = $userId) is not found")
 
         val confirmedUser = userRepository.save(user.copy(isConfirmed = true))
 
@@ -111,7 +111,7 @@ class UserServiceImpl(
         val userId = UserId(decodedToken.issuer.toInt())
         val newEmail = decodedToken.getClaim(JWT_EXTRA_KEY_1).asString()
 
-        val user = userRepository.findById(userId.value) ?: throw invalidConfirmToken
+        val user = userRepository.findById(userId) ?: throw invalidConfirmToken
 
         val confirmedUser = userRepository.save(user.copy(email = newEmail))
 
@@ -120,7 +120,7 @@ class UserServiceImpl(
 
     override suspend fun findUserById(userId: UserId): UserDto {
         return userRepository
-            .findById(userId.value)
+            .findById(userId)
             ?.transform()
             ?: throw RYGException("User(id = $userId) is not found")
     }
@@ -154,7 +154,7 @@ class UserServiceImpl(
         lastName: String?,
     ): UserDto {
         val foundUser =
-            userRepository.findById(userId.value) ?: throw RYGException("User(id = $userId) is not found")
+            userRepository.findById(userId) ?: throw RYGException("User(id = $userId) is not found")
 
         val newFirstName = firstName ?: foundUser.firstname
         val newLastName = lastName ?: foundUser.lastname
@@ -205,6 +205,6 @@ class UserServiceImpl(
     }
 
     override suspend fun deleteUserById(userId: UserId) {
-        userRepository.deleteById(userId.value)
+        userRepository.deleteById(userId)
     }
 }

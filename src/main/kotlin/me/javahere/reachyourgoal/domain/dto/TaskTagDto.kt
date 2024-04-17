@@ -10,9 +10,9 @@ class TaskTagDto(
 ) {
     fun transform(userId: UserId): TaskTag {
         return TaskTag(
-            id = id.value,
+            id = id,
             name = name,
-            userId = userId.value,
+            userId = userId,
         )
     }
 }

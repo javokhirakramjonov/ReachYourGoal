@@ -12,16 +12,16 @@ import org.springframework.data.relational.core.mapping.Table
 data class TaskAttachment(
     @Id
     @Column("id")
-    val id: Int = 0,
+    val id: TaskAttachmentId = TaskAttachmentId(),
     @Column("name")
     val name: String,
     @Column("task_id")
-    val taskId: Int,
+    val taskId: TaskId,
 ) : Transformable<TaskAttachmentDto> {
     override fun transform(): TaskAttachmentDto {
         return TaskAttachmentDto(
-            id = TaskAttachmentId(id),
-            taskId = TaskId(taskId),
+            id = id,
+            taskId = taskId,
             fileName = name,
         )
     }

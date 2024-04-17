@@ -3,15 +3,16 @@ package me.javahere.reachyourgoal.domain.entity
 import me.javahere.reachyourgoal.domain.Transformable
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
 import me.javahere.reachyourgoal.domain.id.TaskPlanId
+import me.javahere.reachyourgoal.domain.id.UserId
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 
 data class TaskPlan(
     @Id
     @Column("id")
-    val id: Int = 0,
+    val id: TaskPlanId = TaskPlanId(),
     @Column("user_id")
-    val userId: Int,
+    val userId: UserId,
     @Column("name")
     val name: String,
     @Column("description")
@@ -19,7 +20,7 @@ data class TaskPlan(
 ) : Transformable<TaskPlanDto> {
     override fun transform(): TaskPlanDto {
         return TaskPlanDto(
-            id = TaskPlanId(id),
+            id = id,
             name = name,
             description = description,
         )

@@ -11,8 +11,8 @@ class TaskPlanDto(
 ) {
     fun transform(userId: UserId): TaskPlan {
         return TaskPlan(
-            id = id.value,
-            userId = userId.value,
+            id = id,
+            userId = userId,
             name = name,
             description = description,
         )
