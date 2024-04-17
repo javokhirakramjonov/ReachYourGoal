@@ -38,7 +38,7 @@ class TaskServiceImpl(
 
     override suspend fun getAllTasksByUserId(userId: UserId): Flow<TaskDto> {
         return taskRepository
-            .findAllByUserId(userId)
+            .findAllByUserId(userId.value)
             .transformCollection()
     }
 
@@ -60,7 +60,7 @@ class TaskServiceImpl(
     ) {
         validateTaskExistence(taskId, userId)
 
-        taskRepository.deleteById(taskId)
+        taskRepository.deleteById(taskId.value)
 
         taskAttachmentService.deleteAllTaskAttachmentsByTaskId(taskId, userId)
     }
@@ -71,7 +71,7 @@ class TaskServiceImpl(
     ): TaskDto {
         val task =
             taskRepository
-                .findByIdAndUserId(taskId, userId)
+                .findByIdAndUserId(taskId.value, userId.value)
                 ?: throw RYGException("Task(id = $taskId) not found for user(userId = $userId)")
 
         return task.transform()

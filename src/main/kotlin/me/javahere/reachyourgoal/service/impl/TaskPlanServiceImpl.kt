@@ -27,7 +27,7 @@ class TaskPlanServiceImpl(
 
     override suspend fun getTaskPlans(userId: UserId): Flow<TaskPlanDto> {
         return taskPlanRepository
-            .findAllByUserId(userId)
+            .findAllByUserId(userId.value)
             .map(TaskPlan::transform)
     }
 
@@ -63,8 +63,8 @@ class TaskPlanServiceImpl(
         userId: UserId,
     ): TaskPlanDto {
         return taskPlanRepository
-            .findById(taskPlanId)
-            ?.takeIf { it.userId == userId }
+            .findById(taskPlanId.value)
+            ?.takeIf { it.userId == userId.value }
             ?.transform()
             ?: throw RYGException("Task plan(id = $taskPlanId) not found for user(id = $userId)")
     }

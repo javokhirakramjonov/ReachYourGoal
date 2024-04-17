@@ -13,11 +13,11 @@ class TaskDto(
 ) {
     fun transform(userId: UserId): Task {
         return Task(
-            id = id,
+            id = id.value,
             name = name,
             description = description,
             spentTime = spentTime,
-            userId = userId,
+            userId = userId.value,
         )
     }
 }

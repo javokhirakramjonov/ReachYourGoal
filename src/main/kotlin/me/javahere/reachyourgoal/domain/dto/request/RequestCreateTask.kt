@@ -11,7 +11,7 @@ class RequestCreateTask(
         return Task(
             name = name,
             description = description,
-            userId = userId,
+            userId = userId.value,
         )
     }
 }

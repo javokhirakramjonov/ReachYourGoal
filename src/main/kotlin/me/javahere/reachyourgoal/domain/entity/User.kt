@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 data class User(
     @Id
     @Column("id")
-    val id: UserId = UserId(),
+    val id: Int = 0,
     @Column("first_name")
     val firstname: String,
     @Column("last_name")
@@ -60,7 +60,7 @@ data class User(
 
     override fun transform(): UserDto {
         return UserDto(
-            id = id,
+            id = UserId(id),
             firstName = firstname,
             lastName = lastname,
             email = email,
