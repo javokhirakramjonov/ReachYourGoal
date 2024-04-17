@@ -1,6 +1,5 @@
 package me.javahere.reachyourgoal.controller.handler.task
 
-import me.javahere.reachyourgoal.controller.routers.TaskCategoryRoutes.Companion.TASK_CATEGORY_ID
 import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
 import me.javahere.reachyourgoal.controller.validator.RequestTaskCreateValidator
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTask
@@ -59,13 +58,9 @@ class TaskRoutesHandler(
     }
 
     suspend fun getAllTasks(serverRequest: ServerRequest): ServerResponse {
-        val (userId, categoryId) =
-            listOf(
-                routeHandlerUtils.getUserId(serverRequest),
-                serverRequest.pathVariable(TASK_CATEGORY_ID).toInt(),
-            )
+        val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val allTasks = taskService.getAllTasksByCategoryId(categoryId, userId)
+        val allTasks = taskService.getAllTasksByUserId(userId)
 
         return ServerResponse.ok().bodyAndAwait(allTasks)
     }

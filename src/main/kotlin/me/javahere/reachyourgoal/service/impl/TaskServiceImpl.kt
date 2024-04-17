@@ -7,7 +7,6 @@ import me.javahere.reachyourgoal.domain.exception.RYGException
 import me.javahere.reachyourgoal.domain.transformCollection
 import me.javahere.reachyourgoal.repository.TaskRepository
 import me.javahere.reachyourgoal.service.TaskAttachmentService
-import me.javahere.reachyourgoal.service.TaskCategoryService
 import me.javahere.reachyourgoal.service.TaskService
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
@@ -15,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class TaskServiceImpl(
-    private val taskCategoryService: TaskCategoryService,
     private val taskRepository: TaskRepository,
     @Lazy
     private val taskAttachmentService: TaskAttachmentService,
@@ -24,10 +22,8 @@ class TaskServiceImpl(
         requestCreateTask: RequestCreateTask,
         userId: Int,
     ): TaskDto {
-        taskCategoryService.validateTaskCategoryExistence(requestCreateTask.categoryId, userId)
-
         return taskRepository
-            .save(requestCreateTask.transform())
+            .save(requestCreateTask.transform(userId))
             .transform()
     }
 
@@ -38,14 +34,9 @@ class TaskServiceImpl(
         return validateTaskExistence(taskId, userId)
     }
 
-    override suspend fun getAllTasksByCategoryId(
-        categoryId: Int,
-        userId: Int,
-    ): Flow<TaskDto> {
-        taskCategoryService.validateTaskCategoryExistence(categoryId, userId)
-
+    override suspend fun getAllTasksByUserId(userId: Int): Flow<TaskDto> {
         return taskRepository
-            .findAllByCategoryId(categoryId)
+            .findAllByUserId(userId)
             .transformCollection()
     }
 
@@ -56,7 +47,7 @@ class TaskServiceImpl(
         validateTaskExistence(task.id, userId)
 
         return taskRepository
-            .save(task.transform())
+            .save(task.transform(userId))
             .transform()
     }
 
@@ -78,10 +69,8 @@ class TaskServiceImpl(
     ): TaskDto {
         val task =
             taskRepository
-                .findById(taskId)
+                .findByIdAndUserId(taskId, userId)
                 ?: throw RYGException("Task(id = $taskId) not found for user(userId = $userId)")
-
-        taskCategoryService.validateTaskCategoryExistence(task.categoryId, userId)
 
         return task.transform()
     }

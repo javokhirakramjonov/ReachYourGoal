@@ -23,16 +23,32 @@ class UserRoutesHandler(
     private val requestRegisterValidator: RequestRegisterValidator,
     private val requestUpdateEmailValidator: RequestUpdateEmailValidator,
 ) {
-    suspend fun register(serverRequest: ServerRequest): ServerResponse {
+    private suspend fun getRegisterUserAndValidateOrThrow(serverRequest: ServerRequest): RequestRegister {
         val user = serverRequest.awaitBody(RequestRegister::class)
 
         requestRegisterValidator.validateAndThrow(user)
 
-        userService.register(user)
+        return user
+    }
+
+    suspend fun registerProductionMode(serverRequest: ServerRequest): ServerResponse {
+        val user = getRegisterUserAndValidateOrThrow(serverRequest)
+
+        userService.registerProductionMode(user)
 
         return ServerResponse
             .ok()
             .buildAndAwait()
+    }
+
+    suspend fun registerDevelopMode(serverRequest: ServerRequest): ServerResponse {
+        val user = getRegisterUserAndValidateOrThrow(serverRequest)
+
+        val confirmationToken = userService.registerDevelopMode(user)
+
+        return ServerResponse
+            .ok()
+            .bodyValueAndAwait(confirmationToken)
     }
 
     suspend fun updateEmail(serverRequest: ServerRequest): ServerResponse {

@@ -17,6 +17,7 @@ import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.buildAndAwait
@@ -37,6 +38,33 @@ class UserRoutes(
     }
 
     @Bean
+    @Profile("dev")
+    @RouterOperation(
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "register",
+                summary = "register user",
+                requestBody =
+                    RequestBody(
+                        content = [Content(schema = Schema(implementation = RequestRegister::class))],
+                    ),
+                responses = [
+                    ApiResponse(
+                        description = "confirmation token",
+                        responseCode = "200",
+                        content = [Content(schema = Schema(implementation = String::class))],
+                    ),
+                ],
+            ),
+    )
+    fun registerDevelopMode() =
+        coRouter {
+            POST("/auth/register", userRoutesHandler::registerDevelopMode)
+        }
+
+    @Bean
+    @Profile("prod")
     @RouterOperation(
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         operation =
@@ -49,9 +77,9 @@ class UserRoutes(
                     ),
             ),
     )
-    fun register() =
+    fun registerProductionMode() =
         coRouter {
-            POST("/auth/register", userRoutesHandler::register)
+            POST("/auth/register", userRoutesHandler::registerProductionMode)
         }
 
     @Bean

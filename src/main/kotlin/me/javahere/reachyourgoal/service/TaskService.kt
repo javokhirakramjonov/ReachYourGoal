@@ -17,10 +17,7 @@ interface TaskService {
         userId: Int,
     ): TaskDto
 
-    suspend fun getAllTasksByCategoryId(
-        categoryId: Int,
-        userId: Int,
-    ): Flow<TaskDto>
+    suspend fun getAllTasksByUserId(userId: Int): Flow<TaskDto>
 
     suspend fun updateTask(
         task: TaskDto,

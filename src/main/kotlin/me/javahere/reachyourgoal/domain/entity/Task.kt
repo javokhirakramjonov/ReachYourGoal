@@ -18,8 +18,8 @@ data class Task(
     val description: String? = null,
     @Column("spent_time")
     val spentTime: Duration = Duration.ZERO,
-    @Column("category_id")
-    val categoryId: Int,
+    @Column("user_id")
+    val userId: Int,
 ) : Transformable<TaskDto> {
     override fun transform(): TaskDto {
         return TaskDto(
@@ -27,7 +27,6 @@ data class Task(
             name = name,
             description = description,
             spentTime = spentTime,
-            categoryId = categoryId,
         )
     }
 }
