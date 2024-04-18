@@ -58,9 +58,9 @@ class TaskServiceImpl(
     ) {
         validateTaskExistence(taskId, userId)
 
-        taskRepository.deleteById(taskId)
-
         taskAttachmentService.deleteAllTaskAttachmentsByTaskId(taskId, userId)
+
+        taskRepository.deleteById(taskId)
     }
 
     override suspend fun validateTaskExistence(
@@ -69,7 +69,8 @@ class TaskServiceImpl(
     ): TaskDto {
         val task =
             taskRepository
-                .findByIdAndUserId(taskId, userId)
+                .findById(taskId)
+                .takeIf { it?.userId == userId }
                 ?: throw RYGException("Task(id = $taskId) not found for user(userId = $userId)")
 
         return task.transform()
