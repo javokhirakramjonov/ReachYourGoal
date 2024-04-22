@@ -7,11 +7,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Setting up variables
-        run: |
-          echo "GRAALVM_HOME: $GRAALVM_HOME"
-          echo "JAVA_HOME: $JAVA_HOME"
-          java --version
       - name: Deploy Spring App
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -23,7 +18,6 @@ jobs:
             git pull
             ./gradlew build -x test
             kill $(ps aux | pgrep -f "reachyourgoal")
-            nohup java -jar "$(ls build/libs/reachyourgoal-*.jar | sort -V | tail -n 1)" > output.log 2>&1 &
             
         
     
