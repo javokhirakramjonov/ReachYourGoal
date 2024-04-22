@@ -39,3 +39,7 @@ server:
     encoding:
       force: true
   port: ${RYG_PORT}
+  ssl:
+    key-store: ${KEY_STORE_PATH}
+    key-store-password: ${KEY_STORE_PASSWORD}
+    key-store-type: ${KEY_STORE_TYPE}
