@@ -1,5 +1,4 @@
 name: Build and Deploy
-
 on:
   push:
     branches: [develop]
@@ -7,17 +6,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-  steps:
-    - name: Deploy Spring App
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          mkdir test
-          git clone git@github.com:javokhirakramjonov/reach-your-goal-backend.git
-          echo 'Deployment successfull to Digital Ocean'
-      
-  
+    steps:
+      - name: Deploy Spring App
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            mkdir test
+            git clone git@github.com:javokhirakramjonov/reach-your-goal-backend.git
+            echo 'Deployment successfull to Digital Ocean'
+        
+    
   
