@@ -13,6 +13,12 @@ jobs:
           java-version: '21'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setting up variables
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          echo "JAVA_HOME: $JAVA_HOME"
+          java --version
+          native-image --version
       - name: Deploy Spring App
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -22,7 +28,9 @@ jobs:
           script: |
             cd reach-your-goal-backend
             git pull
-            echo 'I am here:)'
+            ./gradlew clean build -x test
+            kill $(ps aux | pgrep -f "reachyourgoal")
+            nohup java -jar "$(ls build/libs/reachyourgoal-*.jar | sort -V | tail -n 1)" > output.log 2>&1 &
             
         
     
