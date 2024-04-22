@@ -7,6 +7,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: setup tools
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy Spring App
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -14,9 +20,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           username: ${{ secrets.SSH_USERNAME }}
           script: |
-            mkdir test
-            git clone git@github.com:javokhirakramjonov/reach-your-goal-backend.git
-            echo 'Deployment successfull to Digital Ocean'
+            cd reach-your-goal-backend
+            git pull
+            echo 'I am here:)'
+            
         
     
   
