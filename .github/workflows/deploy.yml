@@ -16,9 +16,3 @@ jobs:
           script: |
             cd reach-your-goal-backend
             git pull
-            ./gradlew build -x test
-            kill $(ps aux | pgrep -f "reachyourgoal")
-            
-        
-    
-  
