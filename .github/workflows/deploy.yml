@@ -16,5 +16,6 @@ jobs:
           script: |
             cd reach-your-goal-backend
             git pull
-            pkill -f java
+            ./gradlew clean build -x test
+            pkill -9 java
             nohup java -jar build/libs/reachyourgoal-0.0.1.jar > output.log 2>&1 &
