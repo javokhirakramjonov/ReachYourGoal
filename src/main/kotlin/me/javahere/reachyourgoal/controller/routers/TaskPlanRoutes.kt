@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import me.javahere.reachyourgoal.controller.handler.task.TaskPlanRoutesHandler
+import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 import org.springdoc.core.annotations.RouterOperation
@@ -64,6 +65,32 @@ class TaskPlanRoutes(
 
     @Bean
     @RouterOperation(
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "addTaskToPlan",
+                summary = "add task to plan",
+                requestBody =
+                    RequestBody(
+                        content = [Content(schema = Schema(implementation = TaskAndPlanDto::class))],
+                    ),
+                responses = [
+                    ApiResponse(
+                        description = "added task to plan",
+                        responseCode = "201",
+                        content = [Content(schema = Schema(implementation = TaskAndPlanDto::class))],
+                    ),
+                ],
+            ),
+    )
+    fun addTaskToPlan() =
+        coRouter {
+            POST("/task-plans/add-task", taskPlanRoutesHandler::addTaskToPlan)
+        }
+
+    @Bean
+    @RouterOperation(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         operation =
             Operation(
@@ -81,6 +108,28 @@ class TaskPlanRoutes(
     fun getTaskPlans() =
         coRouter {
             GET("/task-plans", taskPlanRoutesHandler::getTaskPlans)
+        }
+
+    @Bean
+    @RouterOperation(
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "getTasksByPlanId",
+                summary = "get tasks by plan id",
+                parameters = [Parameter(name = TASK_PLAN_ID, `in` = ParameterIn.PATH)],
+                responses = [
+                    ApiResponse(
+                        description = "tasks by plan id",
+                        responseCode = "200",
+                        content = [Content(array = ArraySchema(schema = Schema(implementation = TaskAndPlanDto::class)))],
+                    ),
+                ],
+            ),
+    )
+    fun getTasksByPlanId() =
+        coRouter {
+            GET("/task-plans/{$TASK_PLAN_ID}/tasks", taskPlanRoutesHandler::getTasksByPlanId)
         }
 
     @Bean

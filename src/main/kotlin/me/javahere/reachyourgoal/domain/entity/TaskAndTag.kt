@@ -10,3 +10,8 @@ class TaskAndTag(
     @Column("tag_id")
     val tagId: Int,
 )
+
+class TaskAndTagId(
+    val taskId: Int,
+    val tagId: Int,
+)
