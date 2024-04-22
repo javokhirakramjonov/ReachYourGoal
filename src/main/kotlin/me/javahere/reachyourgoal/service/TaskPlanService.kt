@@ -1,6 +1,7 @@
 package me.javahere.reachyourgoal.service
 
 import kotlinx.coroutines.flow.Flow
+import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 
@@ -10,7 +11,17 @@ interface TaskPlanService {
         requestCreateTaskPlan: RequestCreateTaskPlan,
     ): TaskPlanDto
 
+    suspend fun addTaskToPlan(
+        userId: Int,
+        requestAddTaskToPlan: TaskAndPlanDto,
+    ): TaskAndPlanDto
+
     suspend fun getTaskPlans(userId: Int): Flow<TaskPlanDto>
+
+    suspend fun getTasksByPlanId(
+        planId: Int,
+        userId: Int,
+    ): Flow<TaskAndPlanDto>
 
     suspend fun updateTaskPlan(
         userId: Int,

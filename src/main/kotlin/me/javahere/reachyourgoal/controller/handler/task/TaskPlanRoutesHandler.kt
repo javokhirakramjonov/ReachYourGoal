@@ -1,6 +1,7 @@
 package me.javahere.reachyourgoal.controller.handler.task
 
 import me.javahere.reachyourgoal.controller.routers.TaskPlanRoutes.Companion.TASK_PLAN_ID
+import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 import me.javahere.reachyourgoal.service.TaskPlanService
@@ -31,12 +32,33 @@ class TaskPlanRoutesHandler(
             .bodyValueAndAwait(createdTaskPlan)
     }
 
+    suspend fun addTaskToPlan(serverRequest: ServerRequest): ServerResponse {
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+
+        val taskAndPlan = serverRequest.awaitBody(TaskAndPlanDto::class)
+
+        val addedTaskToPlan = taskPlanService.addTaskToPlan(userId, taskAndPlan)
+
+        return ServerResponse
+            .status(HttpStatus.CREATED)
+            .bodyValueAndAwait(addedTaskToPlan)
+    }
+
     suspend fun getTaskPlans(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
         val taskPlans = taskPlanService.getTaskPlans(userId)
 
         return ServerResponse.ok().bodyAndAwait(taskPlans)
+    }
+
+    suspend fun getTasksByPlanId(serverRequest: ServerRequest): ServerResponse {
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val planId = serverRequest.pathVariable(TASK_PLAN_ID).toInt()
+
+        val tasksByPlanId = taskPlanService.getTasksByPlanId(planId, userId)
+
+        return ServerResponse.ok().bodyAndAwait(tasksByPlanId)
     }
 
     suspend fun updateTaskPlan(serverRequest: ServerRequest): ServerResponse {

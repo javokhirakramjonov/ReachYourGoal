@@ -1,10 +1,10 @@
 package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.flow.Flow
-import me.javahere.reachyourgoal.domain.TaskAndTagId
 import me.javahere.reachyourgoal.domain.dto.TaskTagDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskTag
 import me.javahere.reachyourgoal.domain.entity.TaskAndTag
+import me.javahere.reachyourgoal.domain.entity.TaskAndTagId
 import me.javahere.reachyourgoal.domain.entity.TaskTag
 import me.javahere.reachyourgoal.domain.exception.RYGException
 import me.javahere.reachyourgoal.domain.transformCollection
