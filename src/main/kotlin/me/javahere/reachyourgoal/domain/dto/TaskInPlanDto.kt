@@ -1,15 +1,15 @@
 package me.javahere.reachyourgoal.domain.dto
 
 import me.javahere.reachyourgoal.domain.Transformable
-import me.javahere.reachyourgoal.domain.entity.TaskAndPlan
+import me.javahere.reachyourgoal.domain.entity.TaskInPlan
 
-class TaskAndPlanDto(
+class TaskInPlanDto(
     val task: TaskDto,
     val planId: Int,
     val selectedWeekDays: Int,
-) : Transformable<TaskAndPlan> {
-    override fun transform(): TaskAndPlan {
-        return TaskAndPlan(
+) : Transformable<TaskInPlan> {
+    override fun transform(): TaskInPlan {
+        return TaskInPlan(
             taskId = task.id,
             planId = planId,
             selectedWeekDays = selectedWeekDays,

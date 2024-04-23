@@ -1,8 +1,9 @@
 package me.javahere.reachyourgoal.controller.handler.task
 
 import me.javahere.reachyourgoal.controller.routers.TaskPlanRoutes.Companion.TASK_PLAN_ID
+import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
-import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskAndPlan
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskInPlan
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 import me.javahere.reachyourgoal.service.TaskPlanService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
@@ -35,9 +36,9 @@ class TaskPlanRoutesHandler(
     suspend fun addTaskToPlan(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val taskAndPlan = serverRequest.awaitBody(RequestCreateTaskAndPlan::class)
+        val taskInPlan = serverRequest.awaitBody(RequestCreateTaskInPlan::class)
 
-        val addedTaskToPlan = taskPlanService.addTaskToPlan(userId, taskAndPlan)
+        val addedTaskToPlan = taskPlanService.addTaskToPlan(userId, taskInPlan)
 
         return ServerResponse
             .status(HttpStatus.CREATED)
@@ -88,5 +89,26 @@ class TaskPlanRoutesHandler(
         taskPlanService.deleteTaskPlan(userId, taskPlanId)
 
         return ServerResponse.noContent().buildAndAwait()
+    }
+
+    suspend fun deleteTaskFromPlan(serverRequest: ServerRequest): ServerResponse {
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+
+        val taskPlanId = serverRequest.pathVariable(TASK_PLAN_ID).toInt()
+        val taskId = serverRequest.pathVariable(TASK_ID).toInt()
+
+        taskPlanService.deleteTaskFromPlan(userId, taskPlanId, taskId)
+
+        return ServerResponse.noContent().buildAndAwait()
+    }
+
+    suspend fun updateTaskInPlan(serverRequest: ServerRequest): ServerResponse {
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+
+        val taskInPlan = serverRequest.awaitBody(RequestCreateTaskInPlan::class)
+
+        val updatedTaskInPlan = taskPlanService.updateTaskInPlan(userId, taskInPlan)
+
+        return ServerResponse.ok().bodyValueAndAwait(updatedTaskInPlan)
     }
 }

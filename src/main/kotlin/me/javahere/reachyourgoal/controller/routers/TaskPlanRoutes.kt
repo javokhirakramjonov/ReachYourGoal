@@ -9,9 +9,10 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import me.javahere.reachyourgoal.controller.handler.task.TaskPlanRoutesHandler
-import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
+import me.javahere.reachyourgoal.controller.routers.TaskRoutes.Companion.TASK_ID
+import me.javahere.reachyourgoal.domain.dto.TaskInPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
-import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskAndPlan
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskInPlan
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
@@ -74,20 +75,20 @@ class TaskPlanRoutes(
                 summary = "add task to plan",
                 requestBody =
                     RequestBody(
-                        content = [Content(schema = Schema(implementation = RequestCreateTaskAndPlan::class))],
+                        content = [Content(schema = Schema(implementation = RequestCreateTaskInPlan::class))],
                     ),
                 responses = [
                     ApiResponse(
                         description = "added task to plan",
                         responseCode = "201",
-                        content = [Content(schema = Schema(implementation = TaskAndPlanDto::class))],
+                        content = [Content(schema = Schema(implementation = TaskInPlanDto::class))],
                     ),
                 ],
             ),
     )
     fun addTaskToPlan() =
         coRouter {
-            POST("/task-plans/add-task", taskPlanRoutesHandler::addTaskToPlan)
+            POST("/task-plans/tasks", taskPlanRoutesHandler::addTaskToPlan)
         }
 
     @Bean
@@ -145,7 +146,7 @@ class TaskPlanRoutes(
                     ApiResponse(
                         description = "tasks by plan id",
                         responseCode = "200",
-                        content = [Content(array = ArraySchema(schema = Schema(implementation = TaskAndPlanDto::class)))],
+                        content = [Content(array = ArraySchema(schema = Schema(implementation = TaskInPlanDto::class)))],
                     ),
                 ],
             ),
@@ -200,5 +201,52 @@ class TaskPlanRoutes(
     fun deleteTaskPlan() =
         coRouter {
             DELETE("/task-plans/{$TASK_PLAN_ID}", taskPlanRoutesHandler::deleteTaskPlan)
+        }
+
+    @Bean
+    @RouterOperation(
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "updateTaskInPlan",
+                summary = "update task in plan",
+                requestBody =
+                    RequestBody(
+                        content = [Content(schema = Schema(implementation = RequestCreateTaskInPlan::class))],
+                    ),
+                responses = [
+                    ApiResponse(
+                        description = "updated task and plan",
+                        responseCode = "200",
+                        content = [Content(schema = Schema(implementation = TaskInPlanDto::class))],
+                    ),
+                ],
+            ),
+    )
+    fun updateTaskInPlan() =
+        coRouter {
+            PUT("/task-plans/tasks", taskPlanRoutesHandler::updateTaskInPlan)
+        }
+
+    @Bean
+    @RouterOperation(
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
+                operationId = "deleteTaskFromPlan",
+                summary = "delete task from plan",
+                parameters = [Parameter(name = TASK_PLAN_ID, `in` = ParameterIn.PATH), Parameter(name = TASK_ID, `in` = ParameterIn.PATH)],
+                responses = [
+                    ApiResponse(
+                        description = "deleted task and plan",
+                        responseCode = "200",
+                    ),
+                ],
+            ),
+    )
+    fun deleteTaskFromPlan() =
+        coRouter {
+            DELETE("/task-plans/{$TASK_PLAN_ID}/tasks/{$TASK_ID}", taskPlanRoutesHandler::deleteTaskFromPlan)
         }
 }
