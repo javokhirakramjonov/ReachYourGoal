@@ -12,8 +12,3 @@ data class TaskInPlan(
     @Column("selected_week_days")
     val selectedWeekDays: Int,
 )
-
-class TaskInPlanId(
-    val taskId: Int,
-    val planId: Int,
-)

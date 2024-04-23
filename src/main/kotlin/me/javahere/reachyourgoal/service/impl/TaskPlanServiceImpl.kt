@@ -6,7 +6,6 @@ import me.javahere.reachyourgoal.domain.dto.TaskInPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskInPlan
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
-import me.javahere.reachyourgoal.domain.entity.TaskInPlanId
 import me.javahere.reachyourgoal.domain.entity.TaskPlan
 import me.javahere.reachyourgoal.domain.exception.RYGException
 import me.javahere.reachyourgoal.repository.TaskInPlanRepository
@@ -119,7 +118,7 @@ class TaskPlanServiceImpl(
         validateTaskPlanExistence(taskPlanId, userId)
         taskService.validateTaskExistence(taskId, userId)
 
-        taskInPlanRepository.deleteById(TaskInPlanId(taskId, taskPlanId))
+        taskInPlanRepository.deleteByTaskIdAndPlanId(taskId, taskPlanId)
     }
 
     override suspend fun updateTaskInPlan(

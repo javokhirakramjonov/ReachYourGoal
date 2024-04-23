@@ -236,7 +236,10 @@ class TaskPlanRoutes(
             Operation(
                 operationId = "deleteTaskFromPlan",
                 summary = "delete task from plan",
-                parameters = [Parameter(name = TASK_PLAN_ID, `in` = ParameterIn.PATH), Parameter(name = TASK_ID, `in` = ParameterIn.PATH)],
+                parameters = [
+                    Parameter(name = TASK_PLAN_ID, `in` = ParameterIn.PATH),
+                    Parameter(name = TASK_ID, `in` = ParameterIn.PATH),
+                ],
                 responses = [
                     ApiResponse(
                         description = "deleted task and plan",
