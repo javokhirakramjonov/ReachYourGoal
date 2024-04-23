@@ -4,10 +4,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskAndPlan
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 import me.javahere.reachyourgoal.domain.entity.TaskPlan
 import me.javahere.reachyourgoal.domain.exception.RYGException
-import me.javahere.reachyourgoal.domain.transformCollection
 import me.javahere.reachyourgoal.repository.TaskAndPlanRepository
 import me.javahere.reachyourgoal.repository.TaskPlanRepository
 import me.javahere.reachyourgoal.service.TaskPlanService
@@ -31,14 +31,20 @@ class TaskPlanServiceImpl(
 
     override suspend fun addTaskToPlan(
         userId: Int,
-        requestAddTaskToPlan: TaskAndPlanDto,
+        requestAddTaskToPlan: RequestCreateTaskAndPlan,
     ): TaskAndPlanDto {
         validateTaskPlanExistence(requestAddTaskToPlan.planId, userId)
-        taskService.validateTaskExistence(requestAddTaskToPlan.taskId, userId)
+        val task = taskService.validateTaskExistence(requestAddTaskToPlan.taskId, userId)
 
         return taskAndPlanRepository
             .save(requestAddTaskToPlan.transform())
-            .transform()
+            .let {
+                TaskAndPlanDto(
+                    task = task,
+                    planId = it.planId,
+                    selectedWeekDays = it.selectedWeekDays,
+                )
+            }
     }
 
     override suspend fun getTaskPlans(userId: Int): Flow<TaskPlanDto> {
@@ -55,7 +61,15 @@ class TaskPlanServiceImpl(
 
         return taskAndPlanRepository
             .findAllByPlanId(planId)
-            .transformCollection()
+            .map { taskAndPlan ->
+                val task = taskService.validateTaskExistence(taskAndPlan.taskId, userId)
+
+                TaskAndPlanDto(
+                    task = task,
+                    planId = taskAndPlan.planId,
+                    selectedWeekDays = taskAndPlan.selectedWeekDays,
+                )
+            }
     }
 
     override suspend fun updateTaskPlan(
