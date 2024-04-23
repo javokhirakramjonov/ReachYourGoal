@@ -52,6 +52,15 @@ class TaskPlanRoutesHandler(
         return ServerResponse.ok().bodyAndAwait(taskPlans)
     }
 
+    suspend fun getTaskPlanById(serverRequest: ServerRequest): ServerResponse {
+        val userId = routeHandlerUtils.getUserId(serverRequest)
+        val taskPlanId = serverRequest.pathVariable(TASK_PLAN_ID).toInt()
+
+        val taskPlan = taskPlanService.validateTaskPlanExistence(taskPlanId, userId)
+
+        return ServerResponse.ok().bodyValueAndAwait(taskPlan)
+    }
+
     suspend fun getTasksByPlanId(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
         val planId = serverRequest.pathVariable(TASK_PLAN_ID).toInt()
