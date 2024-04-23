@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import me.javahere.reachyourgoal.controller.handler.task.TaskPlanRoutesHandler
 import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskAndPlan
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.models.GroupedOpenApi
@@ -73,7 +74,7 @@ class TaskPlanRoutes(
                 summary = "add task to plan",
                 requestBody =
                     RequestBody(
-                        content = [Content(schema = Schema(implementation = TaskAndPlanDto::class))],
+                        content = [Content(schema = Schema(implementation = RequestCreateTaskAndPlan::class))],
                     ),
                 responses = [
                     ApiResponse(

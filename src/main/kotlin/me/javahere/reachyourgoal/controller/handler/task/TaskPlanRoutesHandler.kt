@@ -1,8 +1,8 @@
 package me.javahere.reachyourgoal.controller.handler.task
 
 import me.javahere.reachyourgoal.controller.routers.TaskPlanRoutes.Companion.TASK_PLAN_ID
-import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskAndPlan
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
 import me.javahere.reachyourgoal.service.TaskPlanService
 import me.javahere.reachyourgoal.util.extensions.RouteHandlerUtils
@@ -35,7 +35,7 @@ class TaskPlanRoutesHandler(
     suspend fun addTaskToPlan(serverRequest: ServerRequest): ServerResponse {
         val userId = routeHandlerUtils.getUserId(serverRequest)
 
-        val taskAndPlan = serverRequest.awaitBody(TaskAndPlanDto::class)
+        val taskAndPlan = serverRequest.awaitBody(RequestCreateTaskAndPlan::class)
 
         val addedTaskToPlan = taskPlanService.addTaskToPlan(userId, taskAndPlan)
 

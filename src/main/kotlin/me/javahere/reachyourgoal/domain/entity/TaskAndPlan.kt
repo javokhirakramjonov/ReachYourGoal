@@ -1,7 +1,5 @@
 package me.javahere.reachyourgoal.domain.entity
 
-import me.javahere.reachyourgoal.domain.Transformable
-import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 
@@ -13,15 +11,7 @@ data class TaskAndPlan(
     val planId: Int,
     @Column("selected_week_days")
     val selectedWeekDays: Int,
-) : Transformable<TaskAndPlanDto> {
-    override fun transform(): TaskAndPlanDto {
-        return TaskAndPlanDto(
-            taskId = taskId,
-            planId = planId,
-            selectedWeekDays = selectedWeekDays,
-        )
-    }
-}
+)
 
 class TaskAndPlanId(
     val taskId: Int,
