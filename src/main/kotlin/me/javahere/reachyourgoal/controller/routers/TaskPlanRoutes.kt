@@ -116,6 +116,28 @@ class TaskPlanRoutes(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         operation =
             Operation(
+                operationId = "getTaskPlanById",
+                summary = "get task plan by id",
+                parameters = [Parameter(name = TASK_PLAN_ID, `in` = ParameterIn.PATH)],
+                responses = [
+                    ApiResponse(
+                        description = "task plan by id",
+                        responseCode = "200",
+                        content = [Content(schema = Schema(implementation = TaskPlanDto::class))],
+                    ),
+                ],
+            ),
+    )
+    fun getTaskPlanById() =
+        coRouter {
+            GET("/task-plans/{$TASK_PLAN_ID}", taskPlanRoutesHandler::getTaskPlanById)
+        }
+
+    @Bean
+    @RouterOperation(
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        operation =
+            Operation(
                 operationId = "getTasksByPlanId",
                 summary = "get tasks by plan id",
                 parameters = [Parameter(name = TASK_PLAN_ID, `in` = ParameterIn.PATH)],
