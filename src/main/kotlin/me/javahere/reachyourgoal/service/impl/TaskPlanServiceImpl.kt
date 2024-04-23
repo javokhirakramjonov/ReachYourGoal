@@ -2,13 +2,14 @@ package me.javahere.reachyourgoal.service.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import me.javahere.reachyourgoal.domain.dto.TaskAndPlanDto
+import me.javahere.reachyourgoal.domain.dto.TaskInPlanDto
 import me.javahere.reachyourgoal.domain.dto.TaskPlanDto
-import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskAndPlan
+import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskInPlan
 import me.javahere.reachyourgoal.domain.dto.request.RequestCreateTaskPlan
+import me.javahere.reachyourgoal.domain.entity.TaskInPlanId
 import me.javahere.reachyourgoal.domain.entity.TaskPlan
 import me.javahere.reachyourgoal.domain.exception.RYGException
-import me.javahere.reachyourgoal.repository.TaskAndPlanRepository
+import me.javahere.reachyourgoal.repository.TaskInPlanRepository
 import me.javahere.reachyourgoal.repository.TaskPlanRepository
 import me.javahere.reachyourgoal.service.TaskPlanService
 import me.javahere.reachyourgoal.service.TaskService
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Service
 class TaskPlanServiceImpl(
     private val taskService: TaskService,
     private val taskPlanRepository: TaskPlanRepository,
-    private val taskAndPlanRepository: TaskAndPlanRepository,
+    private val taskInPlanRepository: TaskInPlanRepository,
 ) : TaskPlanService {
     override suspend fun createTaskPlan(
         userId: Int,
@@ -31,15 +32,15 @@ class TaskPlanServiceImpl(
 
     override suspend fun addTaskToPlan(
         userId: Int,
-        requestAddTaskToPlan: RequestCreateTaskAndPlan,
-    ): TaskAndPlanDto {
+        requestAddTaskToPlan: RequestCreateTaskInPlan,
+    ): TaskInPlanDto {
         validateTaskPlanExistence(requestAddTaskToPlan.planId, userId)
         val task = taskService.validateTaskExistence(requestAddTaskToPlan.taskId, userId)
 
-        return taskAndPlanRepository
+        return taskInPlanRepository
             .save(requestAddTaskToPlan.transform())
             .let {
-                TaskAndPlanDto(
+                TaskInPlanDto(
                     task = task,
                     planId = it.planId,
                     selectedWeekDays = it.selectedWeekDays,
@@ -56,18 +57,18 @@ class TaskPlanServiceImpl(
     override suspend fun getTasksByPlanId(
         planId: Int,
         userId: Int,
-    ): Flow<TaskAndPlanDto> {
+    ): Flow<TaskInPlanDto> {
         validateTaskPlanExistence(planId, userId)
 
-        return taskAndPlanRepository
+        return taskInPlanRepository
             .findAllByPlanId(planId)
-            .map { taskAndPlan ->
-                val task = taskService.validateTaskExistence(taskAndPlan.taskId, userId)
+            .map { taskInPlan ->
+                val task = taskService.validateTaskExistence(taskInPlan.taskId, userId)
 
-                TaskAndPlanDto(
+                TaskInPlanDto(
                     task = task,
-                    planId = taskAndPlan.planId,
-                    selectedWeekDays = taskAndPlan.selectedWeekDays,
+                    planId = taskInPlan.planId,
+                    selectedWeekDays = taskInPlan.selectedWeekDays,
                 )
             }
     }
@@ -108,5 +109,34 @@ class TaskPlanServiceImpl(
             ?.takeIf { it.userId == userId }
             ?.transform()
             ?: throw RYGException("Task plan(id = $taskPlanId) not found for user(id = $userId)")
+    }
+
+    override suspend fun deleteTaskFromPlan(
+        userId: Int,
+        taskPlanId: Int,
+        taskId: Int,
+    ) {
+        validateTaskPlanExistence(taskPlanId, userId)
+        taskService.validateTaskExistence(taskId, userId)
+
+        taskInPlanRepository.deleteById(TaskInPlanId(taskId, taskPlanId))
+    }
+
+    override suspend fun updateTaskInPlan(
+        userId: Int,
+        taskInPlan: RequestCreateTaskInPlan,
+    ): TaskInPlanDto {
+        validateTaskPlanExistence(taskInPlan.planId, userId)
+        val task = taskService.validateTaskExistence(taskInPlan.taskId, userId)
+
+        return taskInPlanRepository
+            .save(taskInPlan.transform())
+            .let {
+                TaskInPlanDto(
+                    task = task,
+                    planId = it.planId,
+                    selectedWeekDays = it.selectedWeekDays,
+                )
+            }
     }
 }
