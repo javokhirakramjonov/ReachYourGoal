@@ -128,8 +128,14 @@ class TaskPlanServiceImpl(
         validateTaskPlanExistence(taskInPlan.planId, userId)
         val task = taskService.validateTaskExistence(taskInPlan.taskId, userId)
 
+        val taskInPlanEntity =
+            taskInPlanRepository
+                .findByTaskIdAndPlanId(taskInPlan.taskId, taskInPlan.planId)
+                ?.copy(selectedWeekDays = taskInPlan.selectedWeekDays)
+                ?: throw RYGException("Task(id = ${taskInPlan.taskId}) not found in plan(id = ${taskInPlan.planId})")
+
         return taskInPlanRepository
-            .save(taskInPlan.transform())
+            .save(taskInPlanEntity)
             .let {
                 TaskInPlanDto(
                     task = task,
